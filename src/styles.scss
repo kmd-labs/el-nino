@@ -1,0 +1,48 @@
+@use "variables" as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: color("bg-deep");
+  color: color("text-main");
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: color("accent-glow");
+  color: color("text-bright");
+}
+
+:focus-visible {
+  outline: 2px solid color("accent");
+  outline-offset: 2px;
+}
+
+// Global utility classes
+.glass-panel {
+  @include glass-panel(false);
+}
+
+.glass-panel--heavy {
+  @include glass-panel(true);
+}

@@ -1,0 +1,125 @@
+<div class="panel glass-panel" [class.collapsed]="state.panelCollapsed()">
+  <div class="ph">
+    <div class="ph__title">Stan: {{ state.category().name }}</div>
+    <app-button
+      variant="ghost"
+      ariaLabel="Zwiń panel"
+      (btnClick)="togglePanel()">
+      {{ state.panelCollapsed() ? '▴' : '▾' }}
+    </app-button>
+  </div>
+
+  <div class="panel__body">
+    <!-- Presets -->
+    <div class="seg">
+      @for (p of presets; track p.strength) {
+        <app-button
+          variant="preset"
+          [active]="state.sTarget() === p.strength"
+          [hot]="!!p.hot"
+          (btnClick)="onPresetClick(p)">
+          {{ p.label }}
+        </app-button>
+      }
+    </div>
+
+    <!-- ENSO strength slider -->
+    <div class="row">
+      <label for="slider">Siła ENSO</label>
+      <input
+        type="range"
+        id="slider"
+        min="-2"
+        max="3"
+        step="0.05"
+        [value]="state.sTarget()"
+        (input)="onSliderInput($event)" />
+    </div>
+
+    <!-- Play 4-year cycle button & running month -->
+    <div class="row row--two">
+      <app-button
+        variant="play"
+        [active]="state.isPlaying()"
+        (btnClick)="onPlayClick()">
+        {{ state.isPlaying() ? '❚❚ Zatrzymaj' : '▶ Cykl ENSO (4 lata)' }}
+      </app-button>
+      <span class="mute">{{ state.monthText() }}</span>
+    </div>
+
+    <!-- Phase description -->
+    <p class="desc">{{ state.description() }}</p>
+
+    <!-- Historical impacts hint -->
+    <div class="hint">{{ state.hint() }}</div>
+
+    <!-- Pin types legend -->
+    <div class="pinleg">
+      <span [style.color]="kindHex['dry']"><i></i>susza / upał</span>
+      <span [style.color]="kindHex['fire']"><i></i>pożary</span>
+      <span [style.color]="kindHex['wet']"><i></i>powodzie / ulewy</span>
+      <span [style.color]="kindHex['other']"><i></i>rybołówstwo / choroby</span>
+    </div>
+
+    <!-- Mode switch and feature toggles -->
+    <div class="row row--two">
+      <div class="seg seg--small">
+        <app-button
+          variant="toggle"
+          [active]="state.displayMode() === 'sst'"
+          (btnClick)="onModeClick('sst')">
+          Temperatura
+        </app-button>
+        <app-button
+          variant="toggle"
+          [active]="state.displayMode() === 'anom'"
+          (btnClick)="onModeClick('anom')">
+          Anomalia
+        </app-button>
+      </div>
+
+      <div class="chks">
+        <label class="chk">
+          <input
+            type="checkbox"
+            [checked]="state.showAtmosphere()"
+            (change)="toggleAtmosphere()" />
+          Atmosfera
+        </label>
+        <label class="chk">
+          <input
+            type="checkbox"
+            [checked]="state.showEvents()"
+            (change)="toggleEvents()" />
+          Zdarzenia
+        </label>
+        <label class="chk">
+          <input
+            type="checkbox"
+            [checked]="state.autoRotate()"
+            (change)="toggleAutoRotate()" />
+          Obrót
+        </label>
+      </div>
+    </div>
+
+    <!-- Gradient legend -->
+    <div class="legend">
+      <div class="lt">
+        {{ state.displayMode() === 'sst' ? 'Temperatura powierzchni oceanu (°C)' : 'Anomalia temperatury względem normy (°C)' }}
+      </div>
+      <canvas #legendCanvas class="legend__bar" width="300" height="9"></canvas>
+      <div class="ticks">
+        <span>{{ state.displayMode() === 'sst' ? '−2' : '−3' }}</span>
+        <span>{{ state.displayMode() === 'sst' ? '15' : '0' }}</span>
+        <span>{{ state.displayMode() === 'sst' ? '31' : '+3' }}</span>
+      </div>
+    </div>
+
+    <!-- Equatorial depth cross-section -->
+    <div class="inset">
+      <div class="lt">Przekrój wzdłuż równika (Pacyfik, 0–300 m) — termoklina</div>
+      <canvas #sectionCanvas class="inset__canvas" width="360" height="110"></canvas>
+    </div>
+  </div>
+</div>

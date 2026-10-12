@@ -1,0 +1,83 @@
+@use "../../../variables" as *;
+
+.header {
+  position: fixed;
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 10;
+
+  &__info {
+    pointer-events: auto;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: font-size("lg");
+    font-weight: font-weight("semibold");
+    line-height: 1.2;
+    color: color("text-bright");
+
+    span {
+      color: color("accent");
+    }
+  }
+
+  &__sub {
+    font-size: font-size("xs");
+    color: color("text-dim");
+    margin-top: 3px;
+  }
+
+  &__loading {
+    font-size: font-size("xs");
+    color: color("loading-warn");
+    margin-top: 4px;
+
+    &--error {
+      color: #ff8888;
+    }
+  }
+
+  &__readout {
+    pointer-events: auto;
+    text-align: right;
+    border-radius: radius("badge");
+    padding: 8px 12px;
+    flex: none;
+
+    .k {
+      font-size: font-size("xxs");
+      color: color("text-dim");
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .v {
+      font-size: font-size("xl");
+      font-weight: font-weight("bold");
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+      color: color("text-bright");
+    }
+  }
+
+  @include respond-to("mobile") {
+    &__title {
+      font-size: font-size("md");
+    }
+
+    &__sub {
+      display: none;
+    }
+
+    &__readout .v {
+      font-size: 19px;
+    }
+  }
+}

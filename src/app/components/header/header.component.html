@@ -1,0 +1,17 @@
+<header class="header">
+  <div class="header__info">
+    <h1 class="header__title">Super <span>El Niño</span> — glob 3D</h1>
+    <div class="header__sub">Model koncepcyjny · przeciągnij, aby obracać · przewiń / uszczypnij, aby przybliżyć</div>
+    @if (!state.mapLoaded()) {
+      <div class="header__loading" [class.header__loading--error]="state.mapError() !== null">
+        {{ state.mapError() || 'Ładowanie mapy kontynentów…' }}
+      </div>
+    }
+  </div>
+
+  <div class="header__readout glass-panel">
+    <div class="k">Anomalia Niño 3.4</div>
+    <div class="v">{{ formattedNino() }}</div>
+    <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
+  </div>
+</header>

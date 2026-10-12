@@ -1,0 +1,84 @@
+@use "../../../../variables" as *;
+
+.btn {
+  font: inherit;
+  font-size: font-size("sm");
+  color: color("text-main");
+  background: color("btn-bg");
+  border: 1px solid color("line");
+  border-radius: radius("control");
+  padding: 7px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background transition("fast"), border-color transition("fast"), transform transition("fast");
+  user-select: none;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: color("btn-hover");
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  // Variant: ghost (e.g. close, collapse icons)
+  &--ghost {
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    font-size: font-size("lg");
+    color: color("text-dim");
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      color: color("text-bright");
+    }
+  }
+
+  // Variant: preset buttons
+  &--preset {
+    width: 100%;
+    text-align: center;
+
+    &.btn--active {
+      background: color("btn-active-blue");
+      border-color: color("btn-active-blue-border");
+      color: color("text-bright");
+    }
+
+    &.btn--hot.btn--active {
+      background: color("btn-active-red");
+      border-color: color("btn-active-red-border");
+      color: #ffddd2;
+    }
+  }
+
+  // Variant: play button
+  &--play {
+    &.btn--active {
+      background: color("btn-play-active");
+      border-color: color("btn-play-border");
+      color: color("accent-hover");
+    }
+  }
+
+  // Variant: toggle button (e.g. Temperatura / Anomalia)
+  &--toggle {
+    padding: 5px 10px;
+    font-size: font-size("xs");
+
+    &.btn--active {
+      background: color("btn-active-blue");
+      border-color: color("btn-active-blue-border");
+      color: color("text-bright");
+    }
+  }
+}

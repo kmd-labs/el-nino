@@ -1,0 +1,179 @@
+@use "sass:map";
+
+// ─── Design System Tokens (SCSS Maps) ──────────────────────────────────────────
+
+$colors: (
+  // Backgrounds & Surfaces
+  "bg-deep": #03060d,
+  "panel-bg": rgba(9, 16, 30, 0.84),
+  "panel-bg-solid": #09101e,
+  "panel-bg-heavy": rgba(9, 16, 30, 0.95),
+  "tooltip-bg": rgba(4, 9, 20, 0.85),
+  "badge-bg": #6f7d98,
+
+  // Borders & Accents
+  "line": rgba(140, 180, 255, 0.18),
+  "line-strong": rgba(140, 180, 255, 0.35),
+  "accent": #ff6a2e,
+  "accent-hover": #ff824d,
+  "accent-glow": rgba(255, 106, 46, 0.35),
+  "cool": #38bdf8,
+  "loading-warn": #ffcf94,
+
+  // Typography
+  "text-main": #e6eefc,
+  "text-dim": #8ea3c4,
+  "text-bright": #ffffff,
+  "text-desc": #c9d6ee,
+  "text-note": #a9b9d4,
+  "link-color": #8cc2ff,
+
+  // ENSO Phases
+  "phase-super": #e8361f,
+  "phase-nino": #f08a1c,
+  "phase-nina": #2f7fe8,
+  "phase-neu": #6f7d98,
+
+  // Historical Impacts Kind
+  "kind-dry": #ff9a3d,
+  "kind-fire": #ff4f3a,
+  "kind-wet": #5fb0ff,
+  "kind-other": #c39bff,
+
+  // Buttons & Controls
+  "btn-bg": rgba(255, 255, 255, 0.06),
+  "btn-hover": rgba(255, 255, 255, 0.12),
+  "btn-active-blue": rgba(120, 170, 255, 0.22),
+  "btn-active-blue-border": rgba(140, 190, 255, 0.6),
+  "btn-active-red": rgba(255, 90, 40, 0.28),
+  "btn-active-red-border": rgba(255, 120, 70, 0.75),
+  "btn-play-active": rgba(255, 106, 46, 0.25),
+  "btn-play-border": rgba(255, 130, 80, 0.7)
+);
+
+$breakpoints: (
+  "mobile": 600px,
+  "tablet": 900px,
+  "desktop": 1200px
+);
+
+$transitions: (
+  "fast": 0.15s ease,
+  "base": 0.3s ease,
+  "slow": 0.5s ease
+);
+
+$radii: (
+  "xs": 4px,
+  "sm": 8px,
+  "control": 9px,
+  "badge": 12px,
+  "card": 14px,
+  "panel": 16px,
+  "pill": 9999px
+);
+
+$font-weights: (
+  "regular": 400,
+  "medium": 500,
+  "semibold": 650,
+  "bold": 700
+);
+
+$font-sizes: (
+  "xxs": 0.656rem, // 10.5px
+  "xs": 0.719rem,  // 11.5px
+  "sm": 0.781rem,  // 12.5px
+  "base": 0.875rem,// 14px
+  "md": 0.938rem,  // 15px
+  "lg": 1.125rem,  // 18px
+  "xl": 1.5rem     // 24px
+);
+
+// ─── Functions ────────────────────────────────────────────────────────────────
+
+@function color($key) {
+  @if map.has-key($colors, $key) {
+    @return map.get($colors, $key);
+  }
+  @warn "Unknown color `#{$key}` in $colors map.";
+  @return null;
+}
+
+@function transition($key: "base") {
+  @if map.has-key($transitions, $key) {
+    @return map.get($transitions, $key);
+  }
+  @warn "Unknown transition `#{$key}` in $transitions map.";
+  @return null;
+}
+
+@function radius($key) {
+  @if map.has-key($radii, $key) {
+    @return map.get($radii, $key);
+  }
+  @warn "Unknown radius `#{$key}` in $radii map.";
+  @return null;
+}
+
+@function font-weight($key) {
+  @if map.has-key($font-weights, $key) {
+    @return map.get($font-weights, $key);
+  }
+  @warn "Unknown font-weight `#{$key}` in $font-weights map.";
+  @return null;
+}
+
+@function font-size($key) {
+  @if map.has-key($font-sizes, $key) {
+    @return map.get($font-sizes, $key);
+  }
+  @warn "Unknown font-size `#{$key}` in $font-sizes map.";
+  @return null;
+}
+
+// ─── Mixins ───────────────────────────────────────────────────────────────────
+
+@mixin respond-to($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (max-width: map.get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @media (max-width: $breakpoint) {
+      @content;
+    }
+  }
+}
+
+@mixin glass-panel($heavy: false) {
+  @if $heavy {
+    background: color("panel-bg-heavy");
+    border: 1px solid color("line-strong");
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  } @else {
+    background: color("panel-bg");
+    border: 1px solid color("line");
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: radius("panel");
+}
+
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(140, 180, 255, 0.2);
+    border-radius: radius("pill");
+    &:hover {
+      background: rgba(140, 180, 255, 0.4);
+    }
+  }
+}
