@@ -1,0 +1,38 @@
+<aside id="glossary" class="gl glass-panel--heavy" aria-labelledby="gl-title">
+  <div class="gl__head">
+    <h2 id="gl-title" class="gl__title">Istotne terminy</h2>
+    <app-button variant="ghost" ariaLabel="Zamknij" (btnClick)="close()">×</app-button>
+  </div>
+
+  <input
+    #search
+    class="gl__search"
+    type="search"
+    placeholder="Szukaj, np. termoklina"
+    aria-label="Szukaj terminu"
+    [value]="query()"
+    (input)="onSearch($event)" />
+
+  <div class="gl__body">
+    @for (g of groups(); track g.title) {
+      <section class="gl__group">
+        <h3 class="gl__gtitle">{{ g.title }}</h3>
+        <dl>
+          @for (t of g.terms; track t.term) {
+            <div class="gl__item">
+              <dt>{{ t.term }}</dt>
+              <dd>
+                {{ t.text }}
+                <a class="gl__wiki" [href]="t.wiki" target="_blank" rel="noopener noreferrer">
+                  Wikipedia{{ t.wikiLang === 'en' ? ' (ang.)' : '' }} ↗
+                </a>
+              </dd>
+            </div>
+          }
+        </dl>
+      </section>
+    } @empty {
+      <p class="gl__empty">Brak terminów pasujących do „{{ query() }}”.</p>
+    }
+  </div>
+</aside>

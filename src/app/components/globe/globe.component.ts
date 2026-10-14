@@ -5,6 +5,9 @@ import {
   AfterViewInit,
   OnDestroy,
   NgZone,
+  ViewChildren,
+  QueryList,
+  signal,
   inject,
   HostListener
 } from '@angular/core';
@@ -16,6 +19,7 @@ import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { EVENTS, KIND } from '../../core/constants/enso-data';
+import { RAIN_REGIONS } from '../../core/constants/impacts-data';
 import { EnsoPhase, ImpactKind, ImpactLocation } from '../../core/models/enso.model';
 
 interface PinItem {
@@ -31,7 +35,10 @@ interface CloudPuff {
   dLon: number;
   dLat: number;
   alt: number;
-  sc: number;
+  sx: number;
+  sy: number;
+  sz: number;
+  ph: number;
 }
 
 @Component({
@@ -39,13 +46,16 @@ interface CloudPuff {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './globe.component.html',
-  styleUrl: './globe.component.scss'
+  styleUrl: './globe.component.scss',
+  host: { '[class.is-hidden]': "state.view() === 'walker'" }
 })
 export class GlobeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasRef') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('lblConvRef') lblConvRef!: ElementRef<HTMLDivElement>;
   @ViewChild('lblNinoRef') lblNinoRef!: ElementRef<HTMLDivElement>;
   @ViewChild('lblWalkerRef') lblWalkerRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('lblKelvinRef') lblKelvinRef!: ElementRef<HTMLDivElement>;
+  @ViewChildren('rainLbl') rainLblRefs!: QueryList<ElementRef<HTMLDivElement>>;
   @ViewChild('tooltipRef') tooltipRef!: ElementRef<HTMLDivElement>;
 
   private ngZone = inject(NgZone);
@@ -76,27 +86,84 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   // Atmosphere
   private atmGroup!: THREE.Group;
-  private pGeo!: THREE.BufferGeometry;
-  private pPos!: Float32Array;
-  private pCol!: Float32Array;
-  private pTh!: Float32Array;
-  private pLat!: Float32Array;
-  private pR!: Float32Array;
-  private pU!: Float32Array;
-  private pV!: Float32Array;
-  private readonly NP = 2200;
-  private readonly cLow = new THREE.Color('#ffcf94');
-  private readonly cHigh = new THREE.Color('#8fbaff');
-  private readonly LW0 = 60;
   private readonly LE0 = 285;
 
+  // Wind streaks (Windy-style trails): surface trade winds / westerly bursts
+  private readonly NW = 1700;
+  private readonly TRAIL = 28;
+  private readonly W_LON0 = 40;
+  private readonly W_LON1 = 290;
+  private readonly W_LAT = 30;
+  private wLon!: Float32Array;
+  private wLat!: Float32Array;
+  private wAge!: Float32Array;
+  private wLife!: Float32Array;
+  private wHist!: Float32Array;
+  private wGeo!: THREE.BufferGeometry;
+  private wPos!: Float32Array;
+  private wCol!: Float32Array;
+  private readonly cWind = new THREE.Color('#e9eef6');
+
+  // Ocean wave crests: equatorial Kelvin waves travelling east
+  private readonly NV = 750;
+  // wave crests live in two basins split by the Maritime Continent
+  private readonly IO_LON0 = 48;
+  private readonly IO_LON1 = 100;
+  private readonly V_LON0 = 125;
+  private readonly V_LON1 = 282;
+  private vLon!: Float32Array;
+  private vLat!: Float32Array;
+  private vAge!: Float32Array;
+  private vLife!: Float32Array;
+  private vGeo!: THREE.BufferGeometry;
+  private vPos!: Float32Array;
+  private vCol!: Float32Array;
+  private readonly cWaveWarm = new THREE.Color('#a8f0ff');
+  private readonly cWaveCold = new THREE.Color('#4f8fff');
+  private readonly cWave = new THREE.Color();
+  private readonly cWaveIO = new THREE.Color();
+  private readonly WAVE_LEN = 4.2; // spacing between wave fronts, degrees
+  private wavePhase = 0;
+  private pulsePhase = 0;
+
+  // Land mask (1° grid, 1 = land) used to keep wave crests on the ocean
+  private landMask: Uint8Array | null = null;
+
   private puffs: CloudPuff[] = [];
+  // cloud towers relative to the convection centre: offsets in degrees, height above the surface
+  private readonly CLOUD_BASE = 0.45;
+  private readonly TOWERS = [
+    { lon: 0, lat: 0, h: 1.35 },
+    { lon: 6, lat: -3, h: 1.1 },
+    { lon: -7, lat: 4, h: 1.0 },
+    { lon: -4, lat: -6, h: 0.8 },
+    { lon: 9, lat: 5, h: 0.75 }
+  ];
   private readonly NR = 380;
   private rLon!: Float32Array;
   private rLat!: Float32Array;
   private rH!: Float32Array;
   private rGeo!: THREE.BufferGeometry;
   private rPos!: Float32Array;
+
+  // Lightning: an occasional short zigzag bolt below a tower plus a flash lighting the cloud
+  private boltGeo!: THREE.BufferGeometry;
+  private boltPos!: Float32Array;
+  private boltMat!: THREE.LineBasicMaterial;
+  private boltLight!: THREE.PointLight;
+  private boltT = 0;
+  private nextBolt = 2;
+  private readonly BOLT_SEG = 11;
+
+  // Impact on continents: rainfall anomaly regions painted on an overlay sphere, with labels
+  private impCanvas!: HTMLCanvasElement;
+  private impTex!: THREE.CanvasTexture;
+  private impMesh!: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>;
+  readonly rainRegions = RAIN_REGIONS;
+  readonly impSign = signal(1);   // +1 El Niño pattern, −1 reversed (La Niña)
+  private impDrawn = 0;           // sign the overlay canvas was last painted with
+  private impA = 0;               // faded opacity
+  private impPos: THREE.Vector3[] = [];
 
   // Pins & interaction
   private pinGroup!: THREE.Group;
@@ -109,6 +176,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private readonly pv = new THREE.Vector3();
   private readonly fv = new THREE.Vector3();
   private readonly tmpVec = new THREE.Vector3();
+  private readonly cEast = new THREE.Vector3();
+  private readonly cUp = new THREE.Vector3();
+  private readonly cNorth = new THREE.Vector3();
+  private readonly cBasis = new THREE.Matrix4();
 
   private lastS = 999;
   private lastMode = '';
@@ -120,6 +191,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initLandOverlay();
       this.initAtmosphere();
       this.initPins();
+      this.initImpacts();
       this.handleResize();
       this.animate();
     });
@@ -264,7 +336,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.scene.add(globeMesh);
   }
 
-  private recolorTexture(s: number, mode: 'sst' | 'anom') {
+  private recolorTexture(s: number, mode: 'sst' | 'anom', dim = false) {
     const { lut, lo, hi } = mode === 'sst' ? this.math.lutSst : this.math.lutAnom;
     const sc = 255 / (hi - lo);
     const sp = Math.max(0, s);
@@ -277,9 +349,16 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const v = isSST ? this.CLIM[i] + a : a;
       const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
       const o = i * 4;
-      this.texData[o] = lut[k];
-      this.texData[o + 1] = lut[k + 1];
-      this.texData[o + 2] = lut[k + 2];
+      if (dim) {
+        // muted, darker ocean: keeps the anomaly readable but lets the rainfall regions stand out
+        this.texData[o] = 14 + lut[k] * 0.38;
+        this.texData[o + 1] = 24 + lut[k + 1] * 0.38;
+        this.texData[o + 2] = 40 + lut[k + 2] * 0.38;
+      } else {
+        this.texData[o] = lut[k];
+        this.texData[o + 1] = lut[k + 1];
+        this.texData[o + 2] = lut[k + 2];
+      }
       this.texData[o + 3] = 255;
     }
     this.sstTex.needsUpdate = true;
@@ -372,72 +451,120 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     ctx.setLineDash([]);
 
     this.landTex.needsUpdate = true;
+
+    if (land) this.buildLandMask(land);
+  }
+
+  private buildLandMask(land: any) {
+    const mc = document.createElement('canvas');
+    mc.width = 360;
+    mc.height = 180;
+    const mctx = mc.getContext('2d', { willReadFrequently: true });
+    if (!mctx) return;
+    const proj = d3Geo.geoEquirectangular().scale(360 / (2 * Math.PI)).translate([180, 90]);
+    mctx.beginPath();
+    d3Geo.geoPath(proj, mctx)(land);
+    mctx.fillStyle = '#000';
+    mctx.fill();
+    const px = mctx.getImageData(0, 0, 360, 180).data;
+    const mask = new Uint8Array(360 * 180);
+    for (let i = 0; i < mask.length; i++) mask[i] = px[i * 4 + 3] > 64 ? 1 : 0;
+    this.landMask = mask;
+  }
+
+  private isLand(lon: number, lat: number): boolean {
+    if (!this.landMask) return false;
+    const c = Math.floor(((((lon + 180) % 360) + 360) % 360));
+    const r = this.math.clamp(Math.floor(90 - lat), 0, 179);
+    return this.landMask[r * 360 + c] === 1;
   }
 
   private initAtmosphere() {
     this.atmGroup = new THREE.Group();
     this.scene.add(this.atmGroup);
 
-    // Particle texture
-    const dotCanvas = document.createElement('canvas');
-    dotCanvas.width = dotCanvas.height = 64;
-    const dotCtx = dotCanvas.getContext('2d')!;
-    const gr = dotCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gr.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gr.addColorStop(0.4, 'rgba(255, 255, 255, 0.55)');
-    gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    dotCtx.fillStyle = gr;
-    dotCtx.fillRect(0, 0, 64, 64);
-    const dotTex = new THREE.CanvasTexture(dotCanvas);
-
-    this.pTh = new Float32Array(this.NP);
-    this.pLat = new Float32Array(this.NP);
-    this.pR = new Float32Array(this.NP);
-    this.pU = new Float32Array(this.NP);
-    this.pV = new Float32Array(this.NP);
-
-    for (let i = 0; i < this.NP; i++) {
-      this.pTh[i] = Math.random() * Math.PI * 2;
-      this.pLat[i] = (Math.random() - 0.5) * 22;
-      this.pR[i] = 0.55 + Math.random() * 0.5;
-      this.pU[i] = Math.random();
-      this.pV[i] = 0.7 + Math.random() * 0.6;
-    }
-
-    this.pGeo = new THREE.BufferGeometry();
-    this.pPos = new Float32Array(this.NP * 3);
-    this.pCol = new Float32Array(this.NP * 3);
-    this.pGeo.setAttribute('position', new THREE.BufferAttribute(this.pPos, 3));
-    this.pGeo.setAttribute('color', new THREE.BufferAttribute(this.pCol, 3));
-
-    const pMat = new THREE.PointsMaterial({
-      size: 0.075,
-      map: dotTex,
+    // Additive blending: a vertex colour fading to black fades the line out
+    const lineMat = () => new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.9,
       depthWrite: false,
       blending: THREE.AdditiveBlending
     });
-    this.atmGroup.add(new THREE.Points(this.pGeo, pMat));
 
-    // Cloud puffs
-    const cloudMat = new THREE.MeshLambertMaterial({ color: 0xf2f5ff, transparent: true, opacity: 0.88 });
-    const puffGeo = new THREE.SphereGeometry(1, 14, 10);
+    // Wind streaks: each particle keeps a short history of positions drawn as a fading trail
+    this.wLon = new Float32Array(this.NW);
+    this.wLat = new Float32Array(this.NW);
+    this.wAge = new Float32Array(this.NW);
+    this.wLife = new Float32Array(this.NW);
+    this.wHist = new Float32Array(this.NW * this.TRAIL * 3);
+    for (let i = 0; i < this.NW; i++) {
+      this.spawnWind(i);
+      this.wAge[i] = Math.random() * this.wLife[i];
+    }
+    const wSeg = this.NW * (this.TRAIL - 1) * 2;
+    this.wGeo = new THREE.BufferGeometry();
+    this.wPos = new Float32Array(wSeg * 3);
+    this.wCol = new Float32Array(wSeg * 3);
+    this.wGeo.setAttribute('position', new THREE.BufferAttribute(this.wPos, 3));
+    this.wGeo.setAttribute('color', new THREE.BufferAttribute(this.wCol, 3));
+    this.atmGroup.add(new THREE.LineSegments(this.wGeo, lineMat()));
+
+    // Wave crests: short marks perpendicular to the direction of travel
+    this.vLon = new Float32Array(this.NV);
+    this.vLat = new Float32Array(this.NV);
+    this.vAge = new Float32Array(this.NV);
+    this.vLife = new Float32Array(this.NV);
+    for (let i = 0; i < this.NV; i++) {
+      this.spawnWave(i);
+      this.vAge[i] = Math.random() * this.vLife[i];
+    }
+    this.vGeo = new THREE.BufferGeometry();
+    this.vPos = new Float32Array(this.NV * 4 * 3);
+    this.vCol = new Float32Array(this.NV * 4 * 3);
+    this.vGeo.setAttribute('position', new THREE.BufferAttribute(this.vPos, 3));
+    this.vGeo.setAttribute('color', new THREE.BufferAttribute(this.vCol, 3));
+    this.atmGroup.add(new THREE.LineSegments(this.vGeo, lineMat()));
+
+    // Convective towers: stacked cumulonimbus with a dark base, billowing column and flat anvil
+    const puffGeo = new THREE.SphereGeometry(1, 18, 12);
+    const matBase = new THREE.MeshLambertMaterial({ color: 0x8f9bb0, transparent: true, opacity: 0.92 });
+    const matMid = new THREE.MeshLambertMaterial({ color: 0xdfe5f1, transparent: true, opacity: 0.9 });
+    const matTop = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
     this.puffs = [];
-    for (let i = 0; i < 34; i++) {
-      const m = new THREE.Mesh(puffGeo, cloudMat);
-      const dLon = (Math.random() - 0.5) * 22;
-      const dLat = (Math.random() - 0.5) * 18;
-      const core = 1 - Math.min(1, Math.hypot(dLon / 11, dLat / 9));
-      this.puffs.push({
-        m,
-        dLon,
-        dLat,
-        alt: 0.18 + Math.random() * 0.2 + core * 0.35,
-        sc: 0.14 + Math.random() * 0.14 + core * 0.12
-      });
+    const add = (mat: THREE.Material, dLon: number, dLat: number, alt: number, sx: number, sy: number, sz: number) => {
+      const m = new THREE.Mesh(puffGeo, mat);
+      this.puffs.push({ m, dLon, dLat, alt, sx, sy, sz, ph: Math.random() * Math.PI * 2 });
       this.atmGroup.add(m);
+    };
+    const jit = (r: number) => (Math.random() * 2 - 1) * r;
+    for (const tw of this.TOWERS) {
+      // flat, dark cloud base
+      for (let k = 0; k < 8; k++) {
+        const r = 0.09 + Math.random() * 0.04;
+        add(matBase, tw.lon + jit(1.8), tw.lat + jit(1.8), this.CLOUD_BASE, r * 1.4, r * 0.55, r * 1.4);
+      }
+      // billowing column: clusters of small puffs every level, narrowing slightly with height
+      const levels = Math.max(2, Math.round((tw.h - this.CLOUD_BASE - 0.1) / 0.07));
+      for (let l = 0; l < levels; l++) {
+        const f = l / (levels - 1);
+        const alt = this.CLOUD_BASE + 0.07 + f * (tw.h - this.CLOUD_BASE - 0.18);
+        const spread = 1.0 - 0.35 * f;
+        for (let k = 0; k < 3; k++) {
+          const r = (0.085 - 0.02 * f) * (0.8 + Math.random() * 0.45);
+          add(matMid, tw.lon + jit(spread), tw.lat + jit(spread), alt + jit(0.02), r, r * 0.92, r);
+        }
+      }
+      // cauliflower top
+      for (let k = 0; k < 5; k++) {
+        const r = 0.07 + Math.random() * 0.03;
+        add(matTop, tw.lon + jit(0.9), tw.lat + jit(0.9), tw.h - 0.06 + jit(0.03), r, r, r);
+      }
+      // anvil spreading out under the tropopause
+      for (let k = 0; k < 10; k++) {
+        const r = 0.12 + Math.random() * 0.07;
+        const d = (k / 9) * 2 - 1;
+        add(matTop, tw.lon + d * 3.6 + jit(0.6), tw.lat + jit(1.6), tw.h + 0.02 - 0.03 * Math.abs(d), r * 1.6, r * 0.24, r * 1.2);
+      }
     }
 
     // Rain lines
@@ -445,9 +572,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.rLat = new Float32Array(this.NR);
     this.rH = new Float32Array(this.NR);
     for (let i = 0; i < this.NR; i++) {
-      this.rLon[i] = (Math.random() - 0.5) * 22;
-      this.rLat[i] = (Math.random() - 0.5) * 16;
-      this.rH[i] = Math.random() * 0.45;
+      // rain falls from the three biggest towers
+      const tw = this.TOWERS[i % 3];
+      this.rLon[i] = tw.lon + (Math.random() - 0.5) * 6;
+      this.rLat[i] = tw.lat + (Math.random() - 0.5) * 6;
+      this.rH[i] = Math.random() * (this.CLOUD_BASE - 0.02);
     }
     this.rGeo = new THREE.BufferGeometry();
     this.rPos = new Float32Array(this.NR * 6);
@@ -455,9 +584,81 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.atmGroup.add(
       new THREE.LineSegments(
         this.rGeo,
-        new THREE.LineBasicMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.6 })
+        new THREE.LineBasicMaterial({ color: 0x9fc4e8, transparent: true, opacity: 0.45 })
       )
     );
+
+    this.boltPos = new Float32Array(this.BOLT_SEG * 2 * 3);
+    this.boltGeo = new THREE.BufferGeometry();
+    this.boltGeo.setAttribute('position', new THREE.BufferAttribute(this.boltPos, 3));
+    this.boltMat = new THREE.LineBasicMaterial({
+      color: 0xeef3ff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    this.atmGroup.add(new THREE.LineSegments(this.boltGeo, this.boltMat));
+    this.boltLight = new THREE.PointLight(0xcfdcff, 0, 1.4, 1);
+    this.atmGroup.add(this.boltLight);
+  }
+
+  private initImpacts() {
+    this.impCanvas = document.createElement('canvas');
+    this.impCanvas.width = 2048;
+    this.impCanvas.height = 1024;
+    this.impTex = new THREE.CanvasTexture(this.impCanvas);
+    this.impTex.colorSpace = THREE.SRGBColorSpace;
+    this.impMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(this.math.R * 1.0045, 128, 64),
+      new THREE.MeshBasicMaterial({ map: this.impTex, transparent: true, depthWrite: false, opacity: 0 })
+    );
+    this.impMesh.visible = false;
+    this.scene.add(this.impMesh);
+    this.drawImpacts(1);
+    this.impPos = RAIN_REGIONS.map(r => this.math.pos(r.lon, r.lat, this.math.R * 1.01));
+  }
+
+  /** Paint the rainfall regions; sign −1 swaps drier/wetter (the rough La Niña counterpart). */
+  private drawImpacts(sign: number) {
+    const ctx = this.impCanvas.getContext('2d');
+    if (!ctx) return;
+    const W = this.impCanvas.width;
+    const H = this.impCanvas.height;
+    const sx = W / 360;
+    const sy = H / 180;
+    ctx.clearRect(0, 0, W, H);
+    ctx.filter = 'blur(10px)';
+    for (const r of RAIN_REGIONS) {
+      const dry = (r.kind === 'dry') === (sign > 0);
+      ctx.fillStyle = dry ? 'rgba(245, 166, 35, 0.62)' : 'rgba(34, 184, 207, 0.62)';
+      // drawn three times so regions crossing the date line wrap around
+      for (const off of [-360, 0, 360]) {
+        ctx.beginPath();
+        ctx.ellipse((r.lon + off + 180) * sx, (90 - r.lat) * sy, r.rx * sx, r.ry * sy, -(r.rot ?? 0) * Math.PI / 180, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.filter = 'none';
+    this.impTex.needsUpdate = true;
+    this.impDrawn = sign;
+  }
+
+  private updateImpacts(s: number, dt: number) {
+    const on = this.state.view() === 'impacts';
+    // El Niño pattern for warm states, its rough reverse for La Niña; faint in neutral years
+    const sign = s < -0.3 ? -1 : 1;
+    if (on && sign !== this.impDrawn) {
+      this.drawImpacts(sign);
+      this.ngZone.run(() => this.impSign.set(sign));
+    }
+    const target = on ? 0.35 + 0.65 * this.math.clamp(Math.abs(s) / 1.5, 0, 1) : 0;
+    this.impA += (target - this.impA) * Math.min(1, dt * 4);
+    this.impMesh.visible = this.impA > 0.01;
+    this.impMesh.material.opacity = this.impA;
+    this.rainLblRefs?.forEach((ref, i) => {
+      this.placeLabel(ref.nativeElement, this.impPos[i], on, Math.min(1, this.impA * 1.6));
+    });
   }
 
   private initPins() {
@@ -497,52 +698,287 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private updateAtm(s: number, dt: number) {
-    const xc = this.math.convLon(s);
-    const wW = Math.max(1, xc - this.LW0);
-    const wE = Math.max(1, this.LE0 - xc);
-    const frac = wW / (wW + wE);
-    const vE = 0.5 + 0.9 * this.math.clamp(this.math.trade(s), 0, 2);
-    const vW = 0.5 + 0.5 * Math.max(0, s);
-
-    for (let i = 0; i < this.NP; i++) {
-      const isW = this.pU[i] < frac;
-      const a = isW ? this.LW0 : xc;
-      const b = isW ? xc : this.LE0;
-      const cx = (a + b) / 2;
-      const rx = (b - a) / 2 * this.pR[i];
-
-      this.pTh[i] += (isW ? 1 : -1) * (isW ? vW : vE) * this.pV[i] * dt * 1.1 * (55 / Math.max(25, rx));
-      const sn = Math.sin(this.pTh[i]);
-      const h = (sn + 1) / 2;
-
-      this.math.pos(cx + rx * Math.cos(this.pTh[i]), this.pLat[i] * (0.6 + 0.4 * this.pR[i]), this.math.R + 0.06 + 0.6 * h * this.pR[i], this.tmpVec);
-      this.pPos[i * 3] = this.tmpVec.x;
-      this.pPos[i * 3 + 1] = this.tmpVec.y;
-      this.pPos[i * 3 + 2] = this.tmpVec.z;
-
-      this.pCol[i * 3] = this.math.lerp(this.cLow.r, this.cHigh.r, h);
-      this.pCol[i * 3 + 1] = this.math.lerp(this.cLow.g, this.cHigh.g, h);
-      this.pCol[i * 3 + 2] = this.math.lerp(this.cLow.b, this.cHigh.b, h);
+  private spawnWind(i: number) {
+    this.wLon[i] = this.W_LON0 + Math.random() * (this.W_LON1 - this.W_LON0);
+    this.wLat[i] = (Math.random() * 2 - 1) * this.W_LAT;
+    this.wAge[i] = 0;
+    this.wLife[i] = 3 + Math.random() * 4;
+    this.math.pos(this.wLon[i], this.wLat[i], this.math.R * 1.012, this.tmpVec);
+    const o = i * this.TRAIL * 3;
+    for (let k = 0; k < this.TRAIL; k++) {
+      this.wHist[o + k * 3] = this.tmpVec.x;
+      this.wHist[o + k * 3 + 1] = this.tmpVec.y;
+      this.wHist[o + k * 3 + 2] = this.tmpVec.z;
     }
-    this.pGeo.attributes['position'].needsUpdate = true;
-    this.pGeo.attributes['color'].needsUpdate = true;
+  }
 
-    const boost = 0.9 + 0.1 * Math.abs(s);
+  private spawnWave(i: number) {
+    for (let tries = 0; tries < 6; tries++) {
+      const io = this.IO_LON1 - this.IO_LON0;
+      const u = Math.random() * (io + this.V_LON1 - this.V_LON0);
+      this.vLon[i] = u < io ? this.IO_LON0 + u : this.V_LON0 + u - io;
+      // Kelvin waves are trapped at the equator: Gaussian spread in latitude
+      const gauss = (Math.random() + Math.random() + Math.random() - 1.5) * 2;
+      this.vLat[i] = this.math.clamp(gauss * 5, -11, 11);
+      // snap onto the nearest wave front so crests line up into coherent fronts
+      const L = this.WAVE_LEN;
+      this.vLon[i] = this.wavePhase + Math.round((this.vLon[i] - this.wavePhase) / L) * L + (Math.random() - 0.5) * 0.9;
+      if (!this.isLand(this.vLon[i], this.vLat[i])) break;
+    }
+    this.vAge[i] = 0;
+    this.vLife[i] = 2.5 + Math.random() * 3;
+  }
+
+  /**
+   * Surface wind (arbitrary units, + = eastward / northward).
+   * East of the convection zone the easterly trades blow towards Asia; west of it
+   * westerly winds (westerly wind bursts during El Niño) blow towards the convection.
+   * Both branches converge on the equator.
+   */
+  private windAt(lon: number, lat: number, s: number, xc: number, t: number, out: [number, number]) {
+    const T = this.math.clamp(this.math.trade(s), 0, 1.8);
+    const east = 0.25 + 0.8 * T;
+    const west = 0.12 + 0.5 * Math.max(0, s);
+    const k = this.math.sstep(-14, 14, lon - xc);
+    let u = this.math.lerp(west, -east, k);
+    u *= 1 - 0.75 * this.math.g(lon, xc, 9);
+    u *= 0.55 + 0.45 * Math.exp(-((Math.abs(lat) - 12) ** 2) / 160);
+
+    // Indian Ocean: weak equatorial westerlies towards the Indonesian convection, turning easterly
+    // during El Niño (the Walker cell shifts east; positive Indian Ocean Dipole), plus the steady
+    // south-east trades of the southern Indian Ocean
+    const io = this.math.sstep(110, 92, lon);
+    if (io > 0) {
+      const uEq = 0.2 + 0.25 * Math.max(0, -s) - 0.4 * Math.max(0, s);
+      const uIO = uEq * Math.exp(-lat * lat / 90) - 0.55 * this.math.sstep(-5, -16, lat);
+      u = this.math.lerp(u, uIO, io);
+    }
+
+    // trades converge on the ITCZ, which sits a few degrees north of the equator
+    let v = -0.3 * Math.tanh((lat - 4) / 9) * (0.4 + 0.6 * Math.abs(u));
+
+    // Slowly drifting eddies from a stream function psi = sum A*sin(kx*lon + ky*lat + w*t + phase):
+    // u' = dpsi/dlat, v' = -dpsi/dlon keeps the swirl divergence-free, so streaks curl like on Windy
+    const eddy = 0.45 + 0.55 * Math.min(1, Math.abs(lat) / 18);
+    const E = this.EDDIES;
+    for (let i = 0; i < E.length; i += 5) {
+      const c = Math.cos(E[i + 1] * lon + E[i + 2] * lat + E[i + 3] * t + E[i + 4]) * E[i] * eddy;
+      u += c * E[i + 2] * 10;
+      v -= c * E[i + 1] * 10;
+    }
+    out[0] = u;
+    out[1] = v;
+  }
+
+  private readonly uv: [number, number] = [0, 0];
+  // eddy modes: amplitude, kx (rad/deg lon), ky (rad/deg lat), angular speed, phase
+  private readonly EDDIES = [
+    0.34, 0.11, 0.16, 0.05, 0.0,
+    0.26, -0.15, 0.12, -0.07, 1.7,
+    0.2, 0.07, -0.21, 0.04, 3.1,
+    0.14, 0.23, 0.19, -0.09, 4.4
+  ];
+
+  private updateWind(s: number, dt: number, t: number, xc: number) {
+    const R = this.math.R * 1.012;
+    const T = this.TRAIL;
+    const spd = 7.5; // degrees per second at unit wind
+    let w = 0;
+    for (let i = 0; i < this.NW; i++) {
+      this.wAge[i] += dt;
+      const lon = this.wLon[i];
+      const lat = this.wLat[i];
+      if (this.wAge[i] > this.wLife[i] || lon < this.W_LON0 - 5 || lon > this.W_LON1 + 5 || Math.abs(lat) > this.W_LAT + 3) {
+        this.spawnWind(i);
+      } else {
+        this.windAt(lon, lat, s, xc, t, this.uv);
+        this.wLon[i] += this.uv[0] * spd * dt / Math.max(0.3, Math.cos(lat * this.math.DEG));
+        this.wLat[i] += this.uv[1] * spd * dt;
+        // shift trail history and push the new head
+        const o = i * T * 3;
+        this.wHist.copyWithin(o + 3, o, o + (T - 1) * 3);
+        this.math.pos(this.wLon[i], this.wLat[i], R, this.tmpVec);
+        this.wHist[o] = this.tmpVec.x;
+        this.wHist[o + 1] = this.tmpVec.y;
+        this.wHist[o + 2] = this.tmpVec.z;
+      }
+
+      this.windAt(this.wLon[i], this.wLat[i], s, xc, t, this.uv);
+      const mag = Math.min(1, Math.hypot(this.uv[0], this.uv[1]) * 0.9);
+      const life = this.wAge[i] / this.wLife[i];
+      const edge = this.math.sstep(this.W_LAT + 2, this.W_LAT - 8, Math.abs(this.wLat[i]))
+        * this.math.sstep(this.W_LON0, this.W_LON0 + 15, this.wLon[i])
+        * this.math.sstep(this.W_LON1, this.W_LON1 - 10, this.wLon[i]);
+      const a = 0.3 * Math.min(1, life * 5, (1 - life) * 3) * edge * (0.3 + 0.7 * mag);
+
+      const o = i * T * 3;
+      for (let k = 0; k < T - 1; k++) {
+        const fa = a * (1 - k / (T - 1)) ** 1.5;
+        const fb = a * (1 - (k + 1) / (T - 1)) ** 1.5;
+        for (let j = 0; j < 6; j++) this.wPos[w * 3 + j] = this.wHist[o + k * 3 + j];
+        this.wCol[w * 3] = this.cWind.r * fa;
+        this.wCol[w * 3 + 1] = this.cWind.g * fa;
+        this.wCol[w * 3 + 2] = this.cWind.b * fa;
+        this.wCol[w * 3 + 3] = this.cWind.r * fb;
+        this.wCol[w * 3 + 4] = this.cWind.g * fb;
+        this.wCol[w * 3 + 5] = this.cWind.b * fb;
+        w += 2;
+      }
+    }
+    this.wGeo.attributes['position'].needsUpdate = true;
+    this.wGeo.attributes['color'].needsUpdate = true;
+  }
+
+  /** Kelvin wave fronts run fastest along the equator, so each front bulges eastward there. */
+  private frontBow(lat: number): number {
+    return 1.6 * Math.exp(-lat * lat / 30);
+  }
+
+  private updateWaves(s: number, dt: number, xc: number) {
+    const R = this.math.R * 1.006;
+    // Downwelling Kelvin waves are weak in neutral years and dominate when El Niño builds;
+    // in La Niña only faint, cold (upwelling) fronts remain.
+    const nino = this.math.clamp(s, 0, 1.6) / 1.6;
+    const K = 0.28 + 0.72 * nino;
+    const speed = 2.2 + 2.3 * K; // degrees per second, eastward; non-dispersive, so all crests share it
+    this.cWave.copy(this.cWaveCold).lerp(this.cWaveWarm, this.math.clamp(0.5 + s * 0.5, 0, 1));
+    // Indian Ocean: weaker equatorial Kelvin waves; during El Niño (positive dipole) they turn cold
+    // (upwelling off Sumatra), during La Niña warm
+    const Kio = 0.3 + 0.25 * Math.min(1, Math.abs(s));
+    this.cWaveIO.copy(this.cWaveWarm).lerp(this.cWaveCold, this.math.clamp(0.5 + s * 0.5, 0, 1));
+    const L = this.WAVE_LEN;
+    this.wavePhase = (this.wavePhase + speed * dt) % L;
+
+    // one main Kelvin pulse leaving the convection zone and crossing to South America
+    const span = this.V_LON1 - xc + 25;
+    this.pulsePhase = (this.pulsePhase + speed * dt) % span;
+    const pc = xc - 10 + this.pulsePhase;
+
+    for (let i = 0; i < this.NV; i++) {
+      this.vAge[i] += dt;
+      this.vLon[i] += speed * dt;
+      const inIO = this.vLon[i] < this.V_LON0 - 10;
+      if (this.vAge[i] > this.vLife[i] || this.vLon[i] > this.V_LON1 || (inIO && this.vLon[i] > this.IO_LON1)
+        || this.isLand(this.vLon[i], this.vLat[i])) {
+        this.spawnWave(i);
+      }
+      const lon = this.vLon[i];
+      const lat = this.vLat[i];
+      const life = this.vAge[i] / this.vLife[i];
+      const io = lon < this.V_LON0 - 10;
+      const pulse = io ? 1 : this.math.lerp(1, 0.25 + 0.75 * Math.exp(-(((lon - pc) / 22) ** 2)), nino);
+      const basin = io
+        ? Kio * this.math.sstep(this.IO_LON0, this.IO_LON0 + 8, lon) * this.math.sstep(this.IO_LON1, this.IO_LON1 - 5, lon)
+        : K * this.math.sstep(this.V_LON0, this.V_LON0 + 10, lon) * this.math.sstep(this.V_LON1, this.V_LON1 - 6, lon);
+      const a = Math.sin(Math.PI * life) * basin * pulse * 0.42
+        * (0.3 + 0.7 * Math.exp(-lat * lat / 30));
+      const col = io ? this.cWaveIO : this.cWave;
+
+      // crest: a short piece of the front, brightest in the middle, fading at the tips
+      const half = 0.35 + 0.55 * ((i * 0.618) % 1);
+      const o = i * 12;
+      this.math.pos(lon + this.frontBow(lat - half), lat - half, R, this.tmpVec);
+      this.vPos[o] = this.tmpVec.x; this.vPos[o + 1] = this.tmpVec.y; this.vPos[o + 2] = this.tmpVec.z;
+      this.math.pos(lon + this.frontBow(lat), lat, R, this.tmpVec);
+      this.vPos[o + 3] = this.tmpVec.x; this.vPos[o + 4] = this.tmpVec.y; this.vPos[o + 5] = this.tmpVec.z;
+      this.vPos[o + 6] = this.tmpVec.x; this.vPos[o + 7] = this.tmpVec.y; this.vPos[o + 8] = this.tmpVec.z;
+      this.math.pos(lon + this.frontBow(lat + half), lat + half, R, this.tmpVec);
+      this.vPos[o + 9] = this.tmpVec.x; this.vPos[o + 10] = this.tmpVec.y; this.vPos[o + 11] = this.tmpVec.z;
+      for (let j = 0; j < 4; j++) {
+        const f = j === 1 || j === 2 ? a : a * 0.1;
+        this.vCol[o + j * 3] = col.r * f;
+        this.vCol[o + j * 3 + 1] = col.g * f;
+        this.vCol[o + j * 3 + 2] = col.b * f;
+      }
+    }
+    this.vGeo.attributes['position'].needsUpdate = true;
+    this.vGeo.attributes['color'].needsUpdate = true;
+  }
+
+  private updateAtm(s: number, dt: number, t: number) {
+    const xc = this.math.convLon(s);
+    this.updateWind(s, dt, t, xc);
+    this.updateWaves(s, dt, xc);
+
+    // towers grow taller with a stronger anomaly; puffs breathe slowly
+    const hs = 0.85 + 0.15 * Math.min(1, Math.abs(s));
     for (const p of this.puffs) {
-      this.math.pos(xc + p.dLon, p.dLat, this.math.R + p.alt, p.m.position);
-      p.m.scale.setScalar(p.sc * boost);
+      const lon = xc + p.dLon;
+      this.math.pos(lon, p.dLat, this.math.R + p.alt * hs, p.m.position);
+      // local frame: x = east, y = up (radial), z = east x up
+      this.math.pos(lon + 1, p.dLat, this.math.R, this.cEast).sub(this.math.pos(lon, p.dLat, this.math.R, this.cUp)).normalize();
+      this.cUp.copy(p.m.position).normalize();
+      this.cNorth.crossVectors(this.cEast, this.cUp);
+      this.cBasis.makeBasis(this.cEast, this.cUp, this.cNorth);
+      p.m.quaternion.setFromRotationMatrix(this.cBasis);
+      const b = 1 + 0.05 * Math.sin(t * 0.5 + p.ph);
+      p.m.scale.set(p.sx * b, p.sy * b, p.sz * b);
     }
 
     for (let i = 0; i < this.NR; i++) {
-      this.rH[i] -= dt * 0.9;
-      if (this.rH[i] < 0.02) this.rH[i] = 0.42;
+      this.rH[i] -= dt * 1.0;
+      if (this.rH[i] < 0.02) this.rH[i] = this.CLOUD_BASE * hs - 0.02;
       this.math.pos(xc + this.rLon[i], this.rLat[i], this.math.R + this.rH[i], this.tmpVec);
       this.rPos.set([this.tmpVec.x, this.tmpVec.y, this.tmpVec.z], i * 6);
       this.math.pos(xc + this.rLon[i], this.rLat[i], this.math.R + this.rH[i] - 0.07, this.tmpVec);
       this.rPos.set([this.tmpVec.x, this.tmpVec.y, this.tmpVec.z], i * 6 + 3);
     }
     this.rGeo.attributes['position'].needsUpdate = true;
+
+    this.updateLightning(dt, xc, hs);
+  }
+
+  private updateLightning(dt: number, xc: number, hs: number) {
+    this.nextBolt -= dt;
+    if (this.nextBolt <= 0) {
+      this.nextBolt = 1.5 + Math.random() * 4;
+      this.boltT = 0.35;
+      // zigzag from the cloud base of one of the big towers towards the sea, with a side branch
+      const tw = this.TOWERS[Math.floor(Math.random() * 3)];
+      let lon = xc + tw.lon + (Math.random() - 0.5) * 2;
+      let lat = tw.lat + (Math.random() - 0.5) * 2;
+      let alt = this.CLOUD_BASE * hs + 0.05;
+      const main = 8;
+      const step = (alt - 0.02) / main;
+      const pts: [number, number, number][] = [[lon, lat, alt]];
+      for (let k = 0; k < main; k++) {
+        lon += (Math.random() - 0.5) * 0.7;
+        lat += (Math.random() - 0.5) * 0.7;
+        alt -= step;
+        pts.push([lon, lat, alt]);
+      }
+      let w = 0;
+      const put = (p: [number, number, number]) => {
+        this.math.pos(p[0], p[1], this.math.R + p[2], this.tmpVec);
+        this.boltPos[w++] = this.tmpVec.x;
+        this.boltPos[w++] = this.tmpVec.y;
+        this.boltPos[w++] = this.tmpVec.z;
+      };
+      for (let k = 0; k < main; k++) {
+        put(pts[k]);
+        put(pts[k + 1]);
+      }
+      let b = pts[2];
+      for (let k = 0; k < this.BOLT_SEG - main; k++) {
+        const nb: [number, number, number] = [b[0] + 0.25 + Math.random() * 0.4, b[1] + (Math.random() - 0.5) * 0.5, b[2] - step * 0.8];
+        put(b);
+        put(nb);
+        b = nb;
+      }
+      this.boltGeo.attributes['position'].needsUpdate = true;
+      this.math.pos(xc + tw.lon, tw.lat, this.math.R + this.CLOUD_BASE * hs + 0.15, this.boltLight.position);
+    }
+
+    if (this.boltT > 0) {
+      this.boltT -= dt;
+      // a couple of quick flickers, then out
+      const f = this.boltT > 0 && Math.sin(this.boltT * 60) > -0.3 ? 0.6 + 0.4 * Math.random() : 0;
+      this.boltMat.opacity = f;
+      this.boltLight.intensity = 3 * f;
+    } else {
+      this.boltMat.opacity = 0;
+      this.boltLight.intensity = 0;
+    }
   }
 
   private updatePins(t: number, dt: number) {
@@ -591,11 +1027,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.camDir.copy(this.camera.position).normalize();
     const showAtm = this.state.showAtmosphere();
 
-    const convPos = this.math.pos(this.math.convLon(s), 14, this.math.R + 0.95);
+    const convPos = this.math.pos(this.math.convLon(s), 10, this.math.R + 1.55);
     this.placeLabel(this.lblConvRef?.nativeElement, convPos, showAtm);
 
-    const walkerPos = this.math.pos((this.math.convLon(s) + this.LE0) / 2, -16, this.math.R + 0.75);
-    this.placeLabel(this.lblWalkerRef?.nativeElement, walkerPos, showAtm, 0.85);
+    const walkerPos = this.math.pos((this.math.convLon(s) + this.LE0) / 2, -18, this.math.R * 1.02);
+    this.placeLabel(this.lblWalkerRef?.nativeElement, walkerPos, showAtm, 0.85 * this.math.clamp(this.math.trade(s), 0.35, 1));
+
+    const kelvinPos = this.math.pos(250, -3, this.math.R * 1.01);
+    this.placeLabel(this.lblKelvinRef?.nativeElement, kelvinPos, showAtm && s > 0.3, 0.85);
 
     const ninoPos = this.math.pos(-145, 5, this.math.R * 1.01);
     this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, true);
@@ -697,18 +1136,24 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.state.updateCycle(dt);
     this.state.updateInterpolatedStrength(dt);
 
-    const s = this.state.sCur();
-    const mode = this.state.displayMode();
+    // the cycle keeps running in other views; only the globe itself pauses
+    if (this.state.view() === 'walker') return;
 
-    if (Math.abs(s - this.lastS) > 0.004 || mode !== this.lastMode) {
-      this.recolorTexture(s, mode);
+    const s = this.state.sCur();
+    // the impacts view shows the ocean as a muted anomaly under the rainfall regions
+    const impacts = this.state.view() === 'impacts';
+    const mode = impacts ? 'anom' : this.state.displayMode();
+    const modeKey = impacts ? 'impacts' : mode;
+
+    if (Math.abs(s - this.lastS) > 0.004 || modeKey !== this.lastMode) {
+      this.recolorTexture(s, mode, impacts);
       this.lastS = s;
-      this.lastMode = mode;
+      this.lastMode = modeKey;
     }
 
     this.atmGroup.visible = this.state.showAtmosphere();
     if (this.atmGroup.visible) {
-      this.updateAtm(s, dt);
+      this.updateAtm(s, dt, t);
     }
 
     this.controls.autoRotate = this.state.autoRotate();
@@ -717,6 +1162,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     this.updatePins(t, dt);
     this.updateLabels(s);
+    this.updateImpacts(s, dt);
 
     this.renderer.render(this.scene, this.camera);
   };

@@ -1,0 +1,271 @@
+@use "../../../variables" as *;
+
+// Desktop: the dock sits in the free space to the right of the control panel (390px + gutters)
+.dock-wrap {
+  position: fixed;
+  left: 418px;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: radius("pill");
+  max-width: 100%;
+
+  &__mode {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+  }
+
+  &__label {
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    margin: 0 4px 0 6px;
+    white-space: nowrap;
+  }
+
+  &__scale {
+    width: 150px;
+    flex: none;
+  }
+
+  &__bar {
+    display: block;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  &__ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__sep {
+    width: 1px;
+    align-self: stretch;
+    background: color("line");
+    flex: none;
+  }
+
+  &__layers {
+    display: flex;
+    gap: 4px;
+    flex: none;
+  }
+}
+
+.chip {
+  font: inherit;
+  font-size: font-size("xs");
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: radius("pill");
+  border: 1px solid transparent;
+  background: none;
+  color: color("text-dim");
+  cursor: pointer;
+  transition: background transition("fast"), color transition("fast"), border-color transition("fast");
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+
+  &:hover {
+    background: color("btn-hover");
+    color: color("text-main");
+  }
+
+  &--on {
+    color: color("text-bright");
+    background: color("btn-active-blue");
+    border-color: color("btn-active-blue-border");
+  }
+
+  &:focus-visible {
+    outline: 2px solid color("btn-active-blue-border");
+    outline-offset: 1px;
+  }
+}
+
+.pinleg {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 5px 12px;
+  border-radius: radius("pill");
+  font-size: font-size("xxs");
+  color: color("text-dim");
+  animation: dockIn 0.25s ease-out;
+
+  &__t {
+    color: color("text-main");
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  i {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 5px;
+    border: 2px solid currentColor;
+  }
+}
+
+.rainleg {
+  i {
+    border: none;
+    width: 11px;
+    height: 11px;
+  }
+
+  &__dry {
+    color: #ffd29a;
+
+    i {
+      background: rgba(245, 166, 35, 0.85);
+    }
+  }
+
+  &__wet {
+    color: #9ee8f5;
+
+    i {
+      background: rgba(34, 184, 207, 0.85);
+    }
+  }
+
+  &__src a {
+    color: color("link-color");
+    text-decoration: none;
+    margin-left: 3px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes dockIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Narrower desktops: layer chips become icon-only (label in the tooltip)
+@include respond-to(1600px) {
+  .chip span {
+    display: none;
+  }
+
+  .chip {
+    padding: 6px 8px;
+  }
+}
+
+// Tablet & mobile: full-width dock at the bottom; the control panel moves above it
+@include respond-to("tablet") {
+  .dock-wrap {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .dock {
+    border-radius: radius("card");
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .dock__scale {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .pinleg {
+    border-radius: radius("card");
+  }
+}
+
+@include respond-to("mobile") {
+  // two rows: [view] then [colour scale | layers]
+  .dock {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "mode mode"
+      "scale layers";
+    gap: 6px 10px;
+  }
+
+  .dock__mode {
+    grid-area: mode;
+    flex-wrap: wrap;
+  }
+
+  .dock__label {
+    margin-left: 2px;
+  }
+
+  .dock__layers {
+    grid-area: layers;
+    justify-content: flex-end;
+  }
+
+  .dock__scale {
+    grid-area: scale;
+  }
+
+  .dock__sep {
+    display: none;
+  }
+
+  .pinleg__t {
+    flex-basis: 100%;
+    text-align: center;
+  }
+}

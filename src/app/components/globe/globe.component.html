@@ -9,8 +9,16 @@
 
 <div class="labels">
   <div #lblConvRef class="lbl">Strefa konwekcji i ulew</div>
-  <div #lblWalkerRef class="lbl">Cyrkulacja Walkera</div>
+  <div #lblWalkerRef class="lbl">← Pasaty (wiatr)</div>
+  <div #lblKelvinRef class="lbl lbl--wave">Fale Kelvina →</div>
   <div #lblNinoRef class="lbl lbl--box">Niño 3.4</div>
+  @for (r of rainRegions; track r.name) {
+    @let dry = (r.kind === 'dry') === (impSign() > 0);
+    <div #rainLbl class="lbl lbl--rain" [class.lbl--dry]="dry" [class.lbl--wet]="!dry">
+      {{ r.name }}
+      <small>{{ dry ? 'suszej' : 'wilgotniej' }} · {{ r.season }}</small>
+    </div>
+  }
 </div>
 
 <div #tooltipRef class="tip"></div>

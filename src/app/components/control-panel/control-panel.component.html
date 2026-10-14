@@ -1,4 +1,4 @@
-<div class="panel glass-panel" [class.collapsed]="state.panelCollapsed()">
+<div #panel class="panel glass-panel" [class.collapsed]="state.panelCollapsed()">
   <div class="ph">
     <div class="ph__title">Stan: {{ state.category().name }}</div>
     <app-button
@@ -35,6 +35,16 @@
         [value]="state.sTarget()"
         (input)="onSliderInput($event)" />
     </div>
+    <div
+      class="prob"
+      title="Bardzo przybliżony szacunek dla szczytu sezonu (paź–gru 2026) na podstawie prognozy NOAA CPC z 8.10.2026">
+      Prawdopodobieństwo wystąpienia siły ENSO w 2026: {{ state.prob2026() }}
+      <a
+        class="prob__src"
+        href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml"
+        target="_blank"
+        rel="noopener noreferrer">[źródło: NOAA CPC]</a>
+    </div>
 
     <!-- Play 4-year cycle button & running month -->
     <div class="row row--two">
@@ -52,69 +62,6 @@
 
     <!-- Historical impacts hint -->
     <div class="hint">{{ state.hint() }}</div>
-
-    <!-- Pin types legend -->
-    <div class="pinleg">
-      <span [style.color]="kindHex['dry']"><i></i>susza / upał</span>
-      <span [style.color]="kindHex['fire']"><i></i>pożary</span>
-      <span [style.color]="kindHex['wet']"><i></i>powodzie / ulewy</span>
-      <span [style.color]="kindHex['other']"><i></i>rybołówstwo / choroby</span>
-    </div>
-
-    <!-- Mode switch and feature toggles -->
-    <div class="row row--two">
-      <div class="seg seg--small">
-        <app-button
-          variant="toggle"
-          [active]="state.displayMode() === 'sst'"
-          (btnClick)="onModeClick('sst')">
-          Temperatura
-        </app-button>
-        <app-button
-          variant="toggle"
-          [active]="state.displayMode() === 'anom'"
-          (btnClick)="onModeClick('anom')">
-          Anomalia
-        </app-button>
-      </div>
-
-      <div class="chks">
-        <label class="chk">
-          <input
-            type="checkbox"
-            [checked]="state.showAtmosphere()"
-            (change)="toggleAtmosphere()" />
-          Atmosfera
-        </label>
-        <label class="chk">
-          <input
-            type="checkbox"
-            [checked]="state.showEvents()"
-            (change)="toggleEvents()" />
-          Zdarzenia
-        </label>
-        <label class="chk">
-          <input
-            type="checkbox"
-            [checked]="state.autoRotate()"
-            (change)="toggleAutoRotate()" />
-          Obrót
-        </label>
-      </div>
-    </div>
-
-    <!-- Gradient legend -->
-    <div class="legend">
-      <div class="lt">
-        {{ state.displayMode() === 'sst' ? 'Temperatura powierzchni oceanu (°C)' : 'Anomalia temperatury względem normy (°C)' }}
-      </div>
-      <canvas #legendCanvas class="legend__bar" width="300" height="9"></canvas>
-      <div class="ticks">
-        <span>{{ state.displayMode() === 'sst' ? '−2' : '−3' }}</span>
-        <span>{{ state.displayMode() === 'sst' ? '15' : '0' }}</span>
-        <span>{{ state.displayMode() === 'sst' ? '31' : '+3' }}</span>
-      </div>
-    </div>
 
     <!-- Equatorial depth cross-section -->
     <div class="inset">

@@ -1,0 +1,114 @@
+<div #wrap class="dock-wrap">
+  <!-- Rainfall legend + sources for the "impact on continents" view -->
+  @if (state.view() === 'impacts') {
+    <div class="pinleg rainleg glass-panel">
+      <span class="pinleg__t">{{ rainTitle() }}</span>
+      <span class="rainleg__dry"><i></i>suszej niż zwykle</span>
+      <span class="rainleg__wet"><i></i>wilgotniej niż zwykle</span>
+      <span class="rainleg__src">
+        Źródła:
+        @for (src of sources; track src.id; let last = $last) {
+          <a [href]="src.url" target="_blank" rel="noopener noreferrer" [title]="src.title">{{ src.short }}</a>{{ last ? '' : ' ·' }}
+        }
+      </span>
+    </div>
+  }
+
+  <!-- Impact legend: only when pins are on the globe -->
+  @if (showPinLegend()) {
+    <div class="pinleg glass-panel">
+      <span class="pinleg__t">Skutki fazy {{ state.category().name }}:</span>
+      <span [style.color]="kindHex['dry']"><i></i>susza / upał</span>
+      <span [style.color]="kindHex['fire']"><i></i>pożary</span>
+      <span [style.color]="kindHex['wet']"><i></i>powodzie / ulewy</span>
+      <span [style.color]="kindHex['other']"><i></i>rybołówstwo / choroby</span>
+    </div>
+  }
+
+  <div class="dock glass-panel">
+    <!-- View: ocean layer on the globe, or the Walker circulation cross-section -->
+    <div class="dock__mode" role="group" aria-labelledby="dock-view-label">
+      <span id="dock-view-label" class="dock__label">Wybierz widok:</span>
+      <app-button
+        variant="toggle"
+        [active]="state.view() === 'globe' && state.displayMode() === 'sst'"
+        (btnClick)="onModeClick('sst')">
+        Temperatura
+      </app-button>
+      <app-button
+        variant="toggle"
+        [active]="state.view() === 'globe' && state.displayMode() === 'anom'"
+        (btnClick)="onModeClick('anom')">
+        Anomalia
+      </app-button>
+      <app-button
+        variant="toggle"
+        [active]="isWalker()"
+        (btnClick)="state.setView('walker')">
+        Cyrkulacja Walkera
+      </app-button>
+      <app-button
+        variant="toggle"
+        [active]="state.view() === 'impacts'"
+        (btnClick)="state.setView('impacts')">
+        Wpływ na kontynenty
+      </app-button>
+    </div>
+
+    <div class="dock__scale" [title]="scaleMode() === 'sst' ? 'Temperatura powierzchni oceanu (°C)' : 'Anomalia temperatury względem normy (°C)'">
+      <canvas #scaleCanvas class="dock__bar" width="300" height="8"></canvas>
+      <div class="dock__ticks">
+        <span>{{ scaleMode() === 'sst' ? '−2 °C' : '−3 °C' }}</span>
+        <span>{{ scaleMode() === 'sst' ? '15' : '0' }}</span>
+        <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
+      </div>
+    </div>
+
+    <div class="dock__sep" aria-hidden="true"></div>
+
+    <!-- Layer toggles -->
+    <div class="dock__layers" role="group" aria-label="Warstwy">
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="state.showAtmosphere()"
+        [attr.aria-pressed]="state.showAtmosphere()"
+        title="Wiatr, fale i chmury konwekcyjne"
+        (click)="state.toggleAtmosphere()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7" /></svg>
+        <span>Atmosfera</span>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="state.showEvents()"
+        [attr.aria-pressed]="state.showEvents()"
+        title="Pinezki z historycznymi skutkami fazy"
+        (click)="state.toggleEvents()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.6-6-11a6 6 0 1 1 12 0c0 5.4-6 11-6 11z" /><circle cx="12" cy="10" r="2.2" /></svg>
+        <span>Zdarzenia</span>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="state.autoRotate()"
+        [attr.aria-pressed]="state.autoRotate()"
+        title="Automatyczny obrót globu"
+        (click)="state.toggleAutoRotate()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5" /></svg>
+        <span>Obrót</span>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="state.glossaryOpen()"
+        [attr.aria-pressed]="state.glossaryOpen()"
+        aria-controls="glossary"
+        title="Istotne terminy – proste wyjaśnienia"
+        (click)="state.toggleGlossary()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5M8 7h8M8 11h6" /></svg>
+        <span>Istotne terminy</span>
+      </button>
+    </div>
+  </div>
+</div>

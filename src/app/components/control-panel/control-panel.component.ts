@@ -3,6 +3,7 @@ import {
   ElementRef,
   ViewChild,
   AfterViewInit,
+  OnDestroy,
   inject,
   effect
 } from '@angular/core';
@@ -10,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { PRESETS, TEMP_HEX, ANOM_HEX, KIND_HEX } from '../../core/constants/enso-data';
+import { PRESETS } from '../../core/constants/enso-data';
 import { DisplayMode, Preset } from '../../core/models/enso.model';
 import { ButtonComponent } from '../ui/button/button.component';
 
@@ -21,15 +22,16 @@ import { ButtonComponent } from '../ui/button/button.component';
   templateUrl: './control-panel.component.html',
   styleUrl: './control-panel.component.scss'
 })
-export class ControlPanelComponent implements AfterViewInit {
+export class ControlPanelComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   math = inject(EnsoMathService);
 
   readonly presets = PRESETS;
-  readonly kindHex = KIND_HEX;
 
-  @ViewChild('legendCanvas') legendCanvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('sectionCanvas') sectionCanvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('panel') panelRef!: ElementRef<HTMLDivElement>;
+
+  private resizeObs: ResizeObserver | null = null;
 
   private secImgData: ImageData | null = null;
   private lastDrawnS = 9999;
@@ -39,9 +41,8 @@ export class ControlPanelComponent implements AfterViewInit {
     effect(() => {
       const s = this.state.sCur();
       const m = this.state.displayMode();
-      if (this.sectionCanvasRef && this.legendCanvasRef) {
+      if (this.sectionCanvasRef) {
         if (Math.abs(s - this.lastDrawnS) > 0.005 || m !== this.lastDrawnMode) {
-          this.drawLegend();
           this.drawSection(s, m);
           this.lastDrawnS = s;
           this.lastDrawnMode = m;
@@ -56,8 +57,17 @@ export class ControlPanelComponent implements AfterViewInit {
     if (secCtx) {
       this.secImgData = secCtx.createImageData(secCanvas.width, secCanvas.height);
     }
-    this.drawLegend();
     this.drawSection(this.state.sCur(), this.state.displayMode());
+
+    // expose the panel height so the Walker view can end just above it on narrow screens
+    this.resizeObs = new ResizeObserver(() => {
+      document.documentElement.style.setProperty('--panel-h', `${this.panelRef.nativeElement.offsetHeight}px`);
+    });
+    this.resizeObs.observe(this.panelRef.nativeElement);
+  }
+
+  ngOnDestroy() {
+    this.resizeObs?.disconnect();
   }
 
   onPresetClick(p: Preset) {
@@ -73,42 +83,8 @@ export class ControlPanelComponent implements AfterViewInit {
     this.state.togglePlaying();
   }
 
-  onModeClick(m: DisplayMode) {
-    this.state.setDisplayMode(m);
-  }
-
-  toggleAtmosphere() {
-    this.state.toggleAtmosphere();
-  }
-
-  toggleEvents() {
-    this.state.toggleEvents();
-  }
-
-  toggleAutoRotate() {
-    this.state.toggleAutoRotate();
-  }
-
   togglePanel() {
     this.state.togglePanel();
-  }
-
-  private drawLegend() {
-    const c = this.legendCanvasRef?.nativeElement;
-    if (!c) return;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-
-    const mode = this.state.displayMode();
-    const st = mode === 'sst' ? TEMP_HEX : ANOM_HEX;
-    const lo = st[0][0];
-    const hi = st[st.length - 1][0];
-
-    const gr = ctx.createLinearGradient(0, 0, c.width, 0);
-    st.forEach(([v, h]) => gr.addColorStop((v - lo) / (hi - lo), h));
-
-    ctx.fillStyle = gr;
-    ctx.fillRect(0, 0, c.width, c.height);
   }
 
   private drawSection(s: number, mode: DisplayMode) {

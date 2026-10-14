@@ -1,0 +1,37 @@
+<section class="walker" aria-label="Cyrkulacja Walkera – przekrój wzdłuż równika">
+  <div class="walker__step glass-panel" aria-live="polite">
+    <span class="walker__badge" [class.walker__badge--cycle]="state.isPlaying()">{{ badge() }}</span>
+    <span class="walker__title">{{ caption() }}</span>
+  </div>
+
+  <div #box class="walker__box">
+    <canvas #cv></canvas>
+  </div>
+
+  <div class="walker__foot">
+    <div class="walker__ctrl">
+      <button type="button" class="wbtn" aria-label="Poprzedni krok" (click)="pick(step() - 1)">‹</button>
+      <button
+        type="button"
+        class="wbtn wbtn--play"
+        [class.wbtn--on]="playing()"
+        [attr.aria-label]="playing() ? 'Zatrzymaj' : 'Odtwarzaj kroki'"
+        (click)="togglePlay()">
+        {{ playing() ? '❚❚' : '▶' }}
+      </button>
+      <button type="button" class="wbtn" aria-label="Następny krok" (click)="pick(step() + 1)">›</button>
+      <div class="walker__dots">
+        @for (st of steps; track $index) {
+          <button
+            type="button"
+            class="dot"
+            [class.dot--on]="$index === step() && !state.isPlaying()"
+            [attr.aria-label]="'Krok ' + $index + ': ' + st.title"
+            [title]="st.title"
+            (click)="pick($index)"></button>
+        }
+      </div>
+    </div>
+    <div class="walker__cap">Przekrój wzdłuż równika (0°) · atmosfera 0–16 km · ocean 0–300 m (skala pionowa umowna)</div>
+  </div>
+</section>

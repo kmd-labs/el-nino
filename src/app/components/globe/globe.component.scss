@@ -1,5 +1,9 @@
 @use "../../../variables" as *;
 
+:host.is-hidden {
+  visibility: hidden;
+}
+
 #c {
   position: fixed;
   inset: 0;
@@ -30,6 +34,34 @@
   white-space: nowrap;
   transition: opacity transition("slow");
   opacity: 0;
+
+  &--wave {
+    color: #9fe6ff;
+    border-color: rgba(127, 224, 255, 0.45);
+  }
+
+  // rainfall regions in the "impact on continents" view
+  &--rain {
+    padding: 2px 7px;
+    line-height: 1.25;
+    text-align: center;
+    font-size: font-size("xxs");
+
+    small {
+      display: block;
+      opacity: 0.75;
+    }
+  }
+
+  &--dry {
+    color: #ffd29a;
+    border-color: rgba(245, 166, 35, 0.55);
+  }
+
+  &--wet {
+    color: #9ee8f5;
+    border-color: rgba(34, 184, 207, 0.55);
+  }
 
   &--box {
     background: none;

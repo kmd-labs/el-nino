@@ -222,6 +222,15 @@ export const KEY: [number, number][] = [
   [48, -0.3]
 ];
 
+/**
+ * Calendar year of month 0 in the idealised 4-year cycle (KEY). Chosen so the modelled El Niño
+ * peak (month 35 = December of year 3) lines up with the forecast peak of the current event
+ * (Nov 2026 – Jan 2027); year 2 then matches the weak La Niña of winter 2024/25.
+ */
+export const CYCLE_START_YEAR = 2024;
+/** Cycle month index from which the calendar is still a forecast (after October 2026). */
+export const CYCLE_FORECAST_FROM = (2026 - 2024) * 12 + 10;
+
 export const MON = [
   'styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec',
   'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'
