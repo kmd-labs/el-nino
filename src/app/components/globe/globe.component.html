@@ -13,6 +13,7 @@
   <div #lblWalkerRef class="lbl">{{ t.lblTrades }}</div>
   <div #lblKelvinRef class="lbl lbl--wave">{{ t.lblKelvin }}</div>
   <div #lblNinoRef class="lbl lbl--box">Niño 3.4</div>
+  <div #lblIodRef class="lbl lbl--iod">{{ t.lblIod }} <b>{{ formattedDmi() }}</b></div>
   @for (r of rainRegions; track $index) {
     @let dry = (r.kind === 'dry') === (impSign() > 0);
     <div #rainLbl class="lbl lbl--rain" [class.lbl--dry]="dry" [class.lbl--wet]="!dry">

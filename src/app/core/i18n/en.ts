@@ -77,6 +77,7 @@ export const EN: Dict = {
   lblConvection: 'Convection and rain zone',
   lblTrades: '← Trade winds',
   lblKelvin: 'Kelvin waves →',
+  lblIod: 'Indian Ocean Dipole (IOD)',
   rainDryShort: 'drier',
   rainWetShort: 'wetter',
 
@@ -173,7 +174,7 @@ export const EN: Dict = {
       terms: [
         { term: 'Teleconnections', text: 'Links between the weather in places far apart. A change over the Pacific shifts the jet streams and affects rainfall and temperature thousands of kilometres away – in Africa, the Americas or Asia.', wiki: 'https://en.wikipedia.org/wiki/Teleconnection', wikiLang: 'en' },
         { term: 'Monsoon', text: 'A seasonal shift in wind direction that brings the rainy season, e.g. in India in summer. El Niño often weakens the Indian monsoon, raising the risk of drought.', wiki: 'https://en.wikipedia.org/wiki/Monsoon', wikiLang: 'en' },
-        { term: 'Indian Ocean Dipole (IOD)', text: 'ENSO’s “cousin” in the Indian Ocean: the difference in water temperature between its western and eastern parts. A positive dipole (often together with El Niño) means droughts in Indonesia and Australia and downpours in East Africa.', wiki: 'https://en.wikipedia.org/wiki/Indian_Ocean_Dipole', wikiLang: 'en' }
+        { term: 'Indian Ocean Dipole (IOD)', text: 'ENSO’s “cousin” in the Indian Ocean: the difference in water temperature between its western and eastern parts. A positive dipole (often together with El Niño) means droughts in Indonesia and Australia and downpours in East Africa. On the globe both measurement boxes are outlined with a dashed purple line (50–70°E and 90–110°E), and the label shows the difference of their anomalies – the DMI index.', wiki: 'https://en.wikipedia.org/wiki/Indian_Ocean_Dipole', wikiLang: 'en' }
       ]
     }
   ],
@@ -256,7 +257,7 @@ export const EN: Dict = {
         note: 'The record rainfall came during the 1999–2000 La Niña.' } ] },
     { name: 'Ethiopia', region: 'Horn of Africa', ev: [
       { type: 'Extreme drought, failed rainy seasons',
-        aff: '10.2 million people in need of food aid (Ethiopian government figures, December 2015).' } ] },
+        aff: '10.2 million people requiring urgent humanitarian assistance (Ethiopian government and UN agencies, early 2016); humanitarian needs had tripled since early 2015.' } ] },
     { name: 'Kenya and southern Somalia', region: 'East Africa', ev: [
       { type: 'The worst floods since 1961 and a Rift Valley fever epidemic',
         aff: 'Rainfall 60–100 times above the seasonal normal; an estimated 89,000 Rift Valley fever infections; 478 unexplained deaths reported in December 1997; about 70% of sheep and goats lost in the herds surveyed.',
@@ -300,8 +301,8 @@ export const EN: Dict = {
         aff: 'About 33 million people affected, 1,739 deaths, over 2.1 million homeless; damage of about USD 14.9 billion and losses of about USD 15.2 billion (Government of Pakistan).',
         note: 'The flood came during the triple-dip 2020–23 La Niña; the main causes were a record monsoon, glacier melt and climate change.' } ] },
     { name: 'Bangladesh', region: 'South Asia', ev: [
-      { type: 'Catastrophic monsoon floods – about 3/4 of the country under water',
-        aff: 'About 25 million people affected, about 21 million homeless; 550 (government) to 1,122 (press) deaths; 50 of 64 districts.',
+      { type: 'Catastrophic monsoon floods – more than half of the country under water',
+        aff: '25–28 million people homeless (official estimates); about 2/3 of the 110 million population affected in 50 of 64 districts; an official death toll of about 500 (September 1988), many from snakebites and contaminated water.',
         note: 'The flood coincided with the strong 1988–89 La Niña.' } ] },
     { name: 'Thailand', region: 'South-East Asia', ev: [
       { type: 'The great flood (Bangkok, Ayutthaya)',
@@ -323,18 +324,18 @@ export const EN: Dict = {
     rvf: 'CDC MMWR – Rift Valley fever, East Africa 1997–98',
     cal: 'Government Technology (FEMA data) – El Niño 1997–98',
     saf15: 'Public Finance Focus – SADC appeal, July 2016',
-    eth: 'CARE International – Ethiopia, December 2015',
-    cam: 'WFP USA – Central America Dry Corridor',
+    eth: 'UN in Ethiopia – Drought: 10 million people in need (2016)',
+    cam: 'WFP USA / FAO – Central America Dry Corridor, 30 Jun 2016',
     vnm: 'ReliefWeb (UN OCHA / ECHO) – Vietnam, 29 Apr 2016',
-    saf24: 'Africanews (SADC data) – August 2024',
+    saf24: 'Al Jazeera (SADC data) – 17 Aug 2024',
     som23: 'UN OCHA / ReliefWeb – Somalia, 9 Nov 2023',
     amz: 'Mongabay – Amazon drought, October 2023',
     pan: 'Woodwell Climate Research Center – drought and the Panama Canal',
     ind09: 'ThePrint – the weak monsoons of 2009 and 2014',
-    som11: 'ReliefWeb – FAO FSNAU / FEWS NET study, May 2013',
+    som11: 'FSNAU (FAO) / FEWS NET – mortality study, 2 May 2013',
     arg: 'Dialogue Earth – La Niña and drought in Argentina',
     col: 'RPP / Dirección de Gestión del Riesgo – June 2011',
     tex: 'Drovers (Texas AgriLife Extension) – March 2012',
-    bgd: 'Christian Science Monitor – 7 Sep 1988'
+    bgd: 'ReliefWeb – UNDRO situation reports, 1988 floods'
   }
 };

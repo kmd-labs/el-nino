@@ -158,7 +158,7 @@ export const GLOSSARY: GlossaryGroup[] = [
       },
       {
         term: 'Dipol Oceanu Indyjskiego (IOD)',
-        text: '„Kuzyn” ENSO na Oceanie Indyjskim: różnica temperatury wody między jego zachodnią a wschodnią częścią. Dodatni dipol (często razem z El Niño) to susze w Indonezji i Australii oraz ulewy w Afryce Wschodniej.',
+        text: '„Kuzyn” ENSO na Oceanie Indyjskim: różnica temperatury wody między jego zachodnią a wschodnią częścią. Dodatni dipol (często razem z El Niño) to susze w Indonezji i Australii oraz ulewy w Afryce Wschodniej. Na globie oba obszary pomiaru są zaznaczone fioletową przerywaną linią (50–70°E i 90–110°E), a etykieta pokazuje różnicę ich anomalii – indeks DMI.',
         wiki: 'https://pl.wikipedia.org/wiki/Dipol_Oceanu_Indyjskiego',
         wikiLang: 'pl'
       }

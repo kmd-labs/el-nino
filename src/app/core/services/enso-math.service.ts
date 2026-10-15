@@ -58,11 +58,21 @@ export class EnsoMathService {
     return this.g(lon, 155, 24) * (Math.exp(-((lat - 22) ** 2) / 80) + Math.exp(-((lat + 22) ** 2) / 80));
   }
 
+  /**
+   * Indian Ocean Dipole pattern in its positive phase: a warm western pole and a cool eastern pole
+   * off Sumatra. Positive events often come with El Niño, negative ones (weaker) with La Niña.
+   */
+  iod(lon: number, lat: number): number {
+    return 0.55 * this.g(lon, 62, 14) * Math.exp(-lat * lat / 90)
+      - 0.8 * this.g(lon, 100, 11) * Math.exp(-((lat + 5) ** 2) / 45);
+  }
+
   basisP(lon: number, lat: number): number {
     return 1.3 * this.g(lon, 228, 37.5) * Math.exp(-lat * lat / 110)
       - 0.35 * this.horse(lon, lat)
       - 0.2 * this.g(lon, 135, 15) * Math.exp(-lat * lat / 80)
-      + 0.22 * this.g(lon, 75, 25) * Math.exp(-lat * lat / 250);
+      + 0.22 * this.g(lon, 75, 25) * Math.exp(-lat * lat / 250)
+      + 0.5 * this.iod(lon, lat);
   }
 
   basisC(lon: number, lat: number): number {
@@ -72,13 +82,32 @@ export class EnsoMathService {
   basisN(lon: number, lat: number): number {
     return -1.15 * this.g(lon, 212, 40.8) * Math.exp(-lat * lat / 110)
       + 0.3 * this.horse(lon, lat)
-      + 0.2 * this.g(lon, 135, 15) * Math.exp(-lat * lat / 80);
+      + 0.2 * this.g(lon, 135, 15) * Math.exp(-lat * lat / 80)
+      - 0.25 * this.iod(lon, lat);
   }
 
   anom(lon: number, lat: number, s: number): number {
     return s >= 0
       ? s * this.basisP(lon, lat) + Math.max(0, s - 1.4) * this.basisC(lon, lat)
       : -s * this.basisN(lon, lat);
+  }
+
+  /** Mean anomaly over a lon/lat box (degrees east, 2.5° grid). */
+  private boxMean(lon0: number, lon1: number, lat0: number, lat1: number, s: number): number {
+    let sum = 0;
+    let n = 0;
+    for (let lon = lon0; lon <= lon1; lon += 2.5) {
+      for (let lat = lat0; lat <= lat1; lat += 2.5) {
+        sum += this.anom(lon, lat, s);
+        n++;
+      }
+    }
+    return sum / n;
+  }
+
+  /** Dipole Mode Index: western pole (50–70°E, 10°S–10°N) minus eastern pole (90–110°E, 10°S–0°). */
+  dmi(s: number): number {
+    return this.boxMean(50, 70, -10, 10, s) - this.boxMean(90, 110, -10, 0, s);
   }
 
   nino34(s: number): number {

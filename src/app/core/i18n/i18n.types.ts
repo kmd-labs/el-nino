@@ -123,6 +123,7 @@ export interface Dict {
   lblConvection: string;
   lblTrades: string;
   lblKelvin: string;
+  lblIod: string;
   rainDryShort: string;
   rainWetShort: string;
 

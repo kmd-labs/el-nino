@@ -77,6 +77,7 @@ export const ES: Dict = {
   lblConvection: 'Zona de convección y lluvias',
   lblTrades: '← Alisios (viento)',
   lblKelvin: 'Ondas Kelvin →',
+  lblIod: 'Dipolo del océano Índico (IOD)',
   rainDryShort: 'más seco',
   rainWetShort: 'más húmedo',
 
@@ -173,7 +174,7 @@ export const ES: Dict = {
       terms: [
         { term: 'Teleconexiones', text: 'Vínculos entre el tiempo de lugares muy alejados. Un cambio sobre el Pacífico desplaza las corrientes en chorro y afecta a las lluvias y temperaturas a miles de kilómetros: en África, América o Asia.', wiki: 'https://en.wikipedia.org/wiki/Teleconnection', wikiLang: 'en' },
         { term: 'Monzón', text: 'Un cambio estacional de la dirección del viento que trae la estación lluviosa, por ejemplo en la India en verano. El Niño suele debilitar el monzón indio, con riesgo de sequía.', wiki: 'https://es.wikipedia.org/wiki/Monz%C3%B3n', wikiLang: 'es' },
-        { term: 'Dipolo del océano Índico (IOD)', text: 'El “primo” de ENSO en el océano Índico: la diferencia de temperatura del agua entre su parte occidental y la oriental. Un dipolo positivo (a menudo junto con El Niño) trae sequías en Indonesia y Australia y aguaceros en África oriental.', wiki: 'https://es.wikipedia.org/wiki/Dipolo_del_oc%C3%A9ano_%C3%8Dndico', wikiLang: 'es' }
+        { term: 'Dipolo del océano Índico (IOD)', text: 'El “primo” de ENSO en el océano Índico: la diferencia de temperatura del agua entre su parte occidental y la oriental. Un dipolo positivo (a menudo junto con El Niño) trae sequías en Indonesia y Australia y aguaceros en África oriental. En el globo, las dos zonas de medición están marcadas con una línea violeta discontinua (50–70°E y 90–110°E) y la etiqueta muestra la diferencia de sus anomalías: el índice DMI.', wiki: 'https://es.wikipedia.org/wiki/Dipolo_del_oc%C3%A9ano_%C3%8Dndico', wikiLang: 'es' }
       ]
     }
   ],
@@ -256,7 +257,7 @@ export const ES: Dict = {
         note: 'Las lluvias récord coincidieron con La Niña de 1999–2000.' } ] },
     { name: 'Etiopía', region: 'Cuerno de África', ev: [
       { type: 'Sequía extrema, temporadas de lluvias fallidas',
-        aff: '10,2 millones de personas necesitadas de ayuda alimentaria (datos del Gobierno de Etiopía, diciembre de 2015).' } ] },
+        aff: '10,2 millones de personas necesitadas de ayuda humanitaria urgente (Gobierno de Etiopía y agencias de la ONU, principios de 2016); las necesidades humanitarias se triplicaron desde principios de 2015.' } ] },
     { name: 'Kenia y sur de Somalia', region: 'África oriental', ev: [
       { type: 'Las peores inundaciones desde 1961 y una epidemia de fiebre del valle del Rift',
         aff: 'Lluvias 60–100 veces por encima de lo normal para la temporada; unas 89 000 infecciones estimadas de fiebre del valle del Rift; 478 muertes sin explicar notificadas en diciembre de 1997; pérdida de cerca del 70 % de ovejas y cabras en los rebaños estudiados.',
@@ -300,8 +301,8 @@ export const ES: Dict = {
         aff: 'Unos 33 millones de personas afectadas, 1739 víctimas mortales, más de 2,1 millones sin hogar; daños de unos 14 900 millones de USD y pérdidas de unos 15 200 millones de USD (Gobierno de Pakistán).',
         note: 'La inundación coincidió con la triple La Niña de 2020–23; las causas principales fueron un monzón récord, el deshielo de glaciares y el cambio climático.' } ] },
     { name: 'Bangladés', region: 'Asia meridional', ev: [
-      { type: 'Inundaciones monzónicas catastróficas: cerca de 3/4 del país bajo el agua',
-        aff: 'Unos 25 millones de afectados, unos 21 millones sin hogar; de 550 (Gobierno) a 1122 (prensa) víctimas; 50 de 64 distritos.',
+      { type: 'Inundaciones monzónicas catastróficas: más de la mitad del país bajo el agua',
+        aff: '25–28 millones de personas sin hogar (estimaciones oficiales); afectados cerca de 2/3 de los 110 millones de habitantes en 50 de 64 distritos; cifra oficial de unas 500 víctimas (septiembre de 1988), muchas por mordeduras de serpiente y agua contaminada.',
         note: 'La inundación coincidió con la fuerte La Niña de 1988–89.' } ] },
     { name: 'Tailandia', region: 'Sudeste Asiático', ev: [
       { type: 'La gran inundación (Bangkok, Ayutthaya)',
@@ -323,18 +324,18 @@ export const ES: Dict = {
     rvf: 'CDC MMWR – fiebre del valle del Rift, África oriental 1997–98',
     cal: 'Government Technology (datos de FEMA) – El Niño 1997–98',
     saf15: 'Public Finance Focus – llamamiento de la SADC, julio de 2016',
-    eth: 'CARE International – Etiopía, diciembre de 2015',
-    cam: 'WFP USA – Corredor Seco Centroamericano',
+    eth: 'ONU en Etiopía – Sequía: 10 millones de personas necesitadas (2016)',
+    cam: 'WFP USA / FAO – Corredor Seco Centroamericano, 30.06.2016',
     vnm: 'ReliefWeb (UN OCHA / ECHO) – Vietnam, 29.04.2016',
-    saf24: 'Africanews (datos de la SADC) – agosto de 2024',
+    saf24: 'Al Jazeera (datos de la SADC) – 17.08.2024',
     som23: 'UN OCHA / ReliefWeb – Somalia, 9.11.2023',
     amz: 'Mongabay – sequía en la Amazonía, octubre de 2023',
     pan: 'Woodwell Climate Research Center – la sequía y el Canal de Panamá',
     ind09: 'ThePrint – los monzones débiles de 2009 y 2014',
-    som11: 'ReliefWeb – estudio de FAO FSNAU / FEWS NET, mayo de 2013',
+    som11: 'FSNAU (FAO) / FEWS NET – estudio de mortalidad, 2.05.2013',
     arg: 'Dialogue Earth – La Niña y la sequía en Argentina',
     col: 'RPP / Dirección de Gestión del Riesgo – junio de 2011',
     tex: 'Drovers (Texas AgriLife Extension) – marzo de 2012',
-    bgd: 'Christian Science Monitor – 7.09.1988'
+    bgd: 'ReliefWeb – informes de situación de UNDRO, inundaciones de 1988'
   }
 };

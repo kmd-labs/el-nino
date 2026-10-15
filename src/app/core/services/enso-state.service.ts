@@ -37,6 +37,9 @@ export class EnsoStateService {
     return this.math.nino34(this.sCur());
   });
 
+  /** Indian Ocean Dipole index (°C) for the current state. */
+  readonly dmiValue = computed<number>(() => this.math.dmi(this.sCur()));
+
   readonly category = computed<PhaseInfo>(() => {
     const c = this.math.category(this.nino34Value());
     return { ...c, name: this.i18n.t().phase[c.k] };

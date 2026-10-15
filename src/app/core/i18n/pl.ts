@@ -76,6 +76,7 @@ export const PL: Dict = {
   lblConvection: 'Strefa konwekcji i ulew',
   lblTrades: '← Pasaty (wiatr)',
   lblKelvin: 'Fale Kelvina →',
+  lblIod: 'Dipol Oceanu Indyjskiego (IOD)',
   rainDryShort: 'suszej',
   rainWetShort: 'wilgotniej',
 

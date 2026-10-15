@@ -8,6 +8,7 @@ import {
   ViewChildren,
   QueryList,
   signal,
+  computed,
   inject,
   HostListener
 } from '@angular/core';
@@ -65,12 +66,19 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lblNinoRef') lblNinoRef!: ElementRef<HTMLDivElement>;
   @ViewChild('lblWalkerRef') lblWalkerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('lblKelvinRef') lblKelvinRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('lblIodRef') lblIodRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('rainLbl') rainLblRefs!: QueryList<ElementRef<HTMLDivElement>>;
   @ViewChild('tooltipRef') tooltipRef!: ElementRef<HTMLDivElement>;
 
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
+
+  /** DMI formatted like the Niño 3.4 readout, e.g. "+0.6 °C". */
+  readonly formattedDmi = computed(() => {
+    const v = this.state.dmiValue();
+    return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} °C`;
+  });
   private math = inject(EnsoMathService);
 
   private renderer!: THREE.WebGLRenderer;
@@ -194,6 +202,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private readonly pv = new THREE.Vector3();
   private readonly fv = new THREE.Vector3();
   private readonly tmpVec = new THREE.Vector3();
+  private readonly iodPos = this.math.pos(80, 12, this.math.R * 1.01);
   private readonly cEast = new THREE.Vector3();
   private readonly cUp = new THREE.Vector3();
   private readonly cNorth = new THREE.Vector3();
@@ -466,6 +475,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.lineWidth = Wc / 1100;
     ctx.strokeRect(X(-170), Y(5), X(-120) - X(-170), Y(-5) - Y(5));
+
+    // Indian Ocean Dipole poles: west 50–70°E, 10°S–10°N; east 90–110°E, 10°S–0°
+    ctx.strokeStyle = 'rgba(200, 175, 255, 0.85)';
+    ctx.strokeRect(X(50), Y(10), X(70) - X(50), Y(-10) - Y(10));
+    ctx.strokeRect(X(90), Y(0), X(110) - X(90), Y(-10) - Y(0));
     ctx.setLineDash([]);
 
     this.landTex.needsUpdate = true;
@@ -1098,6 +1112,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     const ninoPos = this.math.pos(-145, 5, this.math.R * 1.01);
     this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, true, 1, 5);
+
+    // above the gap between the two dipole poles
+    this.placeLabel(this.lblIodRef?.nativeElement, this.iodPos, true, 0.95, 4.5);
   }
 
   private screenOf(p: THREE.Vector3): [number, number] {

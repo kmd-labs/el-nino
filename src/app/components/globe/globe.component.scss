@@ -35,6 +35,16 @@
   transition: opacity transition("slow");
   opacity: 0;
 
+  &--iod {
+    color: #e2d6ff;
+    border-color: rgba(200, 175, 255, 0.5);
+
+    b {
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+    }
+  }
+
   &--wave {
     color: #9fe6ff;
     border-color: rgba(127, 224, 255, 0.45);

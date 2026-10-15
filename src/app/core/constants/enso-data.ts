@@ -33,11 +33,11 @@ export const SRC: Record<string, [string, string]> = {
   chn: ['Wikipedia – 1998 China floods', 'https://en.wikipedia.org/wiki/1998_China_floods'],
   cal: ['Government Technology (dane FEMA) – El Niño 1997–98', 'https://www.govtech.com/em/emergency-blogs/disaster-zone/disaster-officials-brace-for-havoc-from-historic-el-nino.html'],
   saf15: ['Public Finance Focus – apel SADC, lipiec 2016', 'https://www.publicfinancefocus.org/news/2016/07/drought-stricken-african-nations-launch-24bn-drought-appeal'],
-  eth: ['CARE International – Etiopia, grudzień 2015', 'https://www.care-international.org/news/critical-moment-avoid-massive-malnutrition-ethiopia-more-10-million-people-need-food'],
-  cam: ['WFP USA – Suchy Korytarz Ameryki Środkowej', 'https://www.wfpusa.org/?p=71238'],
+  eth: ['ONZ w Etiopii – Susza: 10 mln osób w potrzebie (2016)', 'https://ethiopia.un.org/en/15009-drought-ethiopia-10-million-people-need'],
+  cam: ['WFP USA / FAO – Suchy Korytarz Ameryki Środkowej, 30.06.2016', 'https://wfpusa.org/news/to-reduce-el-ninos-impact-on-central-americas-dry-corridor-build-resilience-and-invest-in-sustainable-agriculture/'],
   vnm: ['ReliefWeb (UN OCHA / ECHO) – Wietnam, 29.04.2016', 'https://reliefweb.int/report/viet-nam/vietnam-drought-and-salt-water-intrusion-caused-el-ni-o-echo-un-ocha-mard-echo-daily'],
   saf92: ['FAO GIEWS – Update on the 1991/92 drought', 'https://www.fao.org/4/x5558e/X5558e01.htm'],
-  saf24: ['Africanews (dane SADC) – sierpień 2024', 'https://www.africanews.com/amp/2024/08/19/el-nino-drought-affects-68-million-in-southern-africa/'],
+  saf24: ['Al Jazeera (dane SADC) – 17.08.2024', 'https://www.aljazeera.com/news/2024/8/17/nearly-68-million-people-reeling-from-drought-in-southern-africa-official'],
   som23: ['UN OCHA / ReliefWeb – Somalia, 9.11.2023', 'https://reliefweb.int/report/somalia/somalia-faces-once-century-flooding-un-relief-wing-releases-25-million-jumpstart-life-saving-assistance'],
   amz: ['Mongabay – susza w Amazonii, październik 2023', 'https://news.mongabay.com/2023/10/amazon-drought-cuts-river-traffic-leaves-communities-without-water-and-supplies/'],
   pan: ['Woodwell Climate Research Center – susza a Kanał Panamski', 'https://www.woodwellclimate.org/drought-panama-canal-7-graphics/'],
@@ -45,13 +45,13 @@ export const SRC: Record<string, [string, string]> = {
   qld: ['Wikipedia – 2010–2011 Queensland floods', 'https://en.wikipedia.org/wiki/2010%E2%80%932011_Queensland_floods'],
   pak10: ['Wikipedia – 2010 Pakistan floods', 'https://en.wikipedia.org/wiki/2010_Pakistan_floods'],
   pak22: ['Wikipedia – 2022 Pakistan floods', 'https://en.wikipedia.org/wiki/2022_Pakistan_floods'],
-  som11: ['ReliefWeb – badanie FAO FSNAU / FEWS NET, maj 2013', 'https://m.reliefweb.int/report/573273'],
+  som11: ['FSNAU (FAO) / FEWS NET – badanie umieralności, 2.05.2013', 'https://fsnau.org/in-focus/technical-release-study-suggests-258000-somalis-died-due-severe-food-insecurity-and-famine-'],
   horn: ['UNDRR – Horn of Africa floods and drought 2020–2023', 'https://www.undrr.org/resource/horn-africa-floods-and-drought/2020-2023'],
   arg: ['Dialogue Earth – La Niña a susza w Argentynie', 'https://dialogue.earth/en/climate/370215-la-nina-ends-but-drought-exposes-deeper-problems-for-argentina/'],
   tha: ['Wikipedia – 2011 Thailand floods', 'https://en.wikipedia.org/wiki/2011_Thailand_floods'],
   col: ['RPP / Dirección de Gestión del Riesgo – czerwiec 2011', 'https://rpp.pe/mundo/actualidad/colombia-lluvias-dejan-469-muertos-en-catorce-meses-noticia-373653'],
   tex: ['Drovers (Texas AgriLife Extension) – marzec 2012', 'https://www.drovers.com/news/2011-texas-agricultural-drought-losses-total-7-62-billion'],
-  bgd: ['Christian Science Monitor – 7.09.1988', 'https://www.csmonitor.com/1988/0907/obang.html'],
+  bgd: ['ReliefWeb – raporty sytuacyjne UNDRO, powodzie 1988', 'https://reliefweb.int/report/bangladesh/bangladesh-floods-aug-1988-undro-situation-reports-1-13'],
   moz: ['Wikipedia – 2000 Mozambique flood', 'https://en.wikipedia.org/wiki/2000_Mozambique_flood']
 };
 
@@ -113,7 +113,7 @@ export const EVENTS: ImpactLocation[] = [
       note: 'Rekordowe opady przypadły na La Niñę 1999–2000.', src: SRC['moz'] } ] },
   { name: 'Etiopia', region: 'Róg Afryki', lon: 39.5, lat: 9, ev: [
     { ph: 'super', yrs: '2015–2016', kind: 'dry', type: 'Ekstremalna susza, nieudane pory deszczowe',
-      aff: '10,2 mln osób potrzebujących pomocy żywnościowej (dane rządu Etiopii, grudzień 2015).', src: SRC['eth'] } ] },
+      aff: '10,2 mln osób potrzebujących pilnej pomocy humanitarnej (rząd Etiopii i agencje ONZ, początek 2016 r.); potrzeby humanitarne potroiły się od początku 2015 r.', src: SRC['eth'] } ] },
   { name: 'Kenia i płd. Somalia', region: 'Afryka Wschodnia', lon: 40.5, lat: -0.5, ev: [
     { ph: 'super', yrs: '1997–1998', kind: 'other', type: 'Najgorsze powodzie od 1961 r. i epidemia gorączki doliny Rift',
       aff: 'Opady 60–100 razy powyżej normy sezonowej; szacunkowo ok. 89 tys. zakażeń gorączką doliny Rift; 478 niewyjaśnionych zgonów zgłoszonych w grudniu 1997; utrata ok. 70% owiec i kóz w badanych stadach.',
@@ -159,8 +159,8 @@ export const EVENTS: ImpactLocation[] = [
       aff: 'Ok. 33 mln osób dotkniętych, 1 739 ofiar śmiertelnych, ponad 2,1 mln bez dachu nad głową; szkody ok. 14,9 mld USD i straty ok. 15,2 mld USD (rząd Pakistanu).',
       note: 'Powódź przypadła na potrójną La Niñę 2020–23; główne przyczyny to rekordowy monsun, topnienie lodowców i zmiana klimatu.', src: SRC['pak22'] } ] },
   { name: 'Bangladesz', region: 'Azja Południowa', lon: 90.4, lat: 23.7, ev: [
-    { ph: 'nina', yrs: '1988', kind: 'wet', type: 'Katastrofalne powodzie monsunowe – ok. 3/4 kraju pod wodą',
-      aff: 'Ok. 25 mln poszkodowanych, ok. 21 mln bez dachu nad głową; 550 (rząd) do 1 122 (prasa) ofiar; 50 z 64 dystryktów.',
+    { ph: 'nina', yrs: '1988', kind: 'wet', type: 'Katastrofalne powodzie monsunowe – ponad połowa kraju pod wodą',
+      aff: '25–28 mln osób bez dachu nad głową (szacunki oficjalne); dotknięte ok. 2/3 ze 110 mln mieszkańców w 50 z 64 dystryktów; oficjalnie ok. 500 ofiar (wrzesień 1988), wiele z powodu ukąszeń węży i skażonej wody.',
       note: 'Powódź zbiegła się z silną La Niñą 1988–89.', src: SRC['bgd'] } ] },
   { name: 'Tajlandia', region: 'Azja Południowo-Wschodnia', lon: 100.5, lat: 14.6, ev: [
     { ph: 'nina', yrs: '2011', kind: 'wet', type: 'Wielka powódź (Bangkok, Ajutthaja)',
