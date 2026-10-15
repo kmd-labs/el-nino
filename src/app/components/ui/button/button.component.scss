@@ -70,7 +70,7 @@
     }
   }
 
-  // Variant: toggle button (e.g. Temperatura / Anomalia)
+  // Variant: toggle button (e.g. Temperatura / Anomalia, ENSO phases)
   &--toggle {
     padding: 5px 10px;
     font-size: font-size("xs");
@@ -79,6 +79,12 @@
       background: color("btn-active-blue");
       border-color: color("btn-active-blue-border");
       color: color("text-bright");
+    }
+
+    &.btn--hot.btn--active {
+      background: color("btn-active-red");
+      border-color: color("btn-active-red-border");
+      color: #ffddd2;
     }
   }
 }

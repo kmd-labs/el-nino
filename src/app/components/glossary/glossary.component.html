@@ -1,15 +1,16 @@
+@let t = i18n.t();
 <aside id="glossary" class="gl glass-panel--heavy" aria-labelledby="gl-title">
   <div class="gl__head">
-    <h2 id="gl-title" class="gl__title">Istotne terminy</h2>
-    <app-button variant="ghost" ariaLabel="Zamknij" (btnClick)="close()">×</app-button>
+    <h2 id="gl-title" class="gl__title">{{ t.glTitle }}</h2>
+    <app-button variant="ghost" [ariaLabel]="t.close" (btnClick)="close()">×</app-button>
   </div>
 
   <input
     #search
     class="gl__search"
     type="search"
-    placeholder="Szukaj, np. termoklina"
-    aria-label="Szukaj terminu"
+    [placeholder]="t.glSearch"
+    [attr.aria-label]="t.glSearchAria"
     [value]="query()"
     (input)="onSearch($event)" />
 
@@ -18,13 +19,13 @@
       <section class="gl__group">
         <h3 class="gl__gtitle">{{ g.title }}</h3>
         <dl>
-          @for (t of g.terms; track t.term) {
+          @for (term of g.terms; track term.term) {
             <div class="gl__item">
-              <dt>{{ t.term }}</dt>
+              <dt>{{ term.term }}</dt>
               <dd>
-                {{ t.text }}
-                <a class="gl__wiki" [href]="t.wiki" target="_blank" rel="noopener noreferrer">
-                  Wikipedia{{ t.wikiLang === 'en' ? ' (ang.)' : '' }} ↗
+                {{ term.text }}
+                <a class="gl__wiki" [href]="term.wiki" target="_blank" rel="noopener noreferrer">
+                  Wikipedia{{ t.wikiIn[term.wikiLang] }} ↗
                 </a>
               </dd>
             </div>
@@ -32,7 +33,7 @@
         </dl>
       </section>
     } @empty {
-      <p class="gl__empty">Brak terminów pasujących do „{{ query() }}”.</p>
+      <p class="gl__empty">{{ t.glEmpty(query()) }}</p>
     }
   </div>
 </aside>

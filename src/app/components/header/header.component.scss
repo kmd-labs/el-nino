@@ -16,6 +16,29 @@
     pointer-events: auto;
   }
 
+  &__lang {
+    font: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px 6px 7px;
+    border-radius: radius("pill");
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    color: color("text-main");
+    cursor: pointer;
+    transition: border-color transition("fast");
+
+    &:hover {
+      border-color: color("btn-active-blue-border");
+    }
+  }
+
+  &__flag {
+    width: 24px;
+    height: 16px;
+  }
+
   &__title {
     margin: 0;
     font-size: font-size("lg");
@@ -28,11 +51,6 @@
     }
   }
 
-  &__sub {
-    font-size: font-size("xs");
-    color: color("text-dim");
-    margin-top: 3px;
-  }
 
   &__loading {
     font-size: font-size("xs");
@@ -44,12 +62,19 @@
     }
   }
 
-  &__readout {
+  &__right {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    flex: none;
     pointer-events: auto;
+  }
+
+  &__readout {
     text-align: right;
     border-radius: radius("badge");
     padding: 8px 12px;
-    flex: none;
 
     .k {
       font-size: font-size("xxs");
@@ -67,13 +92,41 @@
     }
   }
 
+  &__scale {
+    width: 150px;
+    align-self: flex-end;
+    border-radius: radius("badge");
+    padding: 6px 10px 5px;
+
+    .k {
+      font-size: font-size("xxs");
+      color: color("text-dim");
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &__bar {
+    display: block;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  &__ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    font-variant-numeric: tabular-nums;
+  }
+
   @include respond-to("mobile") {
     &__title {
       font-size: font-size("md");
-    }
-
-    &__sub {
-      display: none;
     }
 
     &__readout .v {

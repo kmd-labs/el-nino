@@ -1,0 +1,114 @@
+@let t = i18n.t();
+
+<!-- Thermocline: a small card on the right, above the bottom controls -->
+@if (popup() === 'thermo') {
+  <div class="pop pop--thermo glass-panel" role="dialog" aria-labelledby="pop-thermo-title">
+    <div class="pop__head">
+      <span id="pop-thermo-title" class="pop__title">{{ t.thermoTitle }}</span>
+      <app-button variant="ghost" [ariaLabel]="t.close" (btnClick)="popup.set(null)">×</app-button>
+    </div>
+    <canvas #sectionCanvas class="pop__canvas" width="360" height="110"></canvas>
+    <p class="pop__note">{{ t.thermoNote }}</p>
+  </div>
+}
+@if (popup() === 'desc') {
+  <div class="pop glass-panel" role="dialog" aria-labelledby="pop-desc-title">
+    <div class="pop__head">
+      <span id="pop-desc-title" class="pop__title">{{ t.stateLabel }}: {{ state.category().name }}</span>
+      <app-button variant="ghost" [ariaLabel]="t.close" (btnClick)="popup.set(null)">×</app-button>
+    </div>
+    <p class="pop__desc">{{ state.description() }}</p>
+    <p class="pop__note">{{ state.hint() }}</p>
+  </div>
+}
+
+@if (collapsed()) {
+  <!-- folded to the left: only a tab to slide the panel back out -->
+  <button
+    type="button"
+    class="tab glass-panel"
+    [title]="t.showPanel"
+    [attr.aria-label]="t.showPanel + ': ' + t.ensoTab"
+    aria-expanded="false"
+    (click)="collapsed.set(false)">
+    <span class="tab__name">{{ t.ensoTab }}</span>
+    <span class="tab__val">{{ state.category().name }}</span>
+    <span class="tab__arrow" aria-hidden="true">›</span>
+  </button>
+} @else {
+  <div class="bar glass-panel">
+    <button
+      type="button"
+      class="fold"
+      [title]="t.hidePanel"
+      [attr.aria-label]="t.hidePanel + ': ' + t.ensoTab"
+      aria-expanded="true"
+      (click)="fold()">‹</button>
+
+    <span class="bar__label">{{ t.ensoLabel }}</span>
+
+    <div class="bar__presets" role="group" [attr.aria-label]="t.ensoTab">
+      @for (p of presets; track p.strength) {
+        <app-button
+          variant="toggle"
+          [active]="state.sTarget() === p.strength"
+          [hot]="!!p.hot"
+          (btnClick)="onPresetClick(p)">
+          {{ t.phase[p.ph] }}
+        </app-button>
+      }
+    </div>
+
+    <div class="bar__slider">
+      <input
+        type="range"
+        min="-2"
+        max="3"
+        step="0.05"
+        [attr.aria-label]="t.strengthAria"
+        [value]="state.sTarget()"
+        (input)="onSliderInput($event)" />
+      <div class="bar__prob" [title]="t.probTitle">
+        {{ t.probText }} {{ state.prob2026() }}
+        <a
+          href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml"
+          target="_blank"
+          rel="noopener noreferrer">{{ t.probSource }}</a>
+      </div>
+    </div>
+
+    <div class="bar__cycle">
+      <app-button variant="play" [active]="state.isPlaying()" (btnClick)="state.togglePlaying()">
+        {{ state.isPlaying() ? t.playStop : t.playStart }}
+      </app-button>
+      @if (state.monthText()) {
+        <span class="bar__month">{{ state.monthText() }}</span>
+      }
+    </div>
+
+    <div class="bar__sep" aria-hidden="true"></div>
+
+    <div class="bar__pops" role="group" [attr.aria-label]="t.detailsAria">
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="popup() === 'thermo'"
+        [attr.aria-expanded]="popup() === 'thermo'"
+        [title]="t.thermoChipTitle"
+        (click)="toggle('thermo')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 18l18-8" /><path d="M3 12h4M3 15h2" /></svg>
+        <span>{{ t.thermoChip }}</span>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--on]="popup() === 'desc'"
+        [attr.aria-expanded]="popup() === 'desc'"
+        [title]="t.descChipTitle"
+        (click)="toggle('desc')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7.5v.5" /></svg>
+        <span>{{ t.descChip }}</span>
+      </button>
+    </div>
+  </div>
+}

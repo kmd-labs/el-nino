@@ -1,0 +1,20 @@
+<div class="wel" role="dialog" aria-modal="true" aria-labelledby="wel-title">
+  <div class="wel__card glass-panel--heavy">
+    <h1 id="wel-title" class="wel__title">El Niño <span>3D</span></h1>
+
+    <div class="wel__langs" role="group" aria-label="English · Español · Polski">
+      @for (l of i18n.langs; track l) {
+        <button
+          type="button"
+          class="wel__lang"
+          [class.wel__lang--last]="l === i18n.remembered"
+          [attr.lang]="i18n.dicts[l].htmlLang"
+          [attr.aria-label]="i18n.dicts[l].langName"
+          [title]="i18n.dicts[l].langName"
+          (click)="pick(l)">
+          <app-flag class="wel__flag" [lang]="l"></app-flag>
+        </button>
+      }
+    </div>
+  </div>
+</div>

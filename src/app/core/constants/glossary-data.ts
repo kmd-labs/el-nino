@@ -1,16 +1,9 @@
-/** Plain-language explanations of the terms used across the app, grouped by topic. */
+import { GlossaryGroup } from '../i18n/i18n.types';
 
-export interface GlossaryTerm {
-  term: string;
-  text: string;
-  wiki: string;      // link to Wikipedia (Polish where an article exists, otherwise English)
-  wikiLang: 'pl' | 'en';
-}
-
-export interface GlossaryGroup {
-  title: string;
-  terms: GlossaryTerm[];
-}
+/**
+ * Plain-language explanations of the terms used across the app, grouped by topic (Polish).
+ * Links go to Polish Wikipedia where an article exists, otherwise English.
+ */
 
 export const GLOSSARY: GlossaryGroup[] = [
   {

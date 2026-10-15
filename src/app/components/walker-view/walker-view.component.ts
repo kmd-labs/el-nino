@@ -13,12 +13,14 @@ import {
 import { CommonModule } from '@angular/common';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { WalkerCanvasText } from '../../core/i18n/i18n.types';
 
 /** Parts of the picture a step can put in focus; everything else is dimmed. */
 type Focus = 'all' | 'wind' | 'ocean' | 'thermo' | 'upwell' | 'convection' | 'aloft' | 'sink' | 'kelvin';
 
+/** One walkthrough step; its title is Dict.steps[i] in the current language. */
 interface WalkerStep {
-  title: string;
   s: number;
   focus: Focus[];
 }
@@ -31,18 +33,18 @@ interface Particle {
 const FOCUS_KEYS: Focus[] = ['wind', 'ocean', 'thermo', 'upwell', 'convection', 'aloft', 'sink', 'kelvin'];
 
 const STEPS: WalkerStep[] = [
-  { title: 'Punkt wyjścia: stan neutralny', s: 0, focus: ['all'] },
-  { title: 'Przy powierzchni wieją pasaty – ze wschodu na zachód, od Ameryki Płd. ku Indonezji', s: 0, focus: ['wind'] },
-  { title: 'Wiatr spycha ciepłą wodę na zachód: przy Indonezji tworzy się ciepły basen, a termoklina się nachyla', s: 0, focus: ['ocean', 'thermo', 'wind'] },
-  { title: 'Przy Ameryce Płd. w miejsce odpływającej wody wypływa zimna woda z głębin (upwelling)', s: 0, focus: ['upwell', 'thermo'] },
-  { title: 'Nad ciepłym basenem wilgotne powietrze wznosi się – rosną chmury burzowe i padają ulewy', s: 0, focus: ['convection'] },
-  { title: 'Pod tropopauzą osuszone powietrze płynie z powrotem na wschód', s: 0, focus: ['aloft'] },
-  { title: 'Nad chłodnym wschodnim Pacyfikiem powietrze opada i jest sucho – pętla się zamyka: to cyrkulacja Walkera', s: 0, focus: ['sink', 'wind', 'convection', 'aloft'] },
-  { title: 'La Niña: cyrkulacja przyspiesza – silniejsze pasaty, zimny jęzor sięga daleko na zachód', s: -1.6, focus: ['all'] },
-  { title: 'Pasaty słabną – ciepła woda wraca na wschód jako fala Kelvina pod powierzchnią', s: 0.8, focus: ['kelvin', 'ocean', 'thermo', 'wind'] },
-  { title: 'El Niño: konwekcja przesuwa się nad środkowy Pacyfik, komórka Walkera słabnie i się rozpada', s: 1.6, focus: ['all'] },
-  { title: 'Super El Niño: termoklina się wypłaszcza – ulewy w Peru i Ekwadorze, susza w Indonezji i Australii', s: 2.6, focus: ['all'] },
-  { title: 'Pasaty odbudowują się, wraca stan neutralny – i cykl zaczyna się od nowa', s: 0, focus: ['all'] }
+  { s: 0, focus: ['all'] },
+  { s: 0, focus: ['wind'] },
+  { s: 0, focus: ['ocean', 'thermo', 'wind'] },
+  { s: 0, focus: ['upwell', 'thermo'] },
+  { s: 0, focus: ['convection'] },
+  { s: 0, focus: ['aloft'] },
+  { s: 0, focus: ['sink', 'wind', 'convection', 'aloft'] },
+  { s: -1.6, focus: ['all'] },
+  { s: 0.8, focus: ['kelvin', 'ocean', 'thermo', 'wind'] },
+  { s: 1.6, focus: ['all'] },
+  { s: 2.6, focus: ['all'] },
+  { s: 0, focus: ['all'] }
 ];
 
 /** Seconds each step stays on screen while auto-playing. */
@@ -67,21 +69,27 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   state = inject(EnsoStateService);
   private math = inject(EnsoMathService);
+  i18n = inject(I18nService);
   private ngZone = inject(NgZone);
 
   readonly steps = STEPS;
-  readonly step = signal(0);
-  readonly playing = signal(true);
+  /** Current walkthrough step; −1 = not started, the view just shows the current ENSO state. */
+  readonly step = signal(-1);
+  readonly playing = signal(false);
 
   readonly badge = computed(() => {
-    if (this.state.isPlaying()) return 'cykl';
+    const t = this.i18n.t();
+    if (this.state.isPlaying()) return t.walkerCycle;
     const i = this.step();
+    if (i < 0) return t.walkerNow;
     return i === 0 ? 'start' : `${i}/${STEPS.length - 1}`;
   });
 
   readonly caption = computed(() => {
-    if (this.state.isPlaying()) return `Cykl ENSO · ${this.state.monthText() || 'start'}`;
-    return STEPS[this.step()].title;
+    const t = this.i18n.t();
+    if (this.state.isPlaying()) return t.walkerCycleCaption(this.state.monthText());
+    if (this.step() < 0) return t.walkerCurrent(this.state.category().name);
+    return t.steps[this.step()];
   });
 
   private ctx!: CanvasRenderingContext2D;
@@ -114,14 +122,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private bolt: [number, number][] = [];
 
   ngOnInit() {
-    // Start the walkthrough unless the ENSO cycle is already playing (then just follow it)
-    if (this.state.isPlaying()) {
-      this.playing.set(false);
-    } else {
-      // changes shared state (ENSO strength) that views rendered before this one already read,
-      // so do it right after the current change-detection pass
-      queueMicrotask(() => this.go(0));
-    }
+    // opening the view keeps the current ENSO state; the walkthrough starts only on request
+    this.lastSetS = this.state.sTarget();
   }
 
   ngAfterViewInit() {
@@ -157,12 +159,17 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.state.setPreset(STEPS[idx].s);
   }
 
-  next() {
+  /** Auto-advance to the following step. */
+  private advance() {
     this.go(this.step() + 1);
   }
 
+  next() {
+    this.pick(this.step() + 1);
+  }
+
   prev() {
-    this.go(this.step() - 1);
+    this.pick(this.step() < 0 ? STEPS.length - 1 : this.step() - 1);
   }
 
   pick(i: number) {
@@ -177,7 +184,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.playing.set(true);
     // taking over from the ENSO cycle (or from a manual slider change) restarts the current step
-    this.go(this.step());
+    this.go(Math.max(0, this.step()));
   }
 
   // ─── Scene ─────────────────────────────────────────────────────────────────
@@ -232,11 +239,11 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.playing()) {
       this.stepClock += dt;
-      if (this.stepClock > STEP_SECONDS) this.ngZone.run(() => this.next());
+      if (this.stepClock > STEP_SECONDS) this.ngZone.run(() => this.advance());
     }
 
     // ease focus alphas towards the current step
-    const focus = this.state.isPlaying() ? ['all'] : STEPS[this.step()].focus;
+    const focus = this.state.isPlaying() || this.step() < 0 ? ['all'] : STEPS[this.step()].focus;
     const all = focus.includes('all');
     for (const k of FOCUS_KEYS) {
       const target = all || focus.includes(k) ? 1 : 0.18;
@@ -257,6 +264,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private draw(dt: number) {
     const ctx = this.ctx;
+    const L = this.i18n.t().canvas;
     const { W, H } = this;
     const s = this.state.sCur();
     const ys = this.ys;
@@ -283,13 +291,13 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(W, this.zY(16));
     ctx.stroke();
     ctx.restore();
-    this.text('Tropopauza ~16 km', W - 8, this.zY(16) - 6, 'right', 'rgba(200, 215, 240, 0.55)');
+    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', 'rgba(200, 215, 240, 0.55)');
 
     this.drawOcean(s);
-    this.drawThermocline(s);
+    this.drawThermocline(s, L.thermocline);
     this.drawUpwelling(trade);
-    this.drawKelvin(s, xc);
-    this.drawLand();
+    this.drawKelvin(s, xc, L.kelvin);
+    this.drawLand(L.indonesia, L.andes);
     this.drawNinoBox();
 
     // Walker cells: the main (eastern) cell, and during El Niño a reversed western cell
@@ -299,7 +307,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     if (wS > 0.01) this.drawCell(this.westCell, 112, xc, -1, wS * 0.8, dt);
 
     this.drawCloud(xc, dt);
-    this.drawLabels(s, xc, eS, wS);
+    this.drawLabels(s, xc, eS, wS, L);
     this.drawAxis();
   }
 
@@ -350,7 +358,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.math.clamp(d, 0, 4) / 4 * SEA_DEPTH;
   }
 
-  private drawThermocline(s: number) {
+  private drawThermocline(s: number, label: string) {
     const ctx = this.ctx;
     const a = 0.25 + 0.75 * this.fa.thermo;
     ctx.strokeStyle = `rgba(255, 255, 255, ${0.85 * a})`;
@@ -363,7 +371,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
-    this.text('termoklina', this.X(104), this.dY(this.thermoDepth(104, s)) - 5, 'left', `rgba(255, 255, 255, ${0.8 * a})`);
+    this.text(label, this.X(104), this.dY(this.thermoDepth(104, s)) - 5, 'left', `rgba(255, 255, 255, ${0.8 * a})`);
   }
 
   private drawUpwelling(trade: number) {
@@ -391,7 +399,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.globalAlpha = 1;
   }
 
-  private drawKelvin(s: number, xc: number) {
+  private drawKelvin(s: number, xc: number, label: string) {
     const a = this.math.clamp(s / 1.2, 0, 1) * this.fa.kelvin;
     if (a < 0.02) return;
     const ctx = this.ctx;
@@ -413,10 +421,10 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.arc(x, y, rx, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    this.text('fala Kelvina →', x, this.dY(28), 'center', `rgba(255, 210, 160, ${a})`, true);
+    this.text(label, x, this.dY(28), 'center', `rgba(255, 210, 160, ${a})`, true);
   }
 
-  private drawLand() {
+  private drawLand(indonesia: string, andes: string) {
     const ctx = this.ctx;
     const ys = this.ys;
     // Maritime Continent (Indonesia): low hills sitting on the warm pool
@@ -427,7 +435,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const [lon, z] of hills) ctx.lineTo(this.X(lon), this.zY(z));
     ctx.closePath();
     ctx.fill();
-    this.text('Indonezja', this.X(101.5), this.zY(2.6), 'left', 'rgba(220, 230, 245, 0.75)');
+    this.text(indonesia, this.X(101.5), this.zY(2.6), 'left', 'rgba(220, 230, 245, 0.75)');
 
     // South America: coast at ~80°W, the Andes behind it
     ctx.fillStyle = '#121a1a';
@@ -442,7 +450,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(this.X(290), this.yo);
     ctx.closePath();
     ctx.fill();
-    this.text('Andy', this.W - 8, this.zY(7), 'right', 'rgba(220, 230, 245, 0.75)');
+    this.text(andes, this.W - 8, this.zY(7), 'right', 'rgba(220, 230, 245, 0.75)');
   }
 
   private drawNinoBox() {
@@ -577,24 +585,24 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private drawLabels(s: number, xc: number, eS: number, wS: number) {
+  private drawLabels(s: number, xc: number, eS: number, wS: number, L: WalkerCanvasText) {
     const dimText = (k: Focus, base = 0.85) => `rgba(220, 230, 248, ${base * (0.2 + 0.8 * this.fa[k])})`;
     const eA = this.math.clamp(eS, 0.15, 1);
     if (268 - xc > 30) {
-      this.text('← pasaty', this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', dimText('wind', 0.9 * eA), true);
-      this.text('powrót górą →', this.X((xc + 268) / 2 + 8), this.zY(14.4), 'center', dimText('aloft', 0.8 * eA));
-      this.text('osiadanie · sucho', this.X(266), this.zY(8.2), 'right', dimText('sink', 0.8 * eA));
+      this.text(L.trades, this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', dimText('wind', 0.9 * eA), true);
+      this.text(L.aloft, this.X((xc + 268) / 2 + 8), this.zY(14.4), 'center', dimText('aloft', 0.8 * eA));
+      this.text(L.sinkDry, this.X(266), this.zY(8.2), 'right', dimText('sink', 0.8 * eA));
     }
-    this.text('wznoszenie · ulewy', this.X(xc), this.zY(15), 'center', dimText('convection'), true);
+    this.text(L.rising, this.X(xc), this.zY(15), 'center', dimText('convection'), true);
     if (wS > 0.05) {
-      this.text('osiadanie · susza', this.X(113), this.zY(8.2), 'left', `rgba(255, 196, 140, ${0.85 * wS})`, true);
-      this.text('wiatr zachodni →', this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', `rgba(255, 214, 170, ${0.85 * wS})`);
+      this.text(L.sinkDrought, this.X(113), this.zY(8.2), 'left', `rgba(255, 196, 140, ${0.85 * wS})`, true);
+      this.text(L.westerly, this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', `rgba(255, 214, 170, ${0.85 * wS})`);
     }
     if (s < 1) {
-      this.text('ciepły basen', this.X(134), this.dY(26), 'center', `rgba(255, 235, 215, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
+      this.text(L.warmPool, this.X(134), this.dY(26), 'center', `rgba(255, 235, 215, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
     }
     if (s < 0.6) {
-      this.text('zimny jęzor', this.X(254), this.dY(26), 'center', `rgba(220, 240, 255, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
+      this.text(L.coldTongue, this.X(254), this.dY(26), 'center', `rgba(220, 240, 255, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
     }
   }
 

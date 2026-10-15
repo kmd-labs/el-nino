@@ -1,11 +1,11 @@
 @use "../../../variables" as *;
 
-// Desktop: fills the space to the right of the control panel, between the header and the dock
+// Desktop: fills the space between the header and the bottom controls
 .walker {
   position: fixed;
-  left: 418px;
+  left: 14px;
   right: 14px;
-  top: 104px;
+  top: 150px;
   bottom: calc(var(--dock-h, 60px) + 26px);
   z-index: 15;
   display: flex;
@@ -155,13 +155,13 @@
   }
 }
 
-// Tablet & mobile: full width between the header and the control panel (its height comes from --panel-h)
+// Tablet & mobile: full width between the header and the bottom controls
 @include respond-to("tablet") {
   .walker {
     left: 10px;
     right: 10px;
-    top: 92px;
-    bottom: calc(var(--dock-h, 60px) + var(--panel-h, 0px) + 26px);
+    top: 140px;
+    bottom: calc(var(--dock-h, 60px) + 16px);
   }
 
   .walker__step {

@@ -7,16 +7,17 @@
   (pointerleave)="onPointerLeave()">
 </canvas>
 
+@let t = i18n.t();
 <div class="labels">
-  <div #lblConvRef class="lbl">Strefa konwekcji i ulew</div>
-  <div #lblWalkerRef class="lbl">← Pasaty (wiatr)</div>
-  <div #lblKelvinRef class="lbl lbl--wave">Fale Kelvina →</div>
+  <div #lblConvRef class="lbl">{{ t.lblConvection }}</div>
+  <div #lblWalkerRef class="lbl">{{ t.lblTrades }}</div>
+  <div #lblKelvinRef class="lbl lbl--wave">{{ t.lblKelvin }}</div>
   <div #lblNinoRef class="lbl lbl--box">Niño 3.4</div>
-  @for (r of rainRegions; track r.name) {
+  @for (r of rainRegions; track $index) {
     @let dry = (r.kind === 'dry') === (impSign() > 0);
     <div #rainLbl class="lbl lbl--rain" [class.lbl--dry]="dry" [class.lbl--wet]="!dry">
-      {{ r.name }}
-      <small>{{ dry ? 'suszej' : 'wilgotniej' }} · {{ r.season }}</small>
+      {{ t.regions[$index].name }}
+      <small>{{ dry ? t.rainDryShort : t.rainWetShort }} · {{ t.regions[$index].season }}</small>
     </div>
   }
 </div>

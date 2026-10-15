@@ -237,8 +237,8 @@ export const MON = [
 ];
 
 export const PRESETS: Preset[] = [
-  { label: 'La Niña', strength: -1.6 },
-  { label: 'Neutralny', strength: 0 },
-  { label: 'El Niño', strength: 1.2 },
-  { label: 'Super El Niño', strength: 2.6, hot: true }
+  { ph: 'nina', label: 'La Niña', strength: -1.6 },
+  { ph: 'neu', label: 'Neutralny', strength: 0 },
+  { ph: 'nino', label: 'El Niño', strength: 1.2 },
+  { ph: 'super', label: 'Super El Niño', strength: 2.6, hot: true }
 ];

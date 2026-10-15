@@ -1,0 +1,340 @@
+import { Dict } from './i18n.types';
+
+export const ES: Dict = {
+  htmlLang: 'es',
+  docTitle: 'El Niño — globo 3D',
+  langName: 'Español',
+
+  phase: { super: 'Súper El Niño', nino: 'El Niño', nina: 'La Niña', neu: 'Neutral' },
+  desc: {
+    nina: 'Los alisios reforzados empujan el agua cálida hacia el oeste. La lengua fría del Pacífico ecuatorial se extiende muy al oeste y las lluvias intensas se concentran sobre Indonesia y Australia. Los efectos son en gran medida opuestos a los de El Niño.',
+    neu: 'Los alisios mantienen una piscina cálida junto a Indonesia (~29–30 °C) y una lengua fría a lo largo del ecuador en el Pacífico oriental. La convección y las lluvias intensas se concentran sobre el Pacífico occidental.',
+    nino: 'Los alisios se debilitan, el agua cálida se desplaza hacia el este y la zona de convección avanza hacia el Pacífico central. Entran en juego las teleconexiones: cambios del tiempo lejos del Pacífico.',
+    super: 'La anomalía Niño 3.4 supera los +2 °C. La circulación de Walker colapsa, los aguaceros azotan Perú y Ecuador, mientras Indonesia, Australia, la India y el sur de África sufren sequía. Sube la temperatura media del planeta. Ejemplos: 1982–83, 1997–98, 2015–16.'
+  },
+  months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+
+  readoutTitle: 'Anomalía Niño 3.4',
+  loadingMap: 'Cargando el mapa de los continentes…',
+  mapError: 'No se pudieron cargar los contornos de tierra.',
+  changeLanguage: 'Cambiar idioma',
+
+  ensoLabel: 'Estado ENSO:',
+  strengthAria: 'Intensidad de ENSO',
+  probText: 'Probabilidad de este estado en 2026:',
+  probTitle: 'Estimación muy aproximada para el pico de la temporada (oct–dic 2026) según el pronóstico de NOAA CPC del 8.10.2026',
+  probSource: '[fuente: NOAA CPC]',
+  playStart: '▶ Ciclo ENSO (4 años)',
+  playStop: '❚❚ Detener',
+  detailsAria: 'Detalles',
+  thermoChip: 'Termoclina',
+  thermoChipTitle: 'Corte de la termoclina a lo largo del ecuador',
+  thermoTitle: 'Termoclina a lo largo del ecuador (Pacífico, 0–300 m)',
+  thermoNote: 'La línea blanca es la termoclina: el límite entre el agua cálida de superficie y el agua fría profunda. Con El Niño se aplana; con La Niña se inclina más.',
+  descChip: 'Descripción',
+  descChipTitle: 'Qué ocurre en esta fase',
+  stateLabel: 'Estado',
+  close: 'Cerrar',
+  hidePanel: 'Ocultar panel',
+  showPanel: 'Mostrar panel',
+  ensoTab: 'Estado ENSO',
+  viewTab: 'Vista',
+  cycleMonth: (year, month, realYear, forecast) => `Año ${year} · ${month} (≈ ${realYear}${forecast ? ', pronóstico' : ''})`,
+  hintNeutral: 'En la fase neutral no hay marcadores. Elige La Niña, El Niño o Súper El Niño para ver los impactos históricos.',
+  hintPins: (count, phase) => `${count} lugares con impactos documentados de ${phase}. Haz clic en un marcador para ver los datos y la fuente.`,
+
+  chooseView: 'Elige la vista:',
+  viewTemp: 'Temperatura',
+  viewAnom: 'Anomalía',
+  viewWalker: 'Circulación de Walker',
+  viewImpacts: 'Impacto en los continentes',
+  scaleSst: 'Temperatura superficial del mar (°C)',
+  scaleAnom: 'Anomalía de temperatura respecto a lo normal (°C)',
+  scaleSstShort: 'Temperatura del océano',
+  scaleAnomShort: 'Anomalía de temperatura',
+  impactsTab: 'Impactos',
+  layersAria: 'Capas',
+  layerAtm: 'Atmósfera',
+  layerAtmTitle: 'Viento, olas y nubes convectivas',
+  layerEvents: 'Eventos',
+  layerEventsTitle: 'Marcadores con impactos históricos de la fase',
+  layerRotate: 'Rotación',
+  layerRotateTitle: 'Rotación automática del globo',
+  layerGlossary: 'Términos clave',
+  layerGlossaryTitle: 'Términos clave: explicaciones sencillas',
+  pinLegendTitle: phase => `Impactos de ${phase}:`,
+  kindDry: 'sequía / calor',
+  kindFire: 'incendios',
+  kindWet: 'inundaciones / aguaceros',
+  kindOther: 'pesca / enfermedades',
+  rainDry: 'más seco de lo normal',
+  rainWet: 'más húmedo de lo normal',
+  rainTitleNina: 'La Niña: patrón de lluvias aproximadamente inverso (simplificación):',
+  rainTitleNeutral: 'Cambios típicos de las lluvias durante El Niño (no se dan en la fase neutral):',
+  rainTitleNino: 'Cambios típicos de las lluvias durante El Niño:',
+  sources: 'Fuentes:',
+
+  lblConvection: 'Zona de convección y lluvias',
+  lblTrades: '← Alisios (viento)',
+  lblKelvin: 'Ondas Kelvin →',
+  rainDryShort: 'más seco',
+  rainWetShort: 'más húmedo',
+
+  mArea: 'Zona',
+  mAnomaly: 'Anomalía',
+  mScale: 'Magnitud del impacto',
+  mRole: 'Papel de ENSO:',
+  mSource: 'Fuente:',
+
+  walkerAria: 'Circulación de Walker: corte a lo largo del ecuador',
+  walkerCaption: 'Corte a lo largo del ecuador (0°) · atmósfera 0–16 km · océano 0–300 m (escala vertical convencional)',
+  walkerNow: 'ahora',
+  walkerCycle: 'ciclo',
+  walkerCurrent: phase => `Estado actual: ${phase} · ▶ inicia la explicación paso a paso`,
+  walkerCycleCaption: month => `Ciclo ENSO · ${month || 'inicio'}`,
+  walkerPrev: 'Paso anterior',
+  walkerNext: 'Paso siguiente',
+  walkerPlay: 'Reproducir los pasos',
+  walkerPause: 'Pausar',
+  walkerStep: (i, title) => `Paso ${i}: ${title}`,
+  steps: [
+    'Punto de partida: el estado neutral',
+    'Junto a la superficie soplan los alisios: de este a oeste, de Sudamérica hacia Indonesia',
+    'El viento empuja el agua cálida al oeste: junto a Indonesia se forma una piscina cálida y la termoclina se inclina',
+    'Frente a Sudamérica, el agua fría profunda sube para reemplazar la que se aleja (afloramiento)',
+    'Sobre la piscina cálida el aire húmedo asciende: crecen nubes de tormenta y caen aguaceros',
+    'Bajo la tropopausa, el aire ya seco regresa hacia el este',
+    'Sobre el Pacífico oriental fresco el aire desciende y hace seco: el circuito se cierra; es la circulación de Walker',
+    'La Niña: la circulación se acelera – alisios más fuertes, la lengua fría llega muy al oeste',
+    'Los alisios se debilitan: el agua cálida vuelve al este como una onda Kelvin bajo la superficie',
+    'El Niño: la convección se desplaza al Pacífico central, la celda de Walker se debilita y se rompe',
+    'Súper El Niño: la termoclina se aplana – aguaceros en Perú y Ecuador, sequía en Indonesia y Australia',
+    'Los alisios se recuperan, vuelve el estado neutral… y el ciclo empieza de nuevo'
+  ],
+  canvas: {
+    tropopause: 'Tropopausa ~16 km',
+    thermocline: 'termoclina',
+    kelvin: 'onda Kelvin →',
+    indonesia: 'Indonesia',
+    andes: 'Andes',
+    trades: '← alisios',
+    aloft: 'retorno en altura →',
+    sinkDry: 'descenso · seco',
+    rising: 'ascenso · aguaceros',
+    sinkDrought: 'descenso · sequía',
+    westerly: 'viento del oeste →',
+    warmPool: 'piscina cálida',
+    coldTongue: 'lengua fría'
+  },
+
+  glTitle: 'Términos clave',
+  glSearch: 'Buscar, p. ej. termoclina',
+  glSearchAria: 'Buscar un término',
+  glEmpty: q => `Ningún término coincide con «${q}».`,
+  wikiIn: { pl: ' (polaco)', en: ' (inglés)', es: '' },
+  glossary: [
+    {
+      title: 'Conceptos básicos',
+      terms: [
+        { term: 'ENSO (El Niño – Oscilación del Sur)', text: 'Una oscilación natural del clima en el Pacífico ecuatorial que se repite cada 2–7 años. El océano y la atmósfera “se balancean” juntos entre tres estados: El Niño, La Niña y neutral.', wiki: 'https://es.wikipedia.org/wiki/Oscilaci%C3%B3n_del_Sur', wikiLang: 'es' },
+        { term: 'El Niño', text: 'La fase cálida de ENSO. Los alisios se debilitan, el agua cálida se extiende hacia el Pacífico oriental y las lluvias intensas pasan de Indonesia al centro del océano. El nombre viene de los pescadores peruanos, porque suele alcanzar su pico cerca de Navidad.', wiki: 'https://es.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'es' },
+        { term: 'La Niña', text: 'La fase fría de ENSO, en gran medida lo contrario de El Niño. Los alisios son más fuertes de lo habitual, el agua fría llega muy al oeste y las lluvias sobre Indonesia y Australia se intensifican.', wiki: 'https://es.wikipedia.org/wiki/La_Ni%C3%B1a', wikiLang: 'es' },
+        { term: 'Súper El Niño', text: 'Nombre informal de un El Niño muy fuerte, cuando la anomalía en la región Niño 3.4 supera unos +2 °C. Ocurrió en 1982–83, 1997–98 y 2015–16, con impactos en todo el mundo.', wiki: 'https://es.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'es' },
+        { term: 'Oscilación del Sur', text: 'La “mitad” atmosférica de ENSO: cambios opuestos de la presión del aire sobre Tahití y sobre Darwin, en Australia. Cuando la diferencia de presión disminuye, los alisios se debilitan… y empieza El Niño.', wiki: 'https://es.wikipedia.org/wiki/Oscilaci%C3%B3n_del_Sur', wikiLang: 'es' },
+        { term: 'Niño 3.4', text: 'Un recuadro en el Pacífico ecuatorial (5°S–5°N, 170°O–120°O). La anomalía media de la temperatura del agua en él es la principal medida de la intensidad de ENSO: por encima de +0,5 °C, El Niño; por debajo de −0,5 °C, La Niña.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'Anomalía de temperatura', text: 'La diferencia entre la temperatura actual y el promedio de muchos años para ese lugar y época del año. Una anomalía de +2 °C significa “2 °C más cálido de lo normal”, no “2 °C”.', wiki: 'https://es.wikipedia.org/wiki/Anomal%C3%ADa_de_temperatura', wikiLang: 'es' }
+      ]
+    },
+    {
+      title: 'Océano',
+      terms: [
+        { term: 'Temperatura superficial del mar (TSM)', text: 'La temperatura de la capa de agua más superficial, medida por satélites y boyas. Es la que más influye en la evaporación y la formación de nubes sobre el océano.', wiki: 'https://es.wikipedia.org/wiki/Temperatura_superficial_del_mar', wikiLang: 'es' },
+        { term: 'Termoclina', text: 'Una capa delgada del océano en la que la temperatura baja rápidamente con la profundidad: el límite entre el agua cálida de superficie y la fría del fondo. En el Pacífico está inclinada: profunda al oeste, somera al este. Con El Niño se aplana.', wiki: 'https://es.wikipedia.org/wiki/Termoclina', wikiLang: 'es' },
+        { term: 'Piscina cálida', text: 'Una enorme zona con el agua más cálida de la Tierra (más de 28–29 °C) en el Pacífico occidental y alrededor de Indonesia. Los alisios acumulan allí el agua cálida y sobre ella se forman enormes nubes de tormenta.', wiki: 'https://en.wikipedia.org/wiki/Indo-Pacific_Warm_Pool', wikiLang: 'en' },
+        { term: 'Lengua fría', text: 'Una franja de agua más fresca a lo largo del ecuador en el Pacífico oriental, que parte de la costa de Sudamérica. La alimentan la fría corriente de Humboldt y el afloramiento. Se debilita con El Niño y llega más al oeste con La Niña.', wiki: 'https://es.wikipedia.org/wiki/Corriente_de_Humboldt', wikiLang: 'es' },
+        { term: 'Afloramiento (upwelling)', text: 'Ascenso de agua profunda, fría y rica en nutrientes hacia la superficie cuando el viento aleja el agua de la costa. Frente a Perú alimenta algunas de las mayores pesquerías del mundo; por eso El Niño, que lo debilita, golpea a la pesca.', wiki: 'https://es.wikipedia.org/wiki/Afloramiento', wikiLang: 'es' },
+        { term: 'Onda Kelvin', text: 'Una onda oceánica muy larga, invisible en la superficie, que viaja hacia el este a lo largo del ecuador en unos 2–3 meses. Transporta agua cálida y hunde la termoclina: es la que “lleva” El Niño hasta Sudamérica.', wiki: 'https://es.wikipedia.org/wiki/Onda_Kelvin', wikiLang: 'es' }
+      ]
+    },
+    {
+      title: 'Atmósfera',
+      terms: [
+        { term: 'Alisios', text: 'Vientos constantes de los trópicos que soplan de este a oeste y ligeramente hacia el ecuador. Sobre el Pacífico empujan el agua cálida hacia Indonesia. Su debilitamiento es señal de que se forma El Niño.', wiki: 'https://es.wikipedia.org/wiki/Vientos_alisios', wikiLang: 'es' },
+        { term: 'Circulación de Walker', text: 'Un gran circuito de aire sobre el Pacífico ecuatorial: en superficie los alisios soplan hacia el oeste, sobre la piscina cálida el aire asciende, en altura regresa al este y desciende sobre el Pacífico oriental fresco. El Niño la debilita y la desplaza.', wiki: 'https://en.wikipedia.org/wiki/Walker_circulation', wikiLang: 'en' },
+        { term: 'Convección', text: 'Ascenso de aire cálido y húmedo. Al subir se enfría y el vapor de agua se condensa: crecen nubes de tormenta y caen aguaceros. La zona de convección sigue al agua más cálida.', wiki: 'https://es.wikipedia.org/wiki/Convecci%C3%B3n_atmosf%C3%A9rica', wikiLang: 'es' },
+        { term: 'Cumulonimbo', text: 'Una nube de tormenta muy alta que puede llegar a la tropopausa. Arriba se aplana en un característico “yunque”. Trae aguaceros, rayos y viento racheado.', wiki: 'https://es.wikipedia.org/wiki/Cumulonimbus', wikiLang: 'es' },
+        { term: 'Zona de convergencia intertropical (ZCIT)', text: 'Un cinturón alrededor de la Tierra cerca del ecuador donde se encuentran los alisios de ambos hemisferios. Allí el aire asciende, por eso hay nubes y lluvia. Sobre el Pacífico suele estar unos grados al norte del ecuador.', wiki: 'https://es.wikipedia.org/wiki/Zona_de_convergencia_intertropical', wikiLang: 'es' },
+        { term: 'Tropopausa', text: 'El límite superior de la troposfera, la capa más baja de la atmósfera, donde ocurre el tiempo. En los trópicos está a unos 16–17 km. Las nubes de tormenta se detienen bajo ella y se extienden a los lados.', wiki: 'https://es.wikipedia.org/wiki/Tropopausa', wikiLang: 'es' },
+        { term: 'Ráfagas de viento del oeste (WWB)', text: 'Episodios de viento fuerte del oeste sobre el Pacífico occidental que duran unos días y soplan contra los alisios. Generan ondas Kelvin y a menudo “encienden” El Niño.', wiki: 'https://en.wikipedia.org/wiki/Westerly_wind_burst', wikiLang: 'en' }
+      ]
+    },
+    {
+      title: 'Impactos',
+      terms: [
+        { term: 'Teleconexiones', text: 'Vínculos entre el tiempo de lugares muy alejados. Un cambio sobre el Pacífico desplaza las corrientes en chorro y afecta a las lluvias y temperaturas a miles de kilómetros: en África, América o Asia.', wiki: 'https://en.wikipedia.org/wiki/Teleconnection', wikiLang: 'en' },
+        { term: 'Monzón', text: 'Un cambio estacional de la dirección del viento que trae la estación lluviosa, por ejemplo en la India en verano. El Niño suele debilitar el monzón indio, con riesgo de sequía.', wiki: 'https://es.wikipedia.org/wiki/Monz%C3%B3n', wikiLang: 'es' },
+        { term: 'Dipolo del océano Índico (IOD)', text: 'El “primo” de ENSO en el océano Índico: la diferencia de temperatura del agua entre su parte occidental y la oriental. Un dipolo positivo (a menudo junto con El Niño) trae sequías en Indonesia y Australia y aguaceros en África oriental.', wiki: 'https://es.wikipedia.org/wiki/Dipolo_del_oc%C3%A9ano_%C3%8Dndico', wikiLang: 'es' }
+      ]
+    }
+  ],
+
+  regions: [
+    { name: 'Indonesia y Filipinas', season: 'jun–feb' },
+    { name: 'Australia', season: 'jul–ene' },
+    { name: 'África austral', season: 'nov–mar' },
+    { name: 'India (monzón)', season: 'jun–sep' },
+    { name: 'Sahel', season: 'jul–sep' },
+    { name: 'Etiopía', season: 'jun–sep' },
+    { name: 'Centroamérica', season: 'jun–feb' },
+    { name: 'Norte de Sudamérica y Amazonía', season: 'dic–jun' },
+    { name: 'Nordeste de Brasil', season: 'feb–may' },
+    { name: 'Costa de Perú y Ecuador', season: 'dic–abr' },
+    { name: 'Sudeste de Sudamérica', season: 'sep–abr' },
+    { name: 'Chile central', season: 'jun–ago' },
+    { name: 'África oriental', season: 'oct–dic' },
+    { name: 'Sur de EE. UU. y norte de México', season: 'nov–abr' },
+    { name: 'Asia Central y Oriente Medio', season: 'ene–abr' },
+    { name: 'Sudeste de China y sur de Japón', season: 'nov–feb' },
+    { name: 'Pacífico central (lluvia sobre el océano)', season: 'todo el año' }
+  ],
+  impactSourceTitles: [
+    'OMM – El Niño altera los patrones de lluvia en distintas partes del mundo (2026)',
+    'Centro Común de Investigación de la Comisión Europea (JRC) – informe ENSO, mapa de impactos (2026)',
+    'JMA Tokyo Climate Center – Impactos de El Niño/La Niña en el clima mundial'
+  ],
+
+  events: [
+    { name: 'Perú', region: 'Sudamérica', ev: [
+      { type: 'Colapso de la pesca de anchoveta peruana: crisis de la pesca y de la industria de harina de pescado',
+        aff: 'La captura cayó de 10,3 millones de t (1971) a 4,4 millones de t (1972); en 1970 los productos pesqueros aportaban cerca de 1/3 de los ingresos por exportaciones de Perú. Más de 200 millones de USD de deuda del sector con la banca estatal; la industria se nacionalizó en 1973.',
+        note: 'La sobrepesca previa también contribuyó al colapso.' },
+      { type: 'Aguaceros e inundaciones en la costa, deslizamientos, pérdidas en pesca y agricultura',
+        aff: 'Pérdidas de unos 3500 millones de USD (cerca del 4,5 % del PIB); el crecimiento del PIB en 1998 fue hasta 2,8 puntos porcentuales menor. En toda la Comunidad Andina, unas 135 000 viviendas dañadas o destruidas.' } ] },
+    { name: 'Ecuador', region: 'Sudamérica', ev: [
+      { area: 'Ecuador y norte de Perú', type: 'Aguaceros e inundaciones en la costa, destrucción de infraestructura',
+        aff: 'Unas 600 víctimas mortales, pérdidas de unos 650 millones de USD (Ecuador y norte de Perú en conjunto).' },
+      { type: 'Inundaciones en las llanuras costeras',
+        aff: 'Pérdidas de unos 2900 millones de USD, es decir, el 14,6 % del PIB de Ecuador: las mayores pérdidas relativas de la región.' } ] },
+    { name: 'Sur de Brasil, norte de Argentina, Paraguay', region: 'Sudamérica', ev: [
+      { type: 'Aguaceros prolongados e inundaciones en la cuenca del Paraná',
+        aff: '170 víctimas mortales, unas 600 000 personas evacuadas, pérdidas de unos 3000 millones de USD.' } ] },
+    { name: 'Brasil – estado de Amazonas', region: 'Sudamérica', ev: [
+      { type: 'Sequía récord, fuerte descenso del nivel del río Negro',
+        aff: '60 de los 62 municipios del estado afectados por la sequía (incluida Manaos); unas 500 000 personas con acceso difícil al agua y los alimentos; más de 100 delfines de río muertos en el lago Tefé.',
+        note: 'La sequía la causó El Niño junto con el calentamiento del Atlántico norte tropical.' } ] },
+    { name: 'Argentina', region: 'Sudamérica', ev: [
+      { type: 'Sequía histórica en la Pampa, la peor cosecha de soja en 23 años',
+        aff: 'Pérdidas para la economía de unos 20 000 millones de USD (más del 3 % del PIB); cosechas de soja, maíz y trigo cerca de un 45 % menores interanualmente; ingresos por exportación de soja unos 8000 millones de USD menores.',
+        note: 'La causa principal fue una tercera La Niña consecutiva; el cambio climático agravó la sequía (World Weather Attribution).' } ] },
+    { name: 'Colombia', region: 'Sudamérica', ev: [
+      { type: 'Una temporada de lluvias récord: inundaciones y deslizamientos',
+        aff: '3,66 millones de personas afectadas, 469 víctimas mortales, 13 351 viviendas destruidas y unas 492 000 dañadas; 29 de 32 departamentos; más de 1,2 millones de ha de cultivos inundados (abr 2010 – jun 2011).' } ] },
+    { name: 'California, EE. UU.', region: 'Norteamérica', ev: [
+      { type: 'Tormentas invernales, aguaceros, deslizamientos e inundaciones',
+        aff: '17 víctimas mortales, pérdidas de unos 883 millones de USD; 40 condados declarados zona de desastre federal.' } ] },
+    { name: 'Texas, EE. UU.', region: 'Norteamérica', ev: [
+      { type: 'Sequía y calor récord: el año más seco registrado en Texas',
+        aff: 'Pérdidas agrícolas de 7620 millones de USD (ganadería 3230 millones, algodón 2200 millones); se abandonó el 55 % de los campos de algodón sembrados. La sequía más costosa de la historia del estado.',
+        note: 'La sequía coincidió con La Niña de 2010–12.' } ] },
+    { name: 'Corredor Seco Centroamericano', region: 'Guatemala, El Salvador, Honduras', ev: [
+      { type: 'Sequía de varios años, pérdida de las cosechas de granos básicos',
+        aff: 'Unos 3,5 millones de personas necesitadas de ayuda humanitaria; 1,6 millones en inseguridad alimentaria moderada o grave. El PMA apoyó a cerca de 1 millón de personas al año.' } ] },
+    { name: 'Panamá', region: 'Centroamérica', ev: [
+      { type: 'Sequía, nivel récord mínimo del lago Gatún',
+        aff: 'El tránsito por el Canal de Panamá se redujo de 38 a 24 buques diarios (cerca de un 30 % menos); octubre de 2023 tuvo un 43 % menos de lluvia de lo normal. El lago Gatún abastece de agua potable a millones de personas (incl. Ciudad de Panamá y Colón).' } ] },
+    { name: 'África austral (región SADC)', region: 'Zimbabue, Zambia, Malaui, Mozambique y otros', ev: [
+      { type: 'La peor sequía y mala cosecha en décadas',
+        aff: 'Unos 40 millones de personas en inseguridad alimentaria (cerca del 14 % de la población de la SADC); Zimbabue y Malaui declararon el estado de desastre; un llamamiento regional por 2400 millones de USD.' },
+      { type: '“La sequía del siglo”: lluvias hasta un 90 % por debajo de lo normal',
+        aff: 'Unos 18 millones de personas en riesgo de hambre en la región; necesidades de importación de cereales de 7,73 millones de t.',
+        note: 'La sequía coincidió con El Niño de 1991–92.' },
+      { type: 'Sequía y mala cosecha en la temporada 2023/24',
+        aff: 'Unos 68 millones de personas (17 % de la población de la región) necesitadas de ayuda, según la SADC.' } ] },
+    { name: 'Mozambique', region: 'Sudeste de África', ev: [
+      { type: 'Inundaciones del Limpopo y ciclón Eline',
+        aff: 'Unas 700–800 víctimas mortales; unas 463 000 personas desplazadas o sin hogar; pérdidas de unos 500 millones de USD.',
+        note: 'Las lluvias récord coincidieron con La Niña de 1999–2000.' } ] },
+    { name: 'Etiopía', region: 'Cuerno de África', ev: [
+      { type: 'Sequía extrema, temporadas de lluvias fallidas',
+        aff: '10,2 millones de personas necesitadas de ayuda alimentaria (datos del Gobierno de Etiopía, diciembre de 2015).' } ] },
+    { name: 'Kenia y sur de Somalia', region: 'África oriental', ev: [
+      { type: 'Las peores inundaciones desde 1961 y una epidemia de fiebre del valle del Rift',
+        aff: 'Lluvias 60–100 veces por encima de lo normal para la temporada; unas 89 000 infecciones estimadas de fiebre del valle del Rift; 478 muertes sin explicar notificadas en diciembre de 1997; pérdida de cerca del 70 % de ovejas y cabras en los rebaños estudiados.',
+        note: 'Los aguaceros de octubre de 1997 a enero de 1998 coincidieron con un Súper El Niño.' } ] },
+    { name: 'Somalia', region: 'Cuerno de África', ev: [
+      { type: 'Inundaciones de la temporada de lluvias Deyr (“una vez en un siglo”)',
+        aff: 'Unos 1,2 millones de personas afectadas (9.11.2023), con previsión de hasta 1,6 millones; hasta 1,5 millones de ha de cultivos en riesgo.',
+        note: 'Las lluvias se intensificaron por El Niño junto con un dipolo positivo del océano Índico.' },
+      { type: 'El año más seco en 60 años, hambruna',
+        aff: 'Unas 258 000 muertes (oct 2010 – abr 2012), incluidos unos 133 000 niños menores de 5 años: el 4,6 % de la población del sur y centro de Somalia.',
+        note: 'Las lluvias fallidas coincidieron con la fuerte La Niña de 2010–11; el conflicto y el alza de los precios de los alimentos agravaron la tragedia.' } ] },
+    { name: 'Cuerno de África', region: 'Etiopía, Kenia, Somalia', ev: [
+      { type: 'La sequía más larga registrada: una temporada de lluvias fallida tras otra',
+        aff: 'Más de 30 millones de personas en inseguridad alimentaria (2020–22); en Somalia, 7,8 millones de afectados (46 % de la población, oct 2022); en Kenia, 6,4 millones necesitados de ayuda en 2023.',
+        note: 'La Niña de tres años de 2020–22 fue la más fuerte en la región en 70 años.' } ] },
+    { name: 'Indonesia', region: 'Sudeste Asiático', ev: [
+      { type: 'La peor sequía en unos 50 años, incendios de bosques y turberas, bruma transfronteriza',
+        aff: 'La bruma afectó a unos 75 millones de personas (incl. 48 millones de indonesios); ardieron unos 25 millones de acres (cerca de 10 millones de ha); pérdidas de unos 9000 millones de USD.' },
+      { type: 'Sequía e incendios de turberas, bruma sobre la región',
+        aff: '2,6 millones de ha quemadas (jun–oct 2015); un coste de unos 16 100 millones de USD, es decir, el 1,9 % del PIB (Banco Mundial).',
+        note: 'La temporada de incendios coincidió con el Súper El Niño de 2015–16, que prolongó la estación seca.' } ] },
+    { name: 'Papúa Nueva Guinea', region: 'Oceanía', ev: [
+      { type: 'Sequía y heladas en las tierras altas, incendios',
+        aff: 'En diciembre de 1997, unas 260 000 personas comían “alimentos de hambruna” y otras 980 000 tenían raciones escasas y de mala calidad; Australia lanzó alimentos desde el aire para unas 100 000 personas en lugares accesibles solo por vía aérea.' } ] },
+    { name: 'China – cuenca del Yangtsé', region: 'Asia oriental', ev: [
+      { type: 'Inundaciones catastróficas en el Yangtsé y en el noreste de China',
+        aff: 'Unos 180 millones de afectados, 3704–4150 víctimas mortales, unos 15 millones sin hogar; pérdidas de unos 24 000 millones de USD.',
+        note: 'El verano de 1998 fue la fase de debilitamiento de un Súper El Niño; los investigadores describen el vínculo como indirecto.' } ] },
+    { name: 'Vietnam – delta del Mekong', region: 'Sudeste Asiático', ev: [
+      { type: 'Sequía e intrusión de agua salada en el delta',
+        aff: 'Más de 2 millones de personas afectadas, unos 2 millones con escasez de agua, 1,1 millones en inseguridad alimentaria; 14 provincias declararon el estado de emergencia.' } ] },
+    { name: 'India', region: 'Asia meridional', ev: [
+      { type: 'Monzón débil y sequía',
+        aff: 'Lluvias al 77 % de lo normal (−23 %); sequía declarada en 352 distritos de 15 estados; la producción de cereales cayó de 234 a 218 millones de t (cerca de −6,9 %).',
+        note: 'La NOAA clasifica 2009 como un año de El Niño moderado.' } ] },
+    { name: 'Pakistán', region: 'Asia meridional', ev: [
+      { type: 'Inundaciones monzónicas: cerca de 1/5 del país bajo el agua',
+        aff: 'Unos 20 millones de personas afectadas, 1985 víctimas mortales; pérdidas estimadas de hasta 43 000 millones de USD.',
+        note: 'El mapa de anomalías de lluvia de la NASA relaciona el monzón excepcionalmente intenso con La Niña.' },
+      { type: 'Inundaciones monzónicas récord',
+        aff: 'Unos 33 millones de personas afectadas, 1739 víctimas mortales, más de 2,1 millones sin hogar; daños de unos 14 900 millones de USD y pérdidas de unos 15 200 millones de USD (Gobierno de Pakistán).',
+        note: 'La inundación coincidió con la triple La Niña de 2020–23; las causas principales fueron un monzón récord, el deshielo de glaciares y el cambio climático.' } ] },
+    { name: 'Bangladés', region: 'Asia meridional', ev: [
+      { type: 'Inundaciones monzónicas catastróficas: cerca de 3/4 del país bajo el agua',
+        aff: 'Unos 25 millones de afectados, unos 21 millones sin hogar; de 550 (Gobierno) a 1122 (prensa) víctimas; 50 de 64 distritos.',
+        note: 'La inundación coincidió con la fuerte La Niña de 1988–89.' } ] },
+    { name: 'Tailandia', region: 'Sudeste Asiático', ev: [
+      { type: 'La gran inundación (Bangkok, Ayutthaya)',
+        aff: '13,6 millones de personas afectadas, 815 víctimas mortales; 65 provincias declaradas zona de desastre; pérdidas de unos 46 500 millones de USD (Banco Mundial).',
+        note: 'Las lluvias prolongadas se intensificaron por una La Niña de varios años.' } ] },
+    { name: 'Australia – Victoria y Australia Meridional', region: 'Australia', ev: [
+      { type: 'Sequía, tormentas de polvo e incendios forestales (Miércoles de Ceniza, 16.02.1983)',
+        aff: '75 víctimas de los incendios; más de 3700 edificios destruidos o dañados, unas 2545 personas y familias sin hogar; murieron más de 340 000 ovejas; un coste de más de 400 millones de AUD (precios de 1983).',
+        note: 'Los incendios fueron precedidos por una sequía ligada a El Niño: las lluvias del invierno y la primavera de 1982 fueron hasta la mitad del mínimo anterior.' } ] },
+    { name: 'Australia – Queensland', region: 'Australia', ev: [
+      { type: 'Inundaciones catastróficas (Brisbane, Toowoomba)',
+        aff: 'Más de 200 000 personas afectadas directamente; el 78 % del estado declarado zona de desastre (más de 2,5 millones de habitantes); unas 29 000 viviendas y empresas inundadas; 33+ víctimas; pérdidas aseguradas de 2380 millones de AUD y coste total de 14 100 millones de AUD.',
+        note: 'Las inundaciones fueron precedidas por el diciembre más lluvioso de la historia del estado, durante una fuerte La Niña.' } ] }
+  ],
+  srcTitles: {
+    eird: 'UN ISDR / CAF – El Niño 1997–98 en los países andinos',
+    idn97: 'EBSCO Research Starters – incendios en Indonesia 1997–98',
+    idn15: 'BenarNews (datos del Banco Mundial) – incendios de 2015',
+    rvf: 'CDC MMWR – fiebre del valle del Rift, África oriental 1997–98',
+    cal: 'Government Technology (datos de FEMA) – El Niño 1997–98',
+    saf15: 'Public Finance Focus – llamamiento de la SADC, julio de 2016',
+    eth: 'CARE International – Etiopía, diciembre de 2015',
+    cam: 'WFP USA – Corredor Seco Centroamericano',
+    vnm: 'ReliefWeb (UN OCHA / ECHO) – Vietnam, 29.04.2016',
+    saf24: 'Africanews (datos de la SADC) – agosto de 2024',
+    som23: 'UN OCHA / ReliefWeb – Somalia, 9.11.2023',
+    amz: 'Mongabay – sequía en la Amazonía, octubre de 2023',
+    pan: 'Woodwell Climate Research Center – la sequía y el Canal de Panamá',
+    ind09: 'ThePrint – los monzones débiles de 2009 y 2014',
+    som11: 'ReliefWeb – estudio de FAO FSNAU / FEWS NET, mayo de 2013',
+    arg: 'Dialogue Earth – La Niña y la sequía en Argentina',
+    col: 'RPP / Dirección de Gestión del Riesgo – junio de 2011',
+    tex: 'Drovers (Texas AgriLife Extension) – marzo de 2012',
+    bgd: 'Christian Science Monitor – 7.09.1988'
+  }
+};

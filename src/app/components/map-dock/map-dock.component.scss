@@ -1,9 +1,9 @@
 @use "../../../variables" as *;
 
-// Desktop: the dock sits in the free space to the right of the control panel (390px + gutters)
+// Bottom controls, centred: legends, the ENSO state bar and the view dock stacked in a column
 .dock-wrap {
   position: fixed;
-  left: 418px;
+  left: 14px;
   right: 14px;
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 20;
@@ -18,6 +18,11 @@
   }
 }
 
+// folded dock: just the tab, at the left edge
+.dock-tab {
+  align-self: flex-start;
+}
+
 .dock {
   display: flex;
   align-items: center;
@@ -25,6 +30,7 @@
   padding: 7px 10px;
   border-radius: radius("pill");
   max-width: 100%;
+  animation: panelSlideIn 0.25s ease-out;
 
   &__mode {
     display: flex;
@@ -38,27 +44,6 @@
     color: color("text-dim");
     margin: 0 4px 0 6px;
     white-space: nowrap;
-  }
-
-  &__scale {
-    width: 150px;
-    flex: none;
-  }
-
-  &__bar {
-    display: block;
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-  }
-
-  &__ticks {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2px;
-    font-size: font-size("xxs");
-    color: color("text-dim");
-    font-variant-numeric: tabular-nums;
   }
 
   &__sep {
@@ -75,45 +60,55 @@
   }
 }
 
-.chip {
-  font: inherit;
+// Impacts legend: bottom-left corner, just above the bottom controls
+.implegend,
+.implegend-tab {
+  position: fixed;
+  left: 14px;
+  bottom: calc(var(--dock-h, 120px) + 22px);
+  z-index: 20;
+}
+
+.implegend {
+  padding: 8px 10px 9px 12px;
+  border-radius: radius("card");
   font-size: font-size("xs");
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: radius("pill");
-  border: 1px solid transparent;
-  background: none;
-  color: color("text-dim");
-  cursor: pointer;
-  transition: background transition("fast"), color transition("fast"), border-color transition("fast");
+  animation: panelSlideIn 0.25s ease-out;
 
-  svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    flex: none;
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
   }
 
-  &:hover {
-    background: color("btn-hover");
+  &__t {
     color: color("text-main");
+    font-weight: font-weight("semibold");
   }
 
-  &--on {
-    color: color("text-bright");
-    background: color("btn-active-blue");
-    border-color: color("btn-active-blue-border");
-  }
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
-  &:focus-visible {
-    outline: 2px solid color("btn-active-blue-border");
-    outline-offset: 1px;
+    li {
+      display: flex;
+      align-items: center;
+    }
+
+    i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 7px;
+      border: 2px solid currentColor;
+    }
   }
 }
 
@@ -204,7 +199,7 @@
   }
 }
 
-// Tablet & mobile: full-width dock at the bottom; the control panel moves above it
+// Tablet & mobile: full-width controls at the bottom
 @include respond-to("tablet") {
   .dock-wrap {
     left: 10px;
@@ -232,14 +227,13 @@
 }
 
 @include respond-to("mobile") {
-  // two rows: [view] then [colour scale | layers]
+  // [fold | views (wrapping)] then the layer toggles on the right
   .dock {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "mode mode"
-      "scale layers";
     gap: 6px 10px;
+  }
+
+  .dock__mode {
+    flex: 1 1 calc(100% - 34px);
   }
 
   .dock__mode {
@@ -252,12 +246,7 @@
   }
 
   .dock__layers {
-    grid-area: layers;
-    justify-content: flex-end;
-  }
-
-  .dock__scale {
-    grid-area: scale;
+    margin-left: auto;
   }
 
   .dock__sep {

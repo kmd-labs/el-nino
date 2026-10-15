@@ -1,17 +1,38 @@
 <header class="header">
   <div class="header__info">
-    <h1 class="header__title visually-hidden">Super <span>El Niño</span> — glob 3D</h1>
-    <div class="header__sub">Model koncepcyjny · przeciągnij, aby obracać · przewiń / uszczypnij, aby przybliżyć</div>
+    <h1 class="header__title visually-hidden">{{ i18n.t().docTitle }}</h1>
+    <button
+      type="button"
+      class="header__lang glass-panel"
+      [title]="i18n.t().changeLanguage"
+      [attr.aria-label]="i18n.t().changeLanguage + ' (' + i18n.t().langName + ')'"
+      (click)="i18n.reopen()">
+      <app-flag class="header__flag" [lang]="i18n.lang()"></app-flag>
+      <span>{{ i18n.lang().toUpperCase() }}</span>
+    </button>
     @if (!state.mapLoaded()) {
-      <div class="header__loading" [class.header__loading--error]="state.mapError() !== null">
-        {{ state.mapError() || 'Ładowanie mapy kontynentów…' }}
+      <div class="header__loading" [class.header__loading--error]="state.mapError()">
+        {{ state.mapError() ? i18n.t().mapError : i18n.t().loadingMap }}
       </div>
     }
   </div>
 
-  <div class="header__readout glass-panel">
-    <div class="k">Anomalia Niño 3.4</div>
-    <div class="v">{{ formattedNino() }}</div>
-    <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
+  <div class="header__right">
+    <div class="header__readout glass-panel">
+      <div class="k">{{ i18n.t().readoutTitle }}</div>
+      <div class="v">{{ formattedNino() }}</div>
+      <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
+    </div>
+
+    <!-- colour scale of what the ocean currently shows -->
+    <div class="header__scale glass-panel" [title]="scaleMode() === 'sst' ? i18n.t().scaleSst : i18n.t().scaleAnom">
+      <div class="k">{{ scaleMode() === 'sst' ? i18n.t().scaleSstShort : i18n.t().scaleAnomShort }}</div>
+      <canvas #scaleCanvas class="header__bar" width="300" height="8"></canvas>
+      <div class="header__ticks">
+        <span>{{ scaleMode() === 'sst' ? '−2 °C' : '−3 °C' }}</span>
+        <span>{{ scaleMode() === 'sst' ? '15' : '0' }}</span>
+        <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
+      </div>
+    </div>
   </div>
 </header>

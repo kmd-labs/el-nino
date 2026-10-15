@@ -1,39 +1,45 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { DisplayMode, EnsoPhase, ImpactLocation, PhaseInfo, ViewMode } from '../models/enso.model';
-import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, DESC, EVENTS, MON } from '../constants/enso-data';
+import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS, PRESETS } from '../constants/enso-data';
 import { EnsoMathService } from './enso-math.service';
+import { I18nService } from '../i18n/i18n.service';
+
+/** Initial ENSO strength: the "El Niño" preset. */
+const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
 
 @Injectable({
   providedIn: 'root'
 })
 export class EnsoStateService {
   private math = inject(EnsoMathService);
+  private i18n = inject(I18nService);
 
-  readonly sTarget = signal<number>(0);
-  readonly sCur = signal<number>(0);
-  readonly displayMode = signal<DisplayMode>('sst');
+  // start (desktop and mobile) in El Niño, shown as a temperature anomaly
+  readonly sTarget = signal<number>(START_STRENGTH);
+  readonly sCur = signal<number>(START_STRENGTH);
+  readonly displayMode = signal<DisplayMode>('anom');
   readonly view = signal<ViewMode>('globe');
   readonly glossaryOpen = signal<boolean>(false);
-  private panelFoldedForView = false;
   readonly showAtmosphere = signal<boolean>(true);
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
   readonly isPlaying = signal<boolean>(false);
   readonly cycleT = signal<number>(0);
-  readonly monthText = signal<string>('');
+  /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
+  readonly cycleMonth = signal<number | null>(null);
   readonly mapLoaded = signal<boolean>(false);
-  readonly mapError = signal<string | null>(null);
+  readonly mapError = signal<boolean>(false);
 
   readonly selectedLocation = signal<ImpactLocation | null>(null);
   readonly hoveredLocation = signal<ImpactLocation | null>(null);
-  readonly panelCollapsed = signal<boolean>(false);
 
   readonly nino34Value = computed<number>(() => {
     return this.math.nino34(this.sCur());
   });
 
   readonly category = computed<PhaseInfo>(() => {
-    return this.math.category(this.nino34Value());
+    const c = this.math.category(this.nino34Value());
+    return { ...c, name: this.i18n.t().phase[c.k] };
   });
 
   readonly phase = computed<EnsoPhase>(() => {
@@ -41,7 +47,7 @@ export class EnsoStateService {
   });
 
   readonly description = computed<string>(() => {
-    return DESC[this.phase()];
+    return this.i18n.t().desc[this.phase()];
   });
 
   readonly activeEventsCount = computed<number>(() => {
@@ -50,12 +56,19 @@ export class EnsoStateService {
   });
 
   readonly hint = computed<string>(() => {
-    const ph = this.phase();
-    const cat = this.category();
-    if (ph === 'neu') {
-      return 'W fazie neutralnej nie ma pinezek. Wybierz La Niña, El Niño lub Super El Niño, aby zobaczyć historyczne skutki.';
-    }
-    return `${this.activeEventsCount()} lokalizacji z udokumentowanymi skutkami fazy ${cat.name}. Kliknij pinezkę, aby zobaczyć dane i źródło.`;
+    const t = this.i18n.t();
+    if (this.phase() === 'neu') return t.hintNeutral;
+    return t.hintPins(this.activeEventsCount(), this.category().name);
+  });
+
+  /** "Year 3 · December (≈ 2026, forecast)" for the running cycle, '' when stopped. */
+  readonly monthText = computed<string>(() => {
+    const m = this.cycleMonth();
+    if (m === null) return '';
+    const t = this.i18n.t();
+    const year = Math.floor(m / 12) + 1;
+    // approximate real time of the current cycle (see CYCLE_START_YEAR)
+    return t.cycleMonth(year, t.months[m % 12], CYCLE_START_YEAR + year - 1, m >= CYCLE_FORECAST_FROM);
   });
 
   /**
@@ -91,7 +104,7 @@ export class EnsoStateService {
   stopPlaying() {
     if (this.isPlaying()) {
       this.isPlaying.set(false);
-      this.monthText.set('');
+      this.cycleMonth.set(null);
     }
   }
 
@@ -114,14 +127,6 @@ export class EnsoStateService {
     if (v === 'walker') {
       this.selectedLocation.set(null);
     }
-    // on narrow screens the control panel would cover the Walker cross-section: fold it while it is open
-    if (v === 'walker' && !this.panelCollapsed() && window.matchMedia('(max-width: 900px)').matches) {
-      this.panelCollapsed.set(true);
-      this.panelFoldedForView = true;
-    } else if (v !== 'walker' && this.panelFoldedForView) {
-      this.panelCollapsed.set(false);
-      this.panelFoldedForView = false;
-    }
   }
 
   toggleAtmosphere(val?: boolean) {
@@ -143,10 +148,6 @@ export class EnsoStateService {
     this.glossaryOpen.update(v => open !== undefined ? open : !v);
   }
 
-  togglePanel() {
-    this.panelCollapsed.update(v => !v);
-  }
-
   selectLocation(loc: ImpactLocation | null) {
     this.selectedLocation.set(loc);
     if (loc) {
@@ -166,11 +167,7 @@ export class EnsoStateService {
     this.sTarget.set(newTarget);
 
     const m = Math.floor(nextT) % 48;
-    const year = Math.floor(m / 12) + 1;
-    const month = MON[m % 12];
-    // approximate real time of the current cycle (see CYCLE_START_YEAR)
-    const real = `≈ ${CYCLE_START_YEAR + year - 1}${m >= CYCLE_FORECAST_FROM ? ', prognoza' : ''}`;
-    this.monthText.set(`Rok ${year} · ${month} (${real})`);
+    if (m !== this.cycleMonth()) this.cycleMonth.set(m);
   }
 
   updateInterpolatedStrength(dt: number) {

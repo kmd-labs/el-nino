@@ -1,7 +1,6 @@
 <main class="app-main">
   <app-globe></app-globe>
   <app-header></app-header>
-  <app-control-panel></app-control-panel>
   @if (state.view() === 'walker') {
     <app-walker-view></app-walker-view>
   }
@@ -10,4 +9,7 @@
     <app-glossary></app-glossary>
   }
   <app-impact-modal></app-impact-modal>
+  @if (!i18n.chosen()) {
+    <app-welcome></app-welcome>
+  }
 </main>

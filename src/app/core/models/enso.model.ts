@@ -34,6 +34,7 @@ export interface PhaseInfo {
 }
 
 export interface Preset {
+  ph: EnsoPhase;
   label: string;
   strength: number;
   hot?: boolean;

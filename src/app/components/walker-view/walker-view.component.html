@@ -1,4 +1,5 @@
-<section class="walker" aria-label="Cyrkulacja Walkera – przekrój wzdłuż równika">
+@let t = i18n.t();
+<section class="walker" [attr.aria-label]="t.walkerAria">
   <div class="walker__step glass-panel" aria-live="polite">
     <span class="walker__badge" [class.walker__badge--cycle]="state.isPlaying()">{{ badge() }}</span>
     <span class="walker__title">{{ caption() }}</span>
@@ -10,28 +11,28 @@
 
   <div class="walker__foot">
     <div class="walker__ctrl">
-      <button type="button" class="wbtn" aria-label="Poprzedni krok" (click)="pick(step() - 1)">‹</button>
+      <button type="button" class="wbtn" [attr.aria-label]="t.walkerPrev" (click)="prev()">‹</button>
       <button
         type="button"
         class="wbtn wbtn--play"
         [class.wbtn--on]="playing()"
-        [attr.aria-label]="playing() ? 'Zatrzymaj' : 'Odtwarzaj kroki'"
+        [attr.aria-label]="playing() ? t.walkerPause : t.walkerPlay"
         (click)="togglePlay()">
         {{ playing() ? '❚❚' : '▶' }}
       </button>
-      <button type="button" class="wbtn" aria-label="Następny krok" (click)="pick(step() + 1)">›</button>
+      <button type="button" class="wbtn" [attr.aria-label]="t.walkerNext" (click)="next()">›</button>
       <div class="walker__dots">
         @for (st of steps; track $index) {
           <button
             type="button"
             class="dot"
             [class.dot--on]="$index === step() && !state.isPlaying()"
-            [attr.aria-label]="'Krok ' + $index + ': ' + st.title"
-            [title]="st.title"
+            [attr.aria-label]="t.walkerStep($index, t.steps[$index])"
+            [title]="t.steps[$index]"
             (click)="pick($index)"></button>
         }
       </div>
     </div>
-    <div class="walker__cap">Przekrój wzdłuż równika (0°) · atmosfera 0–16 km · ocean 0–300 m (skala pionowa umowna)</div>
+    <div class="walker__cap">{{ t.walkerCaption }}</div>
   </div>
 </section>

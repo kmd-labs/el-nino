@@ -5,60 +5,65 @@ import {
   AfterViewInit,
   OnDestroy,
   inject,
-  effect,
-  computed
+  computed,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EnsoStateService } from '../../core/services/enso-state.service';
-import { TEMP_HEX, ANOM_HEX, KIND_HEX } from '../../core/constants/enso-data';
+import { KIND_HEX } from '../../core/constants/enso-data';
 import { IMPACT_SOURCES } from '../../core/constants/impacts-data';
 import { DisplayMode } from '../../core/models/enso.model';
 import { ButtonComponent } from '../ui/button/button.component';
+import { EnsoBarComponent } from '../enso-bar/enso-bar.component';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 /**
- * Bottom dock with view settings: view (temperature / anomaly / Walker circulation) with its colour scale,
- * layer toggles and — when pins are shown — the legend of impact kinds.
+ * Bottom controls: the ENSO state bar, and below it the view dock (temperature / anomaly / Walker
+ * circulation / impacts) with layer toggles. The rainfall legend appears above them in the impacts view,
+ * the pin legend in the bottom-left corner.
  */
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [CommonModule, ButtonComponent, EnsoBarComponent],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
 export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
+  i18n = inject(I18nService);
   readonly kindHex = KIND_HEX;
   readonly sources = IMPACT_SOURCES;
 
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('scaleCanvas') scaleCanvasRef!: ElementRef<HTMLCanvasElement>;
+  /** View dock folded to the left edge, leaving only a tab. */
+  readonly collapsed = signal(false);
+  /** Impacts legend folded to a small tab. */
+  readonly legendCollapsed = signal(false);
 
   private resizeObs: ResizeObserver | null = null;
 
   readonly isWalker = computed(() => this.state.view() === 'walker');
-  /** The Walker cross-section colours the ocean by temperature, the impacts view by anomaly. */
-  readonly scaleMode = computed<DisplayMode>(() => {
-    const v = this.state.view();
-    return v === 'walker' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
-  });
-
   readonly rainTitle = computed(() => {
     const s = this.state.sCur();
-    if (s < -0.3) return 'La Niña – w przybliżeniu odwrotny układ opadów (uproszczenie):';
-    if (s < 0.3) return 'Typowe zmiany opadów podczas El Niño (w fazie neutralnej nie występują):';
-    return 'Typowe zmiany opadów podczas El Niño:';
+    const t = this.i18n.t();
+    if (s < -0.3) return t.rainTitleNina;
+    if (s < 0.3) return t.rainTitleNeutral;
+    return t.rainTitleNino;
   });
 
-  constructor() {
-    effect(() => {
-      this.drawScale(this.scaleMode());
-    });
-  }
+  /** Name of the current view, shown on the tab when the dock is folded. */
+  readonly viewName = computed(() => {
+    const t = this.i18n.t();
+    switch (this.state.view()) {
+      case 'walker': return t.viewWalker;
+      case 'impacts': return t.viewImpacts;
+      default: return this.state.displayMode() === 'sst' ? t.viewTemp : t.viewAnom;
+    }
+  });
 
   ngAfterViewInit() {
-    this.drawScale(this.scaleMode());
-    // expose the dock height so the control panel can sit above it on narrow screens
+    // expose the height of the bottom controls so the Walker view and glossary end above them
     this.resizeObs = new ResizeObserver(() => {
       const h = this.wrapRef.nativeElement.offsetHeight;
       document.documentElement.style.setProperty('--dock-h', `${h}px`);
@@ -76,20 +81,5 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   onModeClick(m: DisplayMode) {
     this.state.setDisplayMode(m);
-  }
-
-  private drawScale(mode: DisplayMode) {
-    const c = this.scaleCanvasRef?.nativeElement;
-    if (!c) return;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-
-    const st = mode === 'sst' ? TEMP_HEX : ANOM_HEX;
-    const lo = st[0][0];
-    const hi = st[st.length - 1][0];
-    const gr = ctx.createLinearGradient(0, 0, c.width, 0);
-    st.forEach(([v, h]) => gr.addColorStop((v - lo) / (hi - lo), h));
-    ctx.fillStyle = gr;
-    ctx.fillRect(0, 0, c.width, c.height);
   }
 }

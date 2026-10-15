@@ -20,6 +20,7 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { EVENTS, KIND } from '../../core/constants/enso-data';
 import { RAIN_REGIONS } from '../../core/constants/impacts-data';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { EnsoPhase, ImpactKind, ImpactLocation } from '../../core/models/enso.model';
 
 interface PinItem {
@@ -28,6 +29,15 @@ interface PinItem {
   p: THREE.Vector3;
   a: number;
   phases: Set<EnsoPhase>;
+}
+
+/** A label waiting to be placed this frame (see layoutLabels). */
+interface LabelSlot {
+  el: HTMLElement;
+  x: number;
+  y: number;
+  a: number;
+  prio: number;
 }
 
 interface CloudPuff {
@@ -60,6 +70,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
+  i18n = inject(I18nService);
   private math = inject(EnsoMathService);
 
   private renderer!: THREE.WebGLRenderer;
@@ -164,6 +175,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private impDrawn = 0;           // sign the overlay canvas was last painted with
   private impA = 0;               // faded opacity
   private impPos: THREE.Vector3[] = [];
+  // larger regions win when labels compete for space
+  private readonly impPrio = RAIN_REGIONS.map(r => 1 + r.rx * r.ry / 1000);
+
+  // screen-space label layout: labels queued each frame, then spread so they don't overlap
+  private lblQueue: LabelSlot[] = [];
+  private lblSize = new Map<HTMLElement, { w: number; h: number }>();
+  private lblFrame = 0;
 
   // Pins & interaction
   private pinGroup!: THREE.Group;
@@ -398,7 +416,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       } catch (err) {
         console.warn('Could not load land data:', err);
         this.ngZone.run(() => {
-          this.state.mapError.set('Nie udało się wczytać konturów lądów.');
+          this.state.mapError.set(true);
         });
       }
     };
@@ -657,7 +675,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.impMesh.visible = this.impA > 0.01;
     this.impMesh.material.opacity = this.impA;
     this.rainLblRefs?.forEach((ref, i) => {
-      this.placeLabel(ref.nativeElement, this.impPos[i], on, Math.min(1, this.impA * 1.6));
+      this.placeLabel(ref.nativeElement, this.impPos[i], on, Math.min(1, this.impA * 1.6), this.impPrio[i]);
     });
   }
 
@@ -1004,40 +1022,82 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private placeLabel(el: HTMLElement | null, worldPos: THREE.Vector3, visible: boolean, opacity: number = 1) {
+  /** Queue a label anchored at a point on the globe; layoutLabels() positions it. */
+  private placeLabel(el: HTMLElement | null, worldPos: THREE.Vector3, visible: boolean, opacity: number = 1, prio = 0) {
     if (!el) return;
-    if (!visible) {
-      el.style.opacity = '0';
-      return;
-    }
     const facing = this.v3.copy(worldPos).normalize().dot(this.camDir);
-    if (facing < 0.18) {
+    if (!visible || facing < 0.18) {
       el.style.opacity = '0';
       return;
     }
     this.v3.copy(worldPos).project(this.camera);
-    const x = (this.v3.x + 1) / 2 * window.innerWidth;
-    const y = (1 - this.v3.y) / 2 * window.innerHeight;
-    const alpha = opacity * this.math.clamp((facing - 0.18) * 4, 0, 1);
-    el.style.opacity = alpha.toString();
-    el.style.transform = `translate(${x}px,${y}px) translate(-50%,-140%)`;
+    this.lblQueue.push({
+      el,
+      x: (this.v3.x + 1) / 2 * window.innerWidth,
+      y: (1 - this.v3.y) / 2 * window.innerHeight,
+      a: opacity * this.math.clamp((facing - 0.18) * 4, 0, 1),
+      prio
+    });
+  }
+
+  /**
+   * Place the queued labels above their anchors, most important first. A label that would cover
+   * an already placed one is nudged up or down a line; if no slot is free it is hidden.
+   */
+  private layoutLabels() {
+    const q = this.lblQueue;
+    this.lblQueue = [];
+    // read sizes before writing styles (re-measured now and then, e.g. after a language change)
+    const remeasure = this.lblFrame++ % 30 === 0;
+    for (const l of q) {
+      if (remeasure || !this.lblSize.has(l.el)) {
+        this.lblSize.set(l.el, { w: l.el.offsetWidth, h: l.el.offsetHeight });
+      }
+    }
+    q.sort((a, b) => b.prio - a.prio);
+
+    const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    const pad = 3;
+    for (const l of q) {
+      const { w, h } = this.lblSize.get(l.el)!;
+      const left = l.x - w / 2;
+      const top = l.y - 1.4 * h;
+      let dyOk: number | null = null;
+      for (const k of [0, -1, 1, -2, 2, -3]) {
+        const dy = k * (h + pad);
+        const r = { x0: left - pad, y0: top + dy - pad, x1: left + w + pad, y1: top + dy + h + pad };
+        if (!placed.some(p => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) {
+          dyOk = dy;
+          // nearly invisible labels don't claim space
+          if (l.a > 0.05) placed.push(r);
+          break;
+        }
+      }
+      if (dyOk === null) {
+        l.el.style.opacity = '0';
+        continue;
+      }
+      l.el.style.opacity = l.a.toString();
+      l.el.style.transform = `translate(${left}px,${top + dyOk}px)`;
+    }
   }
 
   private updateLabels(s: number) {
     this.camDir.copy(this.camera.position).normalize();
-    const showAtm = this.state.showAtmosphere();
+    // the impacts view has its own region labels; the atmosphere ones would only add clutter there
+    const showAtm = this.state.showAtmosphere() && this.state.view() !== 'impacts';
 
     const convPos = this.math.pos(this.math.convLon(s), 10, this.math.R + 1.55);
-    this.placeLabel(this.lblConvRef?.nativeElement, convPos, showAtm);
+    this.placeLabel(this.lblConvRef?.nativeElement, convPos, showAtm, 1, 4);
 
     const walkerPos = this.math.pos((this.math.convLon(s) + this.LE0) / 2, -18, this.math.R * 1.02);
-    this.placeLabel(this.lblWalkerRef?.nativeElement, walkerPos, showAtm, 0.85 * this.math.clamp(this.math.trade(s), 0.35, 1));
+    this.placeLabel(this.lblWalkerRef?.nativeElement, walkerPos, showAtm, 0.85 * this.math.clamp(this.math.trade(s), 0.35, 1), 2);
 
     const kelvinPos = this.math.pos(250, -3, this.math.R * 1.01);
-    this.placeLabel(this.lblKelvinRef?.nativeElement, kelvinPos, showAtm && s > 0.3, 0.85);
+    this.placeLabel(this.lblKelvinRef?.nativeElement, kelvinPos, showAtm && s > 0.3, 0.85, 3);
 
     const ninoPos = this.math.pos(-145, 5, this.math.R * 1.01);
-    this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, true);
+    this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, true, 1, 5);
   }
 
   private screenOf(p: THREE.Vector3): [number, number] {
@@ -1093,7 +1153,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const tip = this.tooltipRef?.nativeElement;
     if (tip) {
       if (this.hoverPin) {
-        tip.textContent = this.hoverPin.loc.name;
+        tip.textContent = this.i18n.location(this.hoverPin.loc).name;
         tip.style.transform = `translate(${e.clientX + 14}px,${e.clientY - 30}px)`;
         tip.style.opacity = '1';
       } else {
@@ -1163,6 +1223,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.updatePins(t, dt);
     this.updateLabels(s);
     this.updateImpacts(s, dt);
+    this.layoutLabels();
 
     this.renderer.render(this.scene, this.camera);
   };
