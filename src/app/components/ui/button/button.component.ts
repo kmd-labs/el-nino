@@ -1,12 +1,13 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 export type ButtonVariant = 'default' | 'ghost' | 'preset' | 'toggle' | 'play';
 
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TooltipDirective],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss'
 })
@@ -15,7 +16,9 @@ export class ButtonComponent {
   @Input() active = false;
   @Input() hot = false;
   @Input() disabled = false;
+  @Input() iconOnly = false;
   @Input() ariaLabel: string | null = null;
+  @Input() titleText: string | null = null;
   @Input() extraClass = '';
 
   @Output() btnClick = new EventEmitter<MouseEvent>();
@@ -26,6 +29,7 @@ export class ButtonComponent {
       `btn--${this.variant}`,
       this.active ? 'btn--active' : '',
       this.hot ? 'btn--hot' : '',
+      this.iconOnly ? 'btn--icon' : '',
       this.extraClass
     ].filter(Boolean).join(' ');
   }

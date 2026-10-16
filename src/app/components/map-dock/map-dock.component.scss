@@ -1,10 +1,9 @@
 @use "../../../variables" as *;
 
-// Bottom controls, centred: legends, the ENSO state bar and the view dock stacked in a column
 .dock-wrap {
   position: fixed;
-  left: 14px;
-  right: 14px;
+  left: 16px;
+  right: 16px;
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 20;
   display: flex;
@@ -18,243 +17,89 @@
   }
 }
 
-// folded dock: just the tab, at the left edge
-.dock-tab {
-  align-self: flex-start;
+.cycle-pill {
+  padding: 4px 12px;
+  border-radius: radius("pill");
+  font-size: font-size("xs");
+  font-weight: font-weight("semibold");
+  font-variant-numeric: tabular-nums;
+  color: color("accent");
+  animation: panelSlideIn 0.2s ease-out;
 }
 
 .dock {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 7px 10px;
-  border-radius: radius("pill");
-  max-width: 100%;
-  animation: panelSlideIn 0.25s ease-out;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 16px 12px;
+  border-radius: radius("panel");
+  width: min(740px, 100%);
+  animation: panelSlideIn 0.22s ease-out;
 
-  &__mode {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex: none;
-  }
-
-  &__label {
-    font-size: font-size("xxs");
-    color: color("text-dim");
-    margin: 0 4px 0 6px;
-    white-space: nowrap;
-  }
-
-  &__sep {
-    width: 1px;
-    align-self: stretch;
-    background: color("line");
-    flex: none;
-  }
-
-  &__layers {
-    display: flex;
-    gap: 4px;
-    flex: none;
-  }
-}
-
-// Impacts legend: bottom-left corner, just above the bottom controls
-.implegend,
-.implegend-tab {
-  position: fixed;
-  left: 14px;
-  bottom: calc(var(--dock-h, 120px) + 22px);
-  z-index: 20;
-}
-
-.implegend {
-  padding: 8px 10px 9px 12px;
-  border-radius: radius("card");
-  font-size: font-size("xs");
-  animation: panelSlideIn 0.25s ease-out;
-
-  &__head {
+  &__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
+    gap: 12px;
 
-  &__t {
-    color: color("text-main");
-    font-weight: font-weight("semibold");
-  }
+    &--views {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
 
-  &__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+      app-button {
+        width: 100%;
+        min-width: 0;
 
-    li {
-      display: flex;
-      align-items: center;
+        ::ng-deep .btn {
+          width: 100%;
+          min-width: 0;
+        }
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
     }
 
-    i {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 7px;
-      border: 2px solid currentColor;
+    &--enso {
+      padding-top: 10px;
+      border-top: 1px solid color("line");
     }
-  }
-}
-
-.pinleg {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 4px 12px;
-  padding: 5px 12px;
-  border-radius: radius("pill");
-  font-size: font-size("xxs");
-  color: color("text-dim");
-  animation: dockIn 0.25s ease-out;
-
-  &__t {
-    color: color("text-main");
-  }
-
-  span {
-    display: inline-flex;
-    align-items: center;
-  }
-
-  i {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    margin-right: 5px;
-    border: 2px solid currentColor;
-  }
-}
-
-.rainleg {
-  i {
-    border: none;
-    width: 11px;
-    height: 11px;
-  }
-
-  &__dry {
-    color: #ffd29a;
-
-    i {
-      background: rgba(245, 166, 35, 0.85);
-    }
-  }
-
-  &__wet {
-    color: #9ee8f5;
-
-    i {
-      background: rgba(34, 184, 207, 0.85);
-    }
-  }
-
-  &__src a {
-    color: color("link-color");
-    text-decoration: none;
-    margin-left: 3px;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-@keyframes dockIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// Narrower desktops: layer chips become icon-only (label in the tooltip)
-@include respond-to(1600px) {
-  .chip span {
-    display: none;
-  }
-
-  .chip {
-    padding: 6px 8px;
-  }
-}
-
-// Tablet & mobile: full-width controls at the bottom
-@include respond-to("tablet") {
-  .dock-wrap {
-    left: 10px;
-    right: 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    align-items: stretch;
-    gap: 6px;
-  }
-
-  .dock {
-    border-radius: radius("card");
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-
-  .dock__scale {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-  }
-
-  .pinleg {
-    border-radius: radius("card");
   }
 }
 
 @include respond-to("mobile") {
-  // [fold | views (wrapping)] then the layer toggles on the right
+  .dock-wrap {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
   .dock {
-    gap: 6px 10px;
-  }
+    padding: 8px 10px 10px;
+    gap: 8px;
 
-  .dock__mode {
-    flex: 1 1 calc(100% - 34px);
-  }
+    &__row--views {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
 
-  .dock__mode {
-    grid-area: mode;
-    flex-wrap: wrap;
-  }
+      app-button ::ng-deep .btn {
+        padding-inline: 6px;
+        gap: 4px;
+        font-size: font-size("xxs");
+      }
 
-  .dock__label {
-    margin-left: 2px;
-  }
+      // Icon-only buttons on small screens
+      .dock__label {
+        display: none;
+      }
+    }
 
-  .dock__layers {
-    margin-left: auto;
-  }
-
-  .dock__sep {
-    display: none;
-  }
-
-  .pinleg__t {
-    flex-basis: 100%;
-    text-align: center;
+    &__row--enso {
+      padding-top: 8px;
+    }
   }
 }

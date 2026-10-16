@@ -11,8 +11,10 @@ import {
   computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
 
@@ -59,7 +61,7 @@ const SEA_DEPTH = 300; // m shown below the surface
 @Component({
   selector: 'app-walker-view',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './walker-view.component.html',
   styleUrl: './walker-view.component.scss'
 })
@@ -69,8 +71,14 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   state = inject(EnsoStateService);
   private math = inject(EnsoMathService);
+  private theme = inject(ThemeService);
   i18n = inject(I18nService);
   private ngZone = inject(NgZone);
+
+  readonly chevronLeftIcon = ChevronLeft;
+  readonly chevronRightIcon = ChevronRight;
+  readonly playIcon = Play;
+  readonly pauseIcon = Pause;
 
   readonly steps = STEPS;
   /** Current walkthrough step; −1 = not started, the view just shows the current ENSO state. */
@@ -122,7 +130,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private bolt: [number, number][] = [];
 
   ngOnInit() {
-    // opening the view keeps the current ENSO state; the walkthrough starts only on request
     this.lastSetS = this.state.sTarget();
   }
 
@@ -159,7 +166,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.state.setPreset(STEPS[idx].s);
   }
 
-  /** Auto-advance to the following step. */
   private advance() {
     this.go(this.step() + 1);
   }
@@ -183,7 +189,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.playing.set(true);
-    // taking over from the ENSO cycle (or from a manual slider change) restarts the current step
     this.go(Math.max(0, this.step()));
   }
 
@@ -202,7 +207,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       this.rainZ[i] = Math.random() * 2.2;
     }
 
-    // cumulonimbus: flat dark base, billowing column, cauliflower top, anvil under the tropopause
     const j = (r: number) => (Math.random() * 2 - 1) * r;
     for (let k = 0; k < 9; k++) this.puffs.push({ dLon: j(4.5), z: 2.4 + j(0.3), r: 2.2 + Math.random() * 0.9, flat: 0.5 });
     for (let z = 3.2; z < 11.5; z += 0.6) {
@@ -233,7 +237,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastTime = now;
     this.t += dt;
 
-    // a manual slider move or a running ENSO cycle pauses the walkthrough
     if (this.playing() && (this.state.isPlaying() || Math.abs(this.state.sTarget() - this.lastSetS) > 1e-6)) {
       this.ngZone.run(() => this.playing.set(false));
     }
@@ -242,7 +245,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.stepClock > STEP_SECONDS) this.ngZone.run(() => this.advance());
     }
 
-    // ease focus alphas towards the current step
     const focus = this.state.isPlaying() || this.step() < 0 ? ['all'] : STEPS[this.step()].focus;
     const all = focus.includes('all');
     for (const k of FOCUS_KEYS) {
@@ -268,16 +270,15 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const { W, H } = this;
     const s = this.state.sCur();
     const ys = this.ys;
-    const yo = this.yo;
     const xc = Math.max(128, this.math.convLon(s));
     const trade = this.math.trade(s);
 
     ctx.clearRect(0, 0, W, H);
 
-    // sky
+    // sky derived from SCSS tokens
     const sky = ctx.createLinearGradient(0, 0, 0, ys);
-    sky.addColorStop(0, '#0a1222');
-    sky.addColorStop(1, '#1a2a47');
+    sky.addColorStop(0, this.theme.getTokenColor('walker-sky-top', '#0a1222'));
+    sky.addColorStop(1, this.theme.getTokenColor('walker-sky-bottom', '#1a2a47'));
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, W, ys);
 
@@ -291,7 +292,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(W, this.zY(16));
     ctx.stroke();
     ctx.restore();
-    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', 'rgba(200, 215, 240, 0.55)');
+    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', 'rgba(200, 215, 240, 0.65)');
 
     this.drawOcean(s);
     this.drawThermocline(s, L.thermocline);
@@ -300,7 +301,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.drawLand(L.indonesia, L.andes);
     this.drawNinoBox();
 
-    // Walker cells: the main (eastern) cell, and during El Niño a reversed western cell
     const eS = this.math.clamp(trade, 0, 1.8);
     const wS = this.math.clamp((s - 0.4) / 1.4, 0, 1);
     this.drawCell(this.eastCell, xc, 268, 1, eS, dt);
@@ -345,7 +345,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const ctx = this.ctx;
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(this.oceanCanvas, 0, this.ys, this.W, this.yo - this.ys);
-    // dim when another part of the story is in focus
     const dim = (1 - this.fa.ocean) * 0.55;
     if (dim > 0.01) {
       ctx.fillStyle = `rgba(4, 8, 18, ${dim})`;
@@ -354,7 +353,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private thermoDepth(lon: number, s: number) {
-    const d = -this.math.thermo((lon - 200) / 80, s); // 0…4 → 0…300 m
+    const d = -this.math.thermo((lon - 200) / 80, s);
     return this.math.clamp(d, 0, 4) / 4 * SEA_DEPTH;
   }
 
@@ -427,18 +426,17 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private drawLand(indonesia: string, andes: string) {
     const ctx = this.ctx;
     const ys = this.ys;
-    // Maritime Continent (Indonesia): low hills sitting on the warm pool
+    const landCol = this.theme.getTokenColor('walker-land', '#121a1a');
     const hills: [number, number][] = [[100, 0], [101, 0.9], [104, 1.5], [107, 0.9], [110, 1.9], [114, 1.1], [118, 2.1], [122, 1.2], [125, 1.5], [128, 0]];
-    ctx.fillStyle = '#121a1a';
+    ctx.fillStyle = landCol;
     ctx.beginPath();
     ctx.moveTo(this.X(100), ys);
     for (const [lon, z] of hills) ctx.lineTo(this.X(lon), this.zY(z));
     ctx.closePath();
     ctx.fill();
-    this.text(indonesia, this.X(101.5), this.zY(2.6), 'left', 'rgba(220, 230, 245, 0.75)');
+    this.text(indonesia, this.X(101.5), this.zY(2.6), 'left', 'rgba(220, 230, 245, 0.8)');
 
-    // South America: coast at ~80°W, the Andes behind it
-    ctx.fillStyle = '#121a1a';
+    ctx.fillStyle = landCol;
     ctx.beginPath();
     ctx.moveTo(this.X(279), this.yo);
     ctx.lineTo(this.X(279), ys);
@@ -450,7 +448,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(this.X(290), this.yo);
     ctx.closePath();
     ctx.fill();
-    this.text(andes, this.W - 8, this.zY(7), 'right', 'rgba(220, 230, 245, 0.75)');
+    this.text(andes, this.W - 8, this.zY(7), 'right', 'rgba(220, 230, 245, 0.8)');
   }
 
   private drawNinoBox() {
@@ -466,10 +464,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.text('Niño 3.4', x0 + 2, this.ys - 10, 'left', 'rgba(255, 255, 255, 0.9)', true);
   }
 
-  /**
-   * One Walker cell as a closed loop between two longitudes, drawn with flowing streaks.
-   * dir = 1: rising at the western end (east cell); dir = −1: rising at the eastern end.
-   */
   private drawCell(ps: Particle[], lonW: number, lonE: number, dir: number, strength: number, dt: number) {
     if (lonE - lonW < 8) return;
     const ctx = this.ctx;
@@ -483,7 +477,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       const rx = (lonE - lonW) / 2 * k;
       const zc = 7.2;
       const rz = 5.8 * k;
-      // superellipse: flat surface / upper branches, steep rising and sinking branches
       out[0] = this.X(cx + rx * Math.sign(c) * Math.abs(c) ** 0.5);
       out[1] = this.zY(zc - rz * Math.sign(sn) * Math.abs(sn) ** 0.5);
     };
@@ -492,7 +485,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const p of ps) {
       p.th += speed * dt * (1.2 - 0.3 * p.k);
       const th = ((p.th % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      // branch: bottom = surface wind, top = return flow aloft, the ends rise / sink
       let branch: Focus;
       if (th > Math.PI / 4 && th < Math.PI * 3 / 4) branch = 'wind';
       else if (th > Math.PI * 5 / 4 && th < Math.PI * 7 / 4) branch = 'aloft';
@@ -502,7 +494,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       const a = cellA * this.fa[branch] * 0.9;
       if (a < 0.02) continue;
-      const h = (1 - Math.sin(th)) / 2; // 0 at the surface branch, 1 aloft
+      const h = (1 - Math.sin(th)) / 2;
       const r = Math.round(255 + (156 - 255) * h);
       const g = Math.round(214 + (196 - 214) * h);
       const b = Math.round(160 + (255 - 160) * h);
@@ -528,7 +520,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const pxDeg = this.W / (LON1 - LON0);
     const pxKm = this.ys / Z_TOP;
 
-    // rain
     ctx.strokeStyle = `rgba(160, 200, 240, ${0.5 * a})`;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -542,7 +533,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     ctx.stroke();
 
-    // lightning: a short zigzag from the cloud base now and then
     this.nextBolt -= dt;
     if (this.nextBolt <= 0) {
       this.nextBolt = 1.5 + Math.random() * 3.5;
@@ -571,7 +561,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    // cloud puffs, darker at the base and bright at the top
     for (const p of this.puffs) {
       const x = this.X(xc + p.dLon);
       const y = this.zY(p.z);
@@ -609,7 +598,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private drawAxis() {
     const ticks: [number, string][] = [[120, '120°E'], [150, '150°E'], [180, '180°'], [210, '150°W'], [240, '120°W'], [270, '90°W']];
     for (const [lon, label] of ticks) {
-      this.text(label, this.X(lon), this.H - 6, 'center', 'rgba(150, 168, 196, 0.9)');
+      this.text(label, this.X(lon), this.H - 6, 'center', 'rgba(180, 196, 224, 0.9)');
     }
   }
 }

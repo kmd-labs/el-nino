@@ -1,27 +1,37 @@
 @use "../../../../variables" as *;
 
+:host {
+  display: inline-flex;
+}
+
 .btn {
   font: inherit;
-  font-size: font-size("sm");
+  font-size: font-size("xs");
+  font-weight: font-weight("medium");
+  line-height: 1;
   color: color("text-main");
   background: color("btn-bg");
   border: 1px solid color("line");
   border-radius: radius("control");
-  padding: 7px 10px;
+  padding: 7px 12px;
+  height: $control-height;
+  min-height: $control-height;
+  gap: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background transition("fast"), border-color transition("fast"), transform transition("fast");
+  transition: background transition("fast"), border-color transition("fast"), color transition("fast"), transform transition("fast");
   user-select: none;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
     background: color("btn-hover");
+    color: color("text-bright");
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 
   &:disabled {
@@ -29,16 +39,19 @@
     cursor: not-allowed;
   }
 
-  // Variant: ghost (e.g. close, collapse icons)
+  &--icon {
+    width: $control-height;
+    padding: 0;
+  }
+
+  // Variant: ghost (e.g. close, icon-only controls)
   &--ghost {
-    background: none;
-    border: none;
-    padding: 2px 6px;
-    font-size: font-size("lg");
+    background: transparent;
+    border-color: transparent;
     color: color("text-dim");
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.08);
+      background: color("btn-hover");
       color: color("text-bright");
     }
   }
@@ -57,34 +70,39 @@
     &.btn--hot.btn--active {
       background: color("btn-active-red");
       border-color: color("btn-active-red-border");
-      color: #ffddd2;
+      color: color("text-bright");
     }
   }
 
   // Variant: play button
   &--play {
+    padding: 7px 12px;
+    font-size: font-size("xs");
+
     &.btn--active {
       background: color("btn-play-active");
       border-color: color("btn-play-border");
-      color: color("accent-hover");
+      color: color("accent");
     }
   }
 
-  // Variant: toggle button (e.g. Temperatura / Anomalia, ENSO phases)
+  // Variant: toggle button
   &--toggle {
-    padding: 5px 10px;
+    padding: 7px 12px;
     font-size: font-size("xs");
 
     &.btn--active {
       background: color("btn-active-blue");
       border-color: color("btn-active-blue-border");
       color: color("text-bright");
+      font-weight: font-weight("semibold");
     }
 
     &.btn--hot.btn--active {
       background: color("btn-active-red");
       border-color: color("btn-active-red-border");
-      color: #ffddd2;
+      color: color("text-bright");
+      font-weight: font-weight("semibold");
     }
   }
 }

@@ -1,0 +1,11 @@
+<div
+  class="ui-tooltip"
+  role="tooltip"
+  [attr.aria-hidden]="!tooltip.visible()"
+  [class.ui-tooltip--visible]="tooltip.visible()"
+  [class.ui-tooltip--top]="tooltip.placement() === 'top'"
+  [class.ui-tooltip--bottom]="tooltip.placement() === 'bottom'"
+  [style.left.px]="tooltip.x()"
+  [style.top.px]="tooltip.y()">
+  {{ tooltip.text() }}
+</div>

@@ -1,43 +1,31 @@
 @let t = i18n.t();
-@if (location() && filteredEvents().length > 0) {
-  <div class="pop glass-panel--heavy open" role="dialog" aria-live="polite">
-    <app-button
-      variant="ghost"
-      extraClass="pop__close"
-      [ariaLabel]="t.close"
-      (btnClick)="close()">
-      ×
-    </app-button>
-
-    <h3 class="pop__title">{{ location()!.name }}</h3>
-    <div class="pop__reg">{{ location()!.region }}</div>
-
-    @for (e of filteredEvents(); track $index) {
-      <div class="ev">
-        <div class="ev__top">
-          <span class="tag" [style.background-color]="PH[e.ph].col">{{ t.phase[e.ph] }}</span>
-          <span class="yrs">{{ e.yrs }}</span>
-        </div>
-
-        <dl class="ev__dl">
-          @if (e.area) {
-            <dt>{{ t.mArea }}</dt>
-            <dd>{{ e.area }}</dd>
-          }
-          <dt>{{ t.mAnomaly }}</dt>
-          <dd>{{ e.type }}</dd>
-          <dt>{{ t.mScale }}</dt>
-          <dd>{{ e.aff }}</dd>
-        </dl>
-
-        @if (e.note) {
-          <div class="ev__note">{{ t.mRole }} {{ e.note }}</div>
-        }
-
-        <a class="ev__link" [href]="e.src[1]" target="_blank" rel="noopener noreferrer">
-          {{ t.mSource }} {{ e.src[0] }} ↗
-        </a>
+<div class="impact-events">
+  @for (e of filteredEvents(); track $index) {
+    <article class="ev">
+      <div class="ev__top">
+        <app-badge [text]="t.phase[e.ph]" [backgroundColor]="math.getPhaseColor(e.ph)"></app-badge>
+        <span class="yrs">{{ e.yrs }}</span>
       </div>
-    }
-  </div>
-}
+
+      <dl class="ev__dl">
+        @if (e.area) {
+          <dt>{{ t.mArea }}</dt>
+          <dd>{{ e.area }}</dd>
+        }
+        <dt>{{ t.mAnomaly }}</dt>
+        <dd>{{ e.type }}</dd>
+        <dt>{{ t.mScale }}</dt>
+        <dd>{{ e.aff }}</dd>
+      </dl>
+
+      @if (e.note) {
+        <div class="ev__note">{{ t.mRole }} {{ e.note }}</div>
+      }
+
+      <a class="ev__link" [href]="e.src[1]" target="_blank" rel="noopener noreferrer">
+        <span>{{ t.mSource }} {{ e.src[0] }}</span>
+        <lucide-icon [img]="externalLinkIcon" [size]="13"></lucide-icon>
+      </a>
+    </article>
+  }
+</div>

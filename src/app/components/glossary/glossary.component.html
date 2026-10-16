@@ -1,18 +1,16 @@
 @let t = i18n.t();
-<aside id="glossary" class="gl glass-panel--heavy" aria-labelledby="gl-title">
-  <div class="gl__head">
-    <h2 id="gl-title" class="gl__title">{{ t.glTitle }}</h2>
-    <app-button variant="ghost" [ariaLabel]="t.close" (btnClick)="close()">×</app-button>
+<div class="gl">
+  <div class="gl__search-wrap">
+    <lucide-icon class="gl__search-icon" [img]="searchIcon" [size]="15"></lucide-icon>
+    <input
+      #search
+      class="gl__search"
+      type="search"
+      [placeholder]="t.glSearch"
+      [attr.aria-label]="t.glSearchAria"
+      [value]="query()"
+      (input)="onSearch($event)" />
   </div>
-
-  <input
-    #search
-    class="gl__search"
-    type="search"
-    [placeholder]="t.glSearch"
-    [attr.aria-label]="t.glSearchAria"
-    [value]="query()"
-    (input)="onSearch($event)" />
 
   <div class="gl__body">
     @for (g of groups(); track g.title) {
@@ -25,7 +23,8 @@
               <dd>
                 {{ term.text }}
                 <a class="gl__wiki" [href]="term.wiki" target="_blank" rel="noopener noreferrer">
-                  Wikipedia{{ t.wikiIn[term.wikiLang] }} ↗
+                  <span>Wikipedia{{ t.wikiIn[term.wikiLang] }}</span>
+                  <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
                 </a>
               </dd>
             </div>
@@ -36,4 +35,4 @@
       <p class="gl__empty">{{ t.glEmpty(query()) }}</p>
     }
   </div>
-</aside>
+</div>

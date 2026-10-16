@@ -1,6 +1,6 @@
 import { EnsoPhase } from '../models/enso.model';
 
-export type Lang = 'pl' | 'en' | 'es';
+export type Lang = 'en' | 'pl' | 'es';
 
 export interface GlossaryTerm {
   term: string;
@@ -21,7 +21,7 @@ export interface EventText {
   note?: string;
 }
 
-/** Translated texts of one EVENTS location, in the same order as EVENTS (and its events). */
+/** Translated texts of one EVENTS_META location, in the same order as EVENTS_META (and its events). */
 export interface LocationText {
   name: string;
   region: string;
@@ -55,13 +55,16 @@ export interface Dict {
   desc: Record<EnsoPhase, string>;
   months: string[];
 
-  // header
+  // header & settings
   readoutTitle: string;
   loadingMap: string;
   mapError: string;
   changeLanguage: string;
+  themeLight: string;
+  themeDark: string;
+  toggleTheme: string;
 
-  // ENSO state bar
+  // ENSO state & dock controls
   ensoLabel: string;
   strengthAria: string;
   probText: string;
@@ -71,12 +74,11 @@ export interface Dict {
   playStop: string;
   detailsAria: string;
   thermoChip: string;
-  thermoChipTitle: string;
+  thermoAria: string;
   thermoTitle: string;
   thermoNote: string;
   descChip: string;
   descChipTitle: string;
-  stateLabel: string;
   close: string;
   hidePanel: string;
   showPanel: string;
@@ -96,7 +98,6 @@ export interface Dict {
   scaleAnom: string;
   scaleSstShort: string;
   scaleAnomShort: string;
-  /** name of the folded impacts legend */
   impactsTab: string;
   layersAria: string;
   layerAtm: string;
@@ -162,7 +163,7 @@ export interface Dict {
   regions: { name: string; season: string }[];
   impactSourceTitles: string[];
 
-  // historical events (same order as EVENTS) and translated source titles (by SRC key)
+  // historical events (same order as EVENTS_META) and translated source titles (by SRC_URLS key)
   events: LocationText[];
-  srcTitles: Partial<Record<string, string>>;
+  srcTitles: Record<string, string>;
 }

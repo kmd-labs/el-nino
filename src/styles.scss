@@ -1,5 +1,37 @@
 @use "variables" as *;
 
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  @each $key, $value in $breakpoints {
+    --bp-#{$key}: #{$value};
+  }
+  @each $key, $value in $palette {
+    --color-#{$key}: #{$value};
+  }
+  @each $key, $value in $semantic-colors {
+    --color-#{$key}: #{$value};
+  }
+  @each $key, $value in $thermal-colors {
+    --color-#{$key}: #{$value};
+  }
+  @each $key, $value in $anomaly-colors {
+    --color-#{$key}: #{$value};
+  }
+  @each $key, $value in $dark-theme-colors {
+    --color-#{$key}: #{$value};
+  }
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  @each $key, $value in $light-theme-colors {
+    --color-#{$key}: #{$value};
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -14,10 +46,11 @@ body {
   width: 100%;
   background: color("bg-deep");
   color: color("text-main");
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  transition: background-color transition("base"), color transition("base");
 }
 
 button,
@@ -38,6 +71,18 @@ textarea {
   outline-offset: 2px;
 }
 
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+
+  svg {
+    display: block;
+  }
+}
+
 // Global utility classes
 .glass-panel {
   @include glass-panel(false);
@@ -47,111 +92,13 @@ textarea {
   @include glass-panel(true);
 }
 
-// Pill toggle with an icon (layer toggles, ENSO pop-ups)
-.chip {
-  font: inherit;
-  font-size: font-size("xs");
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: radius("pill");
-  border: 1px solid transparent;
-  background: none;
-  color: color("text-dim");
-  cursor: pointer;
-  transition: background transition("fast"), color transition("fast"), border-color transition("fast");
-
-  svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    flex: none;
-  }
-
-  &:hover {
-    background: color("btn-hover");
-    color: color("text-main");
-  }
-
-  &--on {
-    color: color("text-bright");
-    background: color("btn-active-blue");
-    border-color: color("btn-active-blue-border");
-  }
-
-  &:focus-visible {
-    outline: 2px solid color("btn-active-blue-border");
-    outline-offset: 1px;
-  }
-}
-
-// Bottom control panels can fold to the left edge: ‹ button inside the panel, › tab when folded
-.fold {
-  font: inherit;
-  flex: none;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid color("line");
-  background: color("btn-bg");
-  color: color("text-dim");
-  font-size: font-size("base");
-  line-height: 1;
-  cursor: pointer;
-  transition: background transition("fast"), color transition("fast");
-
-  &:hover {
-    background: color("btn-hover");
-    color: color("text-bright");
-  }
-}
-
-.tab {
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px 7px 14px;
-  border-radius: radius("pill");
-  font-size: font-size("xs");
-  color: color("text-main");
-  cursor: pointer;
-  animation: panelSlideIn 0.25s ease-out;
-  transition: border-color transition("fast");
-
-  &:hover {
-    border-color: color("btn-active-blue-border");
-  }
-
-  &__name {
-    color: color("text-dim");
-  }
-
-  &__val {
-    font-weight: font-weight("semibold");
-    color: color("text-bright");
-  }
-
-  &__arrow {
-    font-size: font-size("base");
-    line-height: 1;
-    color: color("text-dim");
-  }
-}
-
 @keyframes panelSlideIn {
   from {
     opacity: 0;
-    transform: translateX(-24px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }

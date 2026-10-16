@@ -1,21 +1,21 @@
-import { Component, ElementRef, HostListener, ViewChild, AfterViewInit, inject, signal, computed } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EnsoStateService } from '../../core/services/enso-state.service';
+import { LucideAngularModule, ExternalLink, Search } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { GlossaryGroup } from '../../core/i18n/i18n.types';
-import { ButtonComponent } from '../ui/button/button.component';
 
-/** Side drawer explaining the harder terms in plain language, with links to Wikipedia. */
+/** Searchable glossary projected inside the Design System Popup. */
 @Component({
   selector: 'app-glossary',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './glossary.component.html',
   styleUrl: './glossary.component.scss'
 })
 export class GlossaryComponent implements AfterViewInit {
-  state = inject(EnsoStateService);
   i18n = inject(I18nService);
+  readonly searchIcon = Search;
+  readonly externalLinkIcon = ExternalLink;
 
   @ViewChild('search') searchRef!: ElementRef<HTMLInputElement>;
 
@@ -31,19 +31,10 @@ export class GlossaryComponent implements AfterViewInit {
   });
 
   ngAfterViewInit() {
-    this.searchRef.nativeElement.focus({ preventScroll: true });
+    this.searchRef?.nativeElement.focus({ preventScroll: true });
   }
 
   onSearch(e: Event) {
     this.query.set((e.target as HTMLInputElement).value);
-  }
-
-  close() {
-    this.state.toggleGlossary(false);
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape() {
-    this.close();
   }
 }

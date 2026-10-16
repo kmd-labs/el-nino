@@ -1,38 +1,53 @@
+@let t = i18n.t();
+
 <header class="header">
-  <div class="header__info">
-    <h1 class="header__title visually-hidden">{{ i18n.t().docTitle }}</h1>
-    <button
-      type="button"
-      class="header__lang glass-panel"
-      [title]="i18n.t().changeLanguage"
-      [attr.aria-label]="i18n.t().changeLanguage + ' (' + i18n.t().langName + ')'"
-      (click)="i18n.reopen()">
-      <app-flag class="header__flag" [lang]="i18n.lang()"></app-flag>
-      <span>{{ i18n.lang().toUpperCase() }}</span>
-    </button>
+  <div class="header__left">
+    <!-- 1. Brand / Logotype Container -->
+    <div class="header__brand glass-panel">
+      <div class="header__logo" aria-label="KMD">
+        <span class="header__logo-mark">KMD</span>
+      </div>
+      <span class="header__divider" aria-hidden="true"></span>
+      <h1 class="header__app-name">El Niño</h1>
+    </div>
+
+    <!-- 2. Settings Container (Language Dropdown + Light/Dark Theme Switcher) -->
+    <div class="header__settings glass-panel" role="group" [attr.aria-label]="t.changeLanguage">
+      <app-dropdown
+        variant="ghost"
+        [icon]="bp.mobile() ? null : globeIcon"
+        [options]="langOptions()"
+        [value]="i18n.lang()"
+        [ariaLabel]="t.changeLanguage"
+        (valueChange)="onLangChange($event)">
+      </app-dropdown>
+
+      <span class="header__divider" aria-hidden="true"></span>
+
+      <app-button
+        variant="ghost"
+        [iconOnly]="true"
+        [ariaLabel]="t.toggleTheme"
+        [titleText]="theme.theme() === 'dark' ? t.themeLight : t.themeDark"
+        (btnClick)="theme.toggleTheme()">
+        @if (theme.theme() === 'dark') {
+          <lucide-icon [img]="sunIcon" [size]="15"></lucide-icon>
+        } @else {
+          <lucide-icon [img]="moonIcon" [size]="15"></lucide-icon>
+        }
+      </app-button>
+    </div>
+
+
     @if (!state.mapLoaded()) {
-      <div class="header__loading" [class.header__loading--error]="state.mapError()">
-        {{ state.mapError() ? i18n.t().mapError : i18n.t().loadingMap }}
+      <div class="header__loading glass-panel" [class.header__loading--error]="state.mapError()">
+        {{ state.mapError() ? t.mapError : t.loadingMap }}
       </div>
     }
   </div>
 
+  <!-- 4. Merged Niño 3.4 Anomaly Readout, Scale Bar & Impacts/Pins Legend -->
   <div class="header__right">
-    <div class="header__readout glass-panel">
-      <div class="k">{{ i18n.t().readoutTitle }}</div>
-      <div class="v">{{ formattedNino() }}</div>
-      <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
-    </div>
-
-    <!-- colour scale of what the ocean currently shows -->
-    <div class="header__scale glass-panel" [title]="scaleMode() === 'sst' ? i18n.t().scaleSst : i18n.t().scaleAnom">
-      <div class="k">{{ scaleMode() === 'sst' ? i18n.t().scaleSstShort : i18n.t().scaleAnomShort }}</div>
-      <canvas #scaleCanvas class="header__bar" width="300" height="8"></canvas>
-      <div class="header__ticks">
-        <span>{{ scaleMode() === 'sst' ? '−2 °C' : '−3 °C' }}</span>
-        <span>{{ scaleMode() === 'sst' ? '15' : '0' }}</span>
-        <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
-      </div>
-    </div>
+    <app-legend-panel></app-legend-panel>
   </div>
 </header>

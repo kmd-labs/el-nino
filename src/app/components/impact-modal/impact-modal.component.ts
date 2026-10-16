@@ -1,27 +1,30 @@
-import { Component, HostListener, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, ExternalLink } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
-import { PH } from '../../core/constants/enso-data';
-import { ButtonComponent } from '../ui/button/button.component';
+import { EnsoMathService } from '../../core/services/enso-math.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { BadgeComponent } from '../ui/badge/badge.component';
 
 @Component({
   selector: 'app-impact-modal',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [CommonModule, LucideAngularModule, BadgeComponent],
   templateUrl: './impact-modal.component.html',
   styleUrl: './impact-modal.component.scss'
 })
 export class ImpactModalComponent {
   state = inject(EnsoStateService);
+  math = inject(EnsoMathService);
   i18n = inject(I18nService);
-  readonly PH = PH;
+  readonly externalLinkIcon = ExternalLink;
 
   /** The selected location with its texts in the current language. */
   readonly location = computed(() => {
     const loc = this.state.selectedLocation();
     return loc ? this.i18n.location(loc) : null;
   });
+
   readonly currentPhase = computed(() => this.state.phase());
 
   readonly filteredEvents = computed(() => {
@@ -29,15 +32,4 @@ export class ImpactModalComponent {
     if (!loc) return [];
     return loc.ev.filter(e => e.ph === this.currentPhase());
   });
-
-  close() {
-    this.state.selectLocation(null);
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && this.location()) {
-      this.close();
-    }
-  }
 }
