@@ -1,0 +1,59 @@
+<div
+  class="dropdown"
+  [class.dropdown--open]="isOpen()"
+  [class.dropdown--full]="fullWidth()">
+  <app-button
+    [variant]="variant()"
+    [active]="isOpen()"
+    [extraClass]="fullWidth() ? 'dropdown__trigger-btn--full' : ''"
+    [ariaLabel]="ariaLabel() || triggerText()"
+    [titleText]="ariaLabel() || selectedOption()?.label || triggerText() || null"
+    (btnClick)="toggle()">
+    @if (icon()) {
+      <lucide-icon [img]="icon()" [size]="15"></lucide-icon>
+    }
+    <span class="dropdown__trigger-label">{{ triggerText() }}</span>
+    <lucide-icon
+      class="dropdown__chevron"
+      [class.dropdown__chevron--open]="isOpen()"
+      [img]="chevronDownIcon"
+      [size]="13">
+    </lucide-icon>
+  </app-button>
+
+  @if (isOpen()) {
+    <div
+      class="dropdown__menu glass-panel--heavy"
+      [class.dropdown__menu--right]="align() === 'right'"
+      [attr.role]="options().length ? 'listbox' : 'region'"
+      [attr.aria-label]="ariaLabel() || triggerText()">
+      @if (options().length > 0) {
+        @for (opt of options(); track opt.value) {
+          @let isSelected = opt.value === value();
+          <button
+            type="button"
+            class="dropdown__item"
+            [class.dropdown__item--selected]="isSelected"
+            role="option"
+            [attr.aria-selected]="isSelected"
+            (click)="select(opt)">
+            @if (opt.icon) {
+              <lucide-icon [img]="opt.icon" [size]="14"></lucide-icon>
+            }
+            <span class="dropdown__item-label">{{ opt.label }}</span>
+            @if (opt.badge) {
+              <span class="dropdown__item-badge">{{ opt.badge }}</span>
+            }
+            @if (isSelected) {
+              <lucide-icon class="dropdown__item-check" [img]="checkIcon" [size]="14"></lucide-icon>
+            }
+          </button>
+        }
+      } @else {
+        <div class="dropdown__custom">
+          <ng-content></ng-content>
+        </div>
+      }
+    </div>
+  }
+</div>

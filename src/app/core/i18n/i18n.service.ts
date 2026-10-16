@@ -3,78 +3,108 @@ import { Dict, Lang } from './i18n.types';
 import { PL } from './pl';
 import { EN } from './en';
 import { ES } from './es';
-import { EVENTS, SRC } from '../constants/enso-data';
-import { ImpactLocation } from '../models/enso.model';
+import { EVENTS_META, SRC_URLS } from '../constants/enso-data';
+import { ImpactLocation, ImpactLocationMeta } from '../models/enso.model';
 
-const DICTS: Record<Lang, Dict> = { pl: PL, en: EN, es: ES };
+const DICTS: Record<Lang, Dict> = { en: EN, pl: PL, es: ES };
 const STORAGE_KEY = 'el-nino.lang';
 
-// SRC key by source URL, to translate the titles of the sources attached to events
-const SRC_KEY_BY_URL = new Map(Object.entries(SRC).map(([k, [, url]]) => [url, k]));
-
-/** Current UI language and the localised texts; the welcome page is shown until a language is picked. */
+/**
+ * Manages UI language and localized texts.
+ * Initializes from localStorage or Navigator API (falling back to 'en' if not 'en' | 'pl' | 'es'),
+ * and persists language selection to localStorage.
+ */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   readonly dicts = DICTS;
-  readonly langs: Lang[] = ['en', 'es', 'pl'];
+  readonly langs: Lang[] = ['en', 'pl', 'es'];
 
-  /** Last language used on this device (pre-selected on the welcome page). */
-  readonly remembered: Lang | null = this.readStored();
-  readonly lang = signal<Lang>(this.remembered ?? 'pl');
-  /** false until the visitor picks a language on the welcome page. */
-  readonly chosen = signal(false);
-
+  readonly lang = signal<Lang>(this.resolveInitialLang());
   readonly t = computed(() => DICTS[this.lang()]);
 
   constructor() {
     effect(() => {
+      const currentLang = this.lang();
       const d = this.t();
-      document.documentElement.lang = d.htmlLang;
-      document.title = d.docTitle;
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = d.htmlLang;
+        document.title = d.docTitle;
+      }
+      this.persistLang(currentLang);
     });
   }
 
-  choose(lang: Lang) {
+  setLang(lang: Lang) {
     this.lang.set(lang);
-    this.chosen.set(true);
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch {
-      // storage unavailable (private mode etc.) — the choice just isn't remembered
-    }
   }
 
-  /** Re-open the welcome page to switch language. */
-  reopen() {
-    this.chosen.set(false);
-  }
+  /** Resolves an EVENTS_META entry (or ImpactLocation) with texts in the active language. */
+  location(locOrMeta: ImpactLocationMeta | ImpactLocation): ImpactLocation {
+    const i = EVENTS_META.findIndex(m => m.id === locOrMeta.id);
+    const meta = i >= 0 ? EVENTS_META[i] : EVENTS_META[0];
+    const dict = this.t();
+    const tr = i >= 0 ? dict.events[i] : dict.events[0];
 
-  /** An EVENTS location with its texts in the current language (falls back to Polish). */
-  location(loc: ImpactLocation): ImpactLocation {
-    const i = EVENTS.indexOf(loc);
-    const tr = i >= 0 ? this.t().events[i] : undefined;
-    if (!tr) return loc;
     return {
-      ...loc,
-      name: tr.name,
-      region: tr.region,
-      ev: loc.ev.map((e, j) => {
-        const te = tr.ev[j];
-        const key = SRC_KEY_BY_URL.get(e.src[1]);
-        const srcTitle = (key && this.t().srcTitles[key]) || e.src[0];
-        return te
-          ? { ...e, area: te.area, type: te.type, aff: te.aff, note: te.note, src: [srcTitle, e.src[1]] as [string, string] }
-          : e;
+      id: meta.id,
+      lon: meta.lon,
+      lat: meta.lat,
+      name: tr?.name ?? meta.id,
+      region: tr?.region ?? '',
+      ev: meta.ev.map((e, j) => {
+        const te = tr?.ev[j];
+        const url = SRC_URLS[e.srcKey] ?? '';
+        const srcTitle = dict.srcTitles[e.srcKey] ?? e.srcKey;
+        return {
+          ph: e.ph,
+          yrs: e.yrs,
+          kind: e.kind,
+          area: te?.area,
+          type: te?.type ?? '',
+          aff: te?.aff ?? '',
+          note: te?.note,
+          src: [srcTitle, url] as [string, string]
+        };
       })
     };
   }
 
-  private readStored(): Lang | null {
+  private resolveInitialLang(): Lang {
     try {
-      const v = localStorage.getItem(STORAGE_KEY);
-      return v === 'pl' || v === 'en' || v === 'es' ? v : null;
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (this.isSupportedLang(stored)) {
+        return stored;
+      }
     } catch {
-      return null;
+      // localStorage unavailable
+    }
+
+    if (typeof navigator !== 'undefined') {
+      const candidates = [
+        ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+        navigator.language
+      ].filter(Boolean);
+
+      for (const candidate of candidates) {
+        const prefix = candidate.slice(0, 2).toLowerCase();
+        if (this.isSupportedLang(prefix)) {
+          return prefix;
+        }
+      }
+    }
+
+    return 'en';
+  }
+
+  private isSupportedLang(val: string | null | undefined): val is Lang {
+    return val === 'en' || val === 'pl' || val === 'es';
+  }
+
+  private persistLang(lang: Lang) {
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // localStorage unavailable
     }
   }
 }

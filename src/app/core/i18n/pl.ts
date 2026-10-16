@@ -1,76 +1,79 @@
 import { Dict } from './i18n.types';
-import { DESC, EVENTS, MON, PH } from '../constants/enso-data';
-import { GLOSSARY } from '../constants/glossary-data';
-import { IMPACT_SOURCES, RAIN_REGIONS } from '../constants/impacts-data';
 
-/** Polish — the source language; long-form content comes straight from the data files. */
 export const PL: Dict = {
   htmlLang: 'pl',
-  docTitle: 'El Niño — glob 3D',
+  docTitle: 'KMD · El Niño — Glob 3D',
   langName: 'Polski',
 
-  phase: { super: PH.super.name, nino: PH.nino.name, nina: PH.nina.name, neu: PH.neu.name },
-  desc: DESC,
-  months: MON,
+  phase: { super: 'Super El Niño', nino: 'El Niño', nina: 'La Niña', neu: 'Neutralny' },
+  desc: {
+    nina: 'Wzmocnione pasaty pchają ciepłą wodę na zachód. Zimny jęzor na równikowym Pacyfiku rozciąga się daleko na zachód, a ulewy skupiają się nad Indonezją i Australią. Skutki są w dużej mierze odwrotne do El Niño.',
+    neu: 'Pasaty utrzymują ciepły basen przy Indonezji (~29–30 °C) i zimny jęzor wzdłuż równika na wschodnim Pacyfiku. Konwekcja i ulewy skupiają się nad zachodnim Pacyfikiem.',
+    nino: 'Pasaty słabną, ciepła woda przesuwa się na wschód, a strefa konwekcji wędruje ku środkowemu Pacyfikowi. Zaczynają działać telekoneksje, czyli zmiany pogody daleko od Pacyfiku.',
+    super: 'Anomalia Niño 3.4 powyżej +2 °C. Cyrkulacja Walkera się załamuje, ulewy nawiedzają Peru i Ekwador, a Indonezję, Australię, Indie i południową Afrykę susza. Średnia temperatura globu rośnie. Przykłady: 1982–83, 1997–98, 2015–16.'
+  },
+  months: ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'],
 
   readoutTitle: 'Anomalia Niño 3.4',
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
-  changeLanguage: 'Zmień język',
+  changeLanguage: 'Język',
+  themeLight: 'Tryb jasny',
+  themeDark: 'Tryb ciemny',
+  toggleTheme: 'Zmień motyw kolorystyczny',
 
-  ensoLabel: 'Stan ENSO:',
+  ensoLabel: 'Faza ENSO',
   strengthAria: 'Siła ENSO',
-  probText: 'Szansa na taki stan w 2026:',
+  probText: 'Szansa szczytu 2026:',
   probTitle: 'Bardzo przybliżony szacunek dla szczytu sezonu (paź–gru 2026) na podstawie prognozy NOAA CPC z 8.10.2026',
-  probSource: '[źródło: NOAA CPC]',
-  playStart: '▶ Cykl ENSO (4 lata)',
-  playStop: '❚❚ Zatrzymaj',
+  probSource: 'NOAA CPC',
+  playStart: 'Cykl 4-letni',
+  playStop: 'Zatrzymaj',
   detailsAria: 'Szczegóły',
   thermoChip: 'Termoklina',
-  thermoChipTitle: 'Przekrój termokliny wzdłuż równika',
+  thermoAria: 'Przekrój termokliny wzdłuż równika',
   thermoTitle: 'Termoklina wzdłuż równika (Pacyfik, 0–300 m)',
   thermoNote: 'Biała linia to termoklina – granica ciepłej wody przy powierzchni i zimnej w głębi. Przy El Niño się wypłaszcza, przy La Niña mocniej nachyla.',
-  descChip: 'Opis',
+  descChip: 'O fazie',
   descChipTitle: 'Co się dzieje w tej fazie',
-  stateLabel: 'Stan',
   close: 'Zamknij',
-  hidePanel: 'Schowaj panel',
-  showPanel: 'Pokaż panel',
+  hidePanel: 'Zwiń pasek',
+  showPanel: 'Rozwiń pasek',
   ensoTab: 'Stan ENSO',
-  viewTab: 'Widok',
+  viewTab: 'Sterowanie',
   cycleMonth: (year, month, realYear, forecast) => `Rok ${year} · ${month} (≈ ${realYear}${forecast ? ', prognoza' : ''})`,
   hintNeutral: 'W fazie neutralnej nie ma pinezek. Wybierz La Niña, El Niño lub Super El Niño, aby zobaczyć historyczne skutki.',
-  hintPins: (count, phase) => `${count} lokalizacji z udokumentowanymi skutkami fazy ${phase}. Kliknij pinezkę, aby zobaczyć dane i źródło.`,
+  hintPins: (count, phase) => `${count} lokalizacji z udokumentowanymi skutkami fazy ${phase}. Kliknij pinezkę na globie, aby zobaczyć dane i źródło.`,
 
-  chooseView: 'Wybierz widok:',
+  chooseView: 'Widok',
   viewTemp: 'Temperatura',
   viewAnom: 'Anomalia',
-  viewWalker: 'Cyrkulacja Walkera',
-  viewImpacts: 'Wpływ na kontynenty',
+  viewWalker: 'Komórka Walkera',
+  viewImpacts: 'Skutki',
   scaleSst: 'Temperatura powierzchni oceanu (°C)',
   scaleAnom: 'Anomalia temperatury względem normy (°C)',
   scaleSstShort: 'Temperatura oceanu',
   scaleAnomShort: 'Anomalia temperatury',
-  impactsTab: 'Skutki',
-  layersAria: 'Warstwy',
+  impactsTab: 'Legenda',
+  layersAria: 'Warstwy i narzędzia',
   layerAtm: 'Atmosfera',
   layerAtmTitle: 'Wiatr, fale i chmury konwekcyjne',
   layerEvents: 'Zdarzenia',
   layerEventsTitle: 'Pinezki z historycznymi skutkami fazy',
-  layerRotate: 'Obrót',
+  layerRotate: 'Auto-obrót',
   layerRotateTitle: 'Automatyczny obrót globu',
-  layerGlossary: 'Istotne terminy',
+  layerGlossary: 'Słownik',
   layerGlossaryTitle: 'Istotne terminy – proste wyjaśnienia',
   pinLegendTitle: phase => `Skutki fazy ${phase}:`,
-  kindDry: 'susza / upał',
-  kindFire: 'pożary',
-  kindWet: 'powodzie / ulewy',
-  kindOther: 'rybołówstwo / choroby',
-  rainDry: 'suszej niż zwykle',
-  rainWet: 'wilgotniej niż zwykle',
-  rainTitleNina: 'La Niña – w przybliżeniu odwrotny układ opadów (uproszczenie):',
-  rainTitleNeutral: 'Typowe zmiany opadów podczas El Niño (w fazie neutralnej nie występują):',
-  rainTitleNino: 'Typowe zmiany opadów podczas El Niño:',
+  kindDry: 'Susza / upał',
+  kindFire: 'Pożary',
+  kindWet: 'Powodzie / ulewy',
+  kindOther: 'Rybołówstwo / choroby',
+  rainDry: 'Suszej niż zwykle',
+  rainWet: 'Wilgotniej niż zwykle',
+  rainTitleNina: 'Anomalie opadów podczas La Niña:',
+  rainTitleNeutral: 'Anomalie opadów El Niño (wygaszone w fazie neutralnej):',
+  rainTitleNino: 'Anomalie opadów podczas El Niño:',
   sources: 'Źródła:',
 
   lblConvection: 'Strefa konwekcji i ulew',
@@ -90,7 +93,7 @@ export const PL: Dict = {
   walkerCaption: 'Przekrój wzdłuż równika (0°) · atmosfera 0–16 km · ocean 0–300 m (skala pionowa umowna)',
   walkerNow: 'teraz',
   walkerCycle: 'cykl',
-  walkerCurrent: phase => `Bieżący stan: ${phase} · ▶ uruchamia omówienie krok po kroku`,
+  walkerCurrent: phase => `Bieżący stan: ${phase} · Użyj odtwarzania, aby uruchomić omówienie krok po kroku`,
   walkerCycleCaption: month => `Cykl ENSO · ${month || 'start'}`,
   walkerPrev: 'Poprzedni krok',
   walkerNext: 'Następny krok',
@@ -127,20 +130,226 @@ export const PL: Dict = {
     coldTongue: 'zimny jęzor'
   },
 
-  glTitle: 'Istotne terminy',
-  glSearch: 'Szukaj, np. termoklina',
+  glTitle: 'Słownik istotnych terminów',
+  glSearch: 'Szukaj terminu, np. termoklina…',
   glSearchAria: 'Szukaj terminu',
   glEmpty: q => `Brak terminów pasujących do „${q}”.`,
-  wikiIn: { pl: '', en: ' (ang.)', es: ' (hiszp.)' },
-  glossary: GLOSSARY,
+  wikiIn: { pl: '', en: ' (EN)', es: ' (ES)' },
+  glossary: [
+    {
+      title: 'Podstawy',
+      terms: [
+        { term: 'ENSO (El Niño – Oscylacja Południowa)', text: 'Naturalne wahanie klimatu na równikowym Pacyfiku, powtarzające się co 2–7 lat. Ocean i atmosfera „huśtają się” razem między trzema stanami: El Niño, La Niña i stanem neutralnym.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'El Niño', text: 'Ciepła faza ENSO. Pasaty słabną, ciepła woda rozlewa się na wschód Pacyfiku, a ulewy przesuwają się z Indonezji nad środek oceanu. Nazwa („Dzieciątko”) pochodzi od peruwiańskich rybaków, bo zjawisko zwykle szczytuje około Bożego Narodzenia.', wiki: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'pl' },
+        { term: 'La Niña', text: 'Chłodna faza ENSO, w dużej mierze odwrotność El Niño. Pasaty są silniejsze niż zwykle, zimna woda sięga daleko na zachód, a ulewy nad Indonezją i Australią się nasilają.', wiki: 'https://pl.wikipedia.org/wiki/La_Ni%C3%B1a', wikiLang: 'pl' },
+        { term: 'Super El Niño', text: 'Potoczna nazwa bardzo silnego El Niño, gdy anomalia w regionie Niño 3.4 przekracza około +2 °C. Takie zdarzenia były w latach 1982–83, 1997–98 i 2015–16 i mają skutki na całym świecie.', wiki: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'pl' },
+        { term: 'Oscylacja Południowa', text: 'Atmosferyczna „połowa” ENSO: przeciwstawne zmiany ciśnienia powietrza nad Tahiti i nad Darwin w Australii. Gdy różnica ciśnień maleje, słabną pasaty – i zaczyna się El Niño.', wiki: 'https://pl.wikipedia.org/wiki/Oscylacja_Po%C5%82udniowa', wikiLang: 'pl' },
+        { term: 'Niño 3.4', text: 'Prostokąt na równikowym Pacyfiku (5°S–5°N, 170°W–120°W). Średnia anomalia temperatury wody w nim to podstawowa miara siły ENSO: powyżej +0,5 °C – El Niño, poniżej −0,5 °C – La Niña.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'Anomalia temperatury', text: 'Różnica między obecną temperaturą a średnią z wielu lat dla tego miejsca i pory roku. Anomalia +2 °C znaczy „o 2 °C cieplej niż zwykle”, a nie „2 °C”.', wiki: 'https://en.wikipedia.org/wiki/Temperature_anomaly', wikiLang: 'en' }
+      ]
+    },
+    {
+      title: 'Ocean',
+      terms: [
+        { term: 'Temperatura powierzchni oceanu (SST)', text: 'Temperatura najwyższej warstwy wody, mierzona z satelitów i boi. To ona najmocniej wpływa na parowanie i powstawanie chmur nad oceanem.', wiki: 'https://pl.wikipedia.org/wiki/Temperatura_powierzchni_oceanu', wikiLang: 'pl' },
+        { term: 'Termoklina', text: 'Cienka warstwa w oceanie, w której temperatura szybko spada z głębokością – granica między ciepłą wodą przy powierzchni a zimną w głębi. Na Pacyfiku jest nachylona: głęboko na zachodzie, płytko na wschodzie. Podczas El Niño się wypłaszcza.', wiki: 'https://pl.wikipedia.org/wiki/Termoklina', wikiLang: 'pl' },
+        { term: 'Ciepły basen (warm pool)', text: 'Ogromny obszar najcieplejszej wody na Ziemi (ponad 28–29 °C) w zachodnim Pacyfiku i przy Indonezji. Pasaty spychają tam ciepłą wodę, a nad nią powstają potężne chmury burzowe.', wiki: 'https://en.wikipedia.org/wiki/Indo-Pacific_Warm_Pool', wikiLang: 'en' },
+        { term: 'Zimny jęzor', text: 'Pas chłodniejszej wody wzdłuż równika na wschodnim Pacyfiku, ciągnący się od wybrzeży Ameryki Płd. Zasilają go zimny Prąd Peruwiański i upwelling. Przy El Niño słabnie, przy La Niña sięga dalej na zachód.', wiki: 'https://pl.wikipedia.org/wiki/Pr%C4%85d_Peruwia%C5%84ski', wikiLang: 'pl' },
+        { term: 'Upwelling', text: 'Wypływanie zimnej, bogatej w składniki odżywcze wody z głębin ku powierzchni, gdy wiatr odpycha wodę od brzegu. Przy Peru karmi jedne z największych łowisk świata – dlatego El Niño, który go osłabia, uderza w rybołówstwo.', wiki: 'https://pl.wikipedia.org/wiki/Upwelling', wikiLang: 'pl' },
+        { term: 'Fala Kelvina', text: 'Bardzo długa, niewidoczna z powierzchni fala w oceanie, która płynie wzdłuż równika na wschód przez około 2–3 miesiące. Niesie ciepłą wodę i obniża termoklinę – to ona „przenosi” El Niño do Ameryki Płd.', wiki: 'https://pl.wikipedia.org/wiki/Fala_Kelvina', wikiLang: 'pl' }
+      ]
+    },
+    {
+      title: 'Atmosfera',
+      terms: [
+        { term: 'Pasaty', text: 'Stałe wiatry w tropikach, wiejące ze wschodu na zachód i lekko ku równikowi. Nad Pacyfikiem spychają ciepłą wodę w stronę Indonezji. Ich osłabienie to sygnał rozwoju El Niño.', wiki: 'https://pl.wikipedia.org/wiki/Pasat', wikiLang: 'pl' },
+        { term: 'Cyrkulacja Walkera', text: 'Wielka pętla powietrza nad równikowym Pacyfikiem: przy powierzchni pasaty wieją na zachód, nad ciepłym basenem powietrze się wznosi, wysoko wraca na wschód i opada nad chłodnym wschodnim Pacyfikiem. El Niño ją osłabia i przesuwa.', wiki: 'https://en.wikipedia.org/wiki/Walker_circulation', wikiLang: 'en' },
+        { term: 'Konwekcja', text: 'Unoszenie się ciepłego, wilgotnego powietrza. Gdy się wznosi, ochładza się, a para wodna skrapla – rosną chmury burzowe i padają ulewy. Strefa konwekcji podąża za najcieplejszą wodą.', wiki: 'https://pl.wikipedia.org/wiki/Konwekcja', wikiLang: 'pl' },
+        { term: 'Cumulonimbus', text: 'Wysoka chmura burzowa sięgająca nawet tropopauzy. Na górze rozpłaszcza się w charakterystyczne „kowadło”. Przynosi ulewy, pioruny i porywisty wiatr.', wiki: 'https://pl.wikipedia.org/wiki/Cumulonimbus', wikiLang: 'pl' },
+        { term: 'Międzyzwrotnikowa strefa zbieżności (ITCZ)', text: 'Pas wokół Ziemi blisko równika, gdzie zbiegają się pasaty z obu półkul. Powietrze się tu wznosi, więc jest pochmurno i deszczowo. Na Pacyfiku leży zwykle kilka stopni na północ od równika.', wiki: 'https://pl.wikipedia.org/wiki/Mi%C4%99dzyzwrotnikowa_strefa_zbie%C5%BCno%C5%9Bci', wikiLang: 'pl' },
+        { term: 'Tropopauza', text: 'Górna granica troposfery – najniższej warstwy atmosfery, w której dzieje się pogoda. W tropikach leży na wysokości około 16–17 km. Chmury burzowe zatrzymują się pod nią i rozpływają na boki.', wiki: 'https://pl.wikipedia.org/wiki/Tropopauza', wikiLang: 'pl' },
+        { term: 'Porywy wiatru zachodniego (WWB)', text: 'Kilkudniowe epizody silnego wiatru z zachodu nad zachodnim Pacyfikiem, wiejącego pod prąd pasatów. Wzbudzają fale Kelvina i często „zapalają” El Niño.', wiki: 'https://en.wikipedia.org/wiki/Westerly_wind_burst', wikiLang: 'en' }
+      ]
+    },
+    {
+      title: 'Skutki',
+      terms: [
+        { term: 'Telekoneksje', text: 'Powiązania pogody w odległych od siebie miejscach. Zmiana nad Pacyfikiem przesuwa prądy strumieniowe i wpływa na opady i temperaturę nawet tysiące kilometrów dalej – w Afryce, Ameryce czy Azji.', wiki: 'https://en.wikipedia.org/wiki/Teleconnection', wikiLang: 'en' },
+        { term: 'Monsun', text: 'Sezonowa zmiana kierunku wiatru, która przynosi porę deszczową, np. w Indiach latem. El Niño często osłabia monsun indyjski, co grozi suszą.', wiki: 'https://pl.wikipedia.org/wiki/Monsun', wikiLang: 'pl' },
+        { term: 'Dipol Oceanu Indyjskiego (IOD)', text: '„Kuzyn” ENSO na Oceanie Indyjskim: różnica temperatury wody między jego zachodnią a wschodnią częścią. Dodatni dipol (często razem z El Niño) to susze w Indonezji i Australii oraz ulewy w Afryce Wschodniej. Na globie oba obszary pomiaru są zaznaczone fioletową przerywaną linią (50–70°E i 90–110°E), a etykieta pokazuje różnicę ich anomalii – indeks DMI.', wiki: 'https://pl.wikipedia.org/wiki/Dipol_Oceanu_Indyjskiego', wikiLang: 'pl' }
+      ]
+    }
+  ],
 
-  regions: RAIN_REGIONS.map(r => ({ name: r.name, season: r.season })),
-  impactSourceTitles: IMPACT_SOURCES.map(s => s.title),
+  regions: [
+    { name: 'Indonezja i Filipiny', season: 'cze–lut' },
+    { name: 'Australia', season: 'lip–sty' },
+    { name: 'Afryka Południowa', season: 'lis–mar' },
+    { name: 'Indie (monsun)', season: 'cze–wrz' },
+    { name: 'Sahel', season: 'lip–wrz' },
+    { name: 'Etiopia', season: 'cze–wrz' },
+    { name: 'Ameryka Środkowa', season: 'cze–lut' },
+    { name: 'Płn. Ameryka Płd. i Amazonia', season: 'gru–cze' },
+    { name: 'Płn.-wsch. Brazylia', season: 'lut–maj' },
+    { name: 'Wybrzeże Peru i Ekwadoru', season: 'gru–kwi' },
+    { name: 'Płd.-wsch. Ameryka Płd.', season: 'wrz–kwi' },
+    { name: 'Środkowe Chile', season: 'cze–sie' },
+    { name: 'Afryka Wschodnia', season: 'paź–gru' },
+    { name: 'Południe USA i płn. Meksyk', season: 'lis–kwi' },
+    { name: 'Azja Środkowa i Bliski Wschód', season: 'sty–kwi' },
+    { name: 'Płd.-wsch. Chiny i płd. Japonia', season: 'lis–lut' },
+    { name: 'Środkowy Pacyfik (ulewy nad oceanem)', season: 'cały rok' }
+  ],
+  impactSourceTitles: [
+    'WMO – El Niño zmienia układy opadów w różnych częściach świata (2026)',
+    'Wspólne Centrum Badawcze KE (JRC) – raport ENSO, mapa skutków (2026)',
+    'JMA Tokyo Climate Center – Wpływ El Niño/La Niña na globalny klimat'
+  ],
 
-  events: EVENTS.map(l => ({
-    name: l.name,
-    region: l.region,
-    ev: l.ev.map(e => ({ area: e.area, type: e.type, aff: e.aff, note: e.note }))
-  })),
-  srcTitles: {}
+  events: [
+    { name: 'Peru', region: 'Ameryka Południowa', ev: [
+      { type: 'Załamanie połowów sardeli peruwiańskiej (anchoveta), kryzys rybołówstwa i przemysłu mączki rybnej',
+        aff: 'Połów spadł z 10,3 mln t (1971) do 4,4 mln t (1972); w 1970 r. produkty rybne dawały ok. 1/3 wpływów z eksportu Peru. Ponad 200 mln USD długu sektora wobec banków państwowych, nacjonalizacja branży w 1973 r.',
+        note: 'Do załamania przyczyniło się także wcześniejsze przełowienie.' },
+      { type: 'Ulewy i powodzie na wybrzeżu, osuwiska, straty w rybołówstwie i rolnictwie',
+        aff: 'Straty ok. 3,5 mld USD (ok. 4,5% PKB); wzrost PKB w 1998 r. niższy nawet o 2,8 pkt proc. W całej Wspólnocie Andyjskiej ok. 135 tys. domów uszkodzonych lub zniszczonych.' } ] },
+    { name: 'Ekwador', region: 'Ameryka Południowa', ev: [
+      { area: 'Ekwador i północne Peru', type: 'Ulewy i powodzie na wybrzeżu, niszczenie infrastruktury',
+        aff: 'Ok. 600 ofiar śmiertelnych, straty ok. 650 mln USD (Ekwador i płn. Peru łącznie).' },
+      { type: 'Powodzie na nizinach przybrzeżnych',
+        aff: 'Straty ok. 2,9 mld USD, czyli 14,6% PKB Ekwadoru – największe względne straty w regionie.' } ] },
+    { name: 'Płd. Brazylia, płn. Argentyna, Paragwaj', region: 'Ameryka Południowa', ev: [
+      { type: 'Długotrwałe ulewy i powodzie w dorzeczu Parany',
+        aff: '170 ofiar śmiertelnych, ok. 600 tys. ewakuowanych, straty ok. 3 mld USD.' } ] },
+    { name: 'Brazylia – stan Amazonas', region: 'Ameryka Południowa', ev: [
+      { type: 'Rekordowa susza, gwałtowny spadek poziomu Rio Negro',
+        aff: '60 z 62 gmin stanu dotkniętych suszą (w tym Manaus); ok. 500 tys. osób z utrudnionym dostępem do wody i żywności; ponad 100 martwych delfinów rzecznych w jeziorze Tefé.',
+        note: 'Suszę wywołało El Niño w połączeniu z ociepleniem tropikalnego północnego Atlantyku.' } ] },
+    { name: 'Argentyna', region: 'Ameryka Południowa', ev: [
+      { type: 'Historyczna susza w Pampie, najgorsze zbiory soi od 23 lat',
+        aff: 'Straty dla gospodarki ok. 20 mld USD (ponad 3% PKB); zbiory soi, kukurydzy i pszenicy o ok. 45% niższe r/r; wpływy z eksportu soi niższe o ok. 8 mld USD.',
+        note: 'Główną przyczyną była trzecia z rzędu La Niña; zmiana klimatu pogłębiła suszę (World Weather Attribution).' } ] },
+    { name: 'Kolumbia', region: 'Ameryka Południowa', ev: [
+      { type: 'Rekordowa pora deszczowa: powodzie i osuwiska',
+        aff: '3,66 mln osób dotkniętych, 469 ofiar śmiertelnych, 13 351 domów zniszczonych i ok. 492 tys. uszkodzonych; 29 z 32 departamentów; ponad 1,2 mln ha zalanych upraw (IV 2010 – VI 2011).' } ] },
+    { name: 'Kalifornia, USA', region: 'Ameryka Północna', ev: [
+      { type: 'Zimowe sztormy, ulewy, osuwiska i powodzie',
+        aff: '17 ofiar śmiertelnych, straty ok. 883 mln USD; 40 hrabstw ogłoszonych federalnym obszarem klęski.' } ] },
+    { name: 'Teksas, USA', region: 'Ameryka Północna', ev: [
+      { type: 'Rekordowa susza i upały – najsuchszy rok w historii pomiarów w Teksasie',
+        aff: 'Straty w rolnictwie 7,62 mld USD (hodowla 3,23 mld, bawełna 2,2 mld); porzucono 55% zasianych pól bawełny. Najdroższa susza w historii stanu.',
+        note: 'Susza przypadła na La Niñę 2010–12.' } ] },
+    { name: 'Suchy Korytarz Ameryki Środkowej', region: 'Gwatemala, Salwador, Honduras', ev: [
+      { type: 'Wieloletnia susza, utrata zbiorów podstawowych zbóż',
+        aff: 'Ok. 3,5 mln osób potrzebujących pomocy humanitarnej; 1,6 mln w umiarkowanej lub ciężkiej niepewności żywnościowej. WFP wspierało ok. 1 mln osób rocznie.' } ] },
+    { name: 'Panama', region: 'Ameryka Środkowa', ev: [
+      { type: 'Susza, rekordowo niski poziom jeziora Gatún',
+        aff: 'Tranzyt przez Kanał Panamski ograniczony z 38 do 24 statków dziennie (ok. 30% mniej); październik 2023 r. z opadami o 43% poniżej normy. Jezioro Gatún zaopatruje w wodę pitną miliony mieszkańców (m.in. miasto Panama i Colón).' } ] },
+    { name: 'Afryka Południowa (region SADC)', region: 'Zimbabwe, Zambia, Malawi, Mozambik i in.', ev: [
+      { type: 'Najcięższa od dekad susza i nieurodzaj',
+        aff: 'Ok. 40 mln osób w niepewności żywnościowej (ok. 14% ludności SADC); Zimbabwe i Malawi ogłosiły stan klęski; regionalny apel o 2,4 mld USD.' },
+      { type: '„Susza stulecia” – opady nawet o 90% poniżej normy',
+        aff: 'Ok. 18 mln osób zagrożonych głodem w regionie; zapotrzebowanie na import zbóż 7,73 mln t.',
+        note: 'Susza przypadła na El Niño 1991–92.' },
+      { type: 'Susza i nieurodzaj w sezonie 2023/24',
+        aff: 'Ok. 68 mln osób (17% ludności regionu) potrzebujących pomocy wg SADC.' } ] },
+    { name: 'Mozambik', region: 'Afryka Południowo-Wschodnia', ev: [
+      { type: 'Powodzie na Limpopo i cyklon Eline',
+        aff: 'Ok. 700–800 ofiar śmiertelnych; ok. 463 tys. osób przesiedlonych lub bez dachu nad głową; straty ok. 500 mln USD.',
+        note: 'Rekordowe opady przypadły na La Niñę 1999–2000.' } ] },
+    { name: 'Etiopia', region: 'Róg Afryki', ev: [
+      { type: 'Ekstremalna susza, nieudane pory deszczowe',
+        aff: '10,2 mln osób potrzebujących pilnej pomocy humanitarnej (rząd Etiopii i agencje ONZ, początek 2016 r.); potrzeby humanitarne potroiły się od początku 2015 r.' } ] },
+    { name: 'Kenia i płd. Somalia', region: 'Afryka Wschodnia', ev: [
+      { type: 'Najgorsze powodzie od 1961 r. i epidemia gorączki doliny Rift',
+        aff: 'Opady 60–100 razy powyżej normy sezonowej; szacunkowo ok. 89 tys. zakażeń gorączką doliny Rift; 478 niewyjaśnionych zgonów zgłoszonych w grudniu 1997; utrata ok. 70% owiec i kóz w badanych stadach.',
+        note: 'Ulewy od października 1997 do stycznia 1998 przypadły na Super El Niño.' } ] },
+    { name: 'Somalia', region: 'Róg Afryki', ev: [
+      { type: 'Powodzie pory deszczowej Deyr („raz na stulecie”)',
+        aff: 'Ok. 1,2 mln osób dotkniętych (9.11.2023), prognoza do 1,6 mln; do 1,5 mln ha pól zagrożonych.',
+        note: 'Opady wzmocniło El Niño razem z dodatnim dipolem Oceanu Indyjskiego.' },
+      { type: 'Najsuchszy rok od 60 lat, klęska głodu',
+        aff: 'Ok. 258 tys. zgonów (X 2010 – IV 2012), w tym ok. 133 tys. dzieci poniżej 5 lat – 4,6% ludności płd. i środk. Somalii.',
+        note: 'Nieudane pory deszczowe zbiegły się z silną La Niñą 2010–11; tragedię pogłębiły konflikt i skok cen żywności.' } ] },
+    { name: 'Róg Afryki', region: 'Etiopia, Kenia, Somalia', ev: [
+      { type: 'Najdłuższa susza w historii pomiarów – kolejne nieudane pory deszczowe',
+        aff: 'Ponad 30 mln osób w niepewności żywnościowej (2020–22); w Somalii 7,8 mln dotkniętych (46% ludności, X 2022); w Kenii 6,4 mln potrzebujących pomocy w 2023 r.',
+        note: 'Trzyletnia La Niña 2020–22 była w regionie najsilniejsza od 70 lat.' } ] },
+    { name: 'Indonezja', region: 'Azja Południowo-Wschodnia', ev: [
+      { type: 'Najgorsza susza od ok. 50 lat, pożary lasów i torfowisk, smog transgraniczny',
+        aff: 'Smog dotknął ok. 75 mln ludzi (w tym 48 mln Indonezyjczyków); spłonęło ok. 25 mln akrów (ok. 10 mln ha); straty ok. 9 mld USD.' },
+      { type: 'Susza i pożary torfowisk, smog nad regionem',
+        aff: '2,6 mln ha spalonych (VI–X 2015); koszt ok. 16,1 mld USD, czyli 1,9% PKB (Bank Światowy).',
+        note: 'Sezon pożarów przypadł na Super El Niño 2015–16, które przedłużyło porę suchą.' } ] },
+    { name: 'Papua-Nowa Gwinea', region: 'Oceania', ev: [
+      { type: 'Susza i przymrozki w górach, pożary',
+        aff: 'W grudniu 1997 r. ok. 260 tys. osób jadło „pokarm głodowy”, a kolejne 980 tys. – skąpe porcje żywności słabej jakości; Australia zrzucała żywność dla ok. 100 tys. osób w miejscach dostępnych tylko z powietrza.' } ] },
+    { name: 'Chiny – dorzecze Jangcy', region: 'Azja Wschodnia', ev: [
+      { type: 'Katastrofalne powodzie na Jangcy i w płn.-wsch. Chinach',
+        aff: 'Ok. 180 mln poszkodowanych, 3 704–4 150 ofiar śmiertelnych, ok. 15 mln bez dachu nad głową; straty ok. 24 mld USD.',
+        note: 'Lato 1998 r. to faza wygasania Super El Niño; badacze opisują ten związek jako pośredni.' } ] },
+    { name: 'Wietnam – delta Mekongu', region: 'Azja Południowo-Wschodnia', ev: [
+      { type: 'Susza i wdzieranie się słonej wody do delty',
+        aff: 'Ponad 2 mln osób dotkniętych, ok. 2 mln z niedoborem wody, 1,1 mln w niepewności żywnościowej; 14 prowincji ogłosiło stan wyjątkowy.' } ] },
+    { name: 'Indie', region: 'Azja Południowa', ev: [
+      { type: 'Słaby monsun i susza',
+        aff: 'Opady 77% normy (−23%); susza ogłoszona w 352 dystryktach w 15 stanach; produkcja zbóż spadła z 234 do 218 mln t (ok. −6,9%).',
+        note: 'NOAA klasyfikuje 2009 r. jako rok umiarkowanego El Niño.' } ] },
+    { name: 'Pakistan', region: 'Azja Południowa', ev: [
+      { type: 'Powodzie monsunowe – ok. 1/5 kraju pod wodą',
+        aff: 'Ok. 20 mln osób dotkniętych, 1 985 ofiar śmiertelnych; straty szacowane nawet na 43 mld USD.',
+        note: 'Mapa anomalii opadów NASA wiąże wyjątkowo intensywny monsun z La Niñą.' },
+      { type: 'Rekordowe powodzie monsunowe',
+        aff: 'Ok. 33 mln osób dotkniętych, 1 739 ofiar śmiertelnych, ponad 2,1 mln bez dachu nad głową; szkody ok. 14,9 mld USD i straty ok. 15,2 mld USD (rząd Pakistanu).',
+        note: 'Powódź przypadła na potrójną La Niñę 2020–23; główne przyczyny to rekordowy monsun, topnienie lodowców i zmiana klimatu.' } ] },
+    { name: 'Bangladesz', region: 'Azja Południowa', ev: [
+      { type: 'Katastrofalne powodzie monsunowe – ponad połowa kraju pod wodą',
+        aff: '25–28 mln osób bez dachu nad głową (szacunki oficjalne); dotknięte ok. 2/3 ze 110 mln mieszkańców w 50 z 64 dystryktów; oficjalnie ok. 500 ofiar (wrzesień 1988), wiele z powodu ukąszeń węży i skażonej wody.',
+        note: 'Powódź zbiegła się z silną La Niñą 1988–89.' } ] },
+    { name: 'Tajlandia', region: 'Azja Południowo-Wschodnia', ev: [
+      { type: 'Wielka powódź (Bangkok, Ajutthaja)',
+        aff: '13,6 mln osób dotkniętych, 815 ofiar śmiertelnych; 65 prowincji obszarem klęski; straty ok. 46,5 mld USD (Bank Światowy).',
+        note: 'Długotrwałe opady wzmocniła wieloletnia La Niña.' } ] },
+    { name: 'Australia – Wiktoria i Australia Płd.', region: 'Australia', ev: [
+      { type: 'Susza, burze pyłowe i pożary buszu (Środa Popielcowa, 16.02.1983)',
+        aff: '75 ofiar pożarów; ponad 3 700 budynków zniszczonych lub uszkodzonych, ok. 2 545 osób i rodzin bez dachu nad głową; padło ponad 340 tys. owiec; koszt ponad 400 mln AUD (ceny z 1983 r.).',
+        note: 'Pożary poprzedziła susza wiązana z El Niño – opady zimą i wiosną 1982 r. nawet o połowę niższe od dotychczasowego minimum.' } ] },
+    { name: 'Australia – Queensland', region: 'Australia', ev: [
+      { type: 'Katastrofalne powodzie (Brisbane, Toowoomba)',
+        aff: 'Ponad 200 tys. osób bezpośrednio dotkniętych; 78% stanu ogłoszone obszarem klęski (ponad 2,5 mln mieszkańców); ok. 29 tys. domów i firm zalanych; 33+ ofiar; straty ubezpieczone 2,38 mld AUD, łączny koszt 14,1 mld AUD.',
+        note: 'Powodzie poprzedził najmokrzejszy grudzień w historii stanu w czasie silnej La Niñy.' } ] }
+  ],
+  srcTitles: {
+    anch: 'Wikipedia – 1972 Peruvian anchoveta crisis',
+    nps: 'Naval Postgraduate School – Economic effects of El Niño (1982–83)',
+    eird: 'UN ISDR / CAF – El Niño 1997–98 w krajach andyjskich',
+    ash: 'Wikipedia – Ash Wednesday bushfires',
+    idn97: 'EBSCO Research Starters – pożary w Indonezji 1997–98',
+    idn15: 'BenarNews (dane Banku Światowego) – pożary 2015',
+    png: 'Devpolicy Blog (ANU) – Food risks in PNG: lessons from 1997',
+    rvf: 'CDC MMWR – gorączka doliny Rift, Afryka Wsch. 1997–98',
+    chn: 'Wikipedia – 1998 China floods',
+    cal: 'Government Technology (dane FEMA) – El Niño 1997–98',
+    saf15: 'Public Finance Focus – apel SADC, lipiec 2016',
+    eth: 'ONZ w Etiopii – Susza: 10 mln osób w potrzebie (2016)',
+    cam: 'WFP USA / FAO – Suchy Korytarz Ameryki Środkowej, 30.06.2016',
+    vnm: 'ReliefWeb (UN OCHA / ECHO) – Wietnam, 29.04.2016',
+    saf92: 'FAO GIEWS – Update on the 1991/92 drought',
+    saf24: 'Al Jazeera (dane SADC) – 17.08.2024',
+    som23: 'UN OCHA / ReliefWeb – Somalia, 9.11.2023',
+    amz: 'Mongabay – susza w Amazonii, październik 2023',
+    pan: 'Woodwell Climate Research Center – susza a Kanał Panamski',
+    ind09: 'ThePrint – słabe monsuny 2009 i 2014',
+    qld: 'Wikipedia – 2010–2011 Queensland floods',
+    pak10: 'Wikipedia – 2010 Pakistan floods',
+    pak22: 'Wikipedia – 2022 Pakistan floods',
+    som11: 'FSNAU (FAO) / FEWS NET – badanie umieralności, 2.05.2013',
+    horn: 'UNDRR – Horn of Africa floods and drought 2020–2023',
+    arg: 'Dialogue Earth – La Niña a susza w Argentynie',
+    tha: 'Wikipedia – 2011 Thailand floods',
+    col: 'RPP / Dirección de Gestión del Riesgo – czerwiec 2011',
+    tex: 'Drovers (Texas AgriLife Extension) – marzec 2012',
+    bgd: 'ReliefWeb – raporty sytuacyjne UNDRO, powodzie 1988',
+    moz: 'Wikipedia – 2000 Mozambique flood'
+  }
 };

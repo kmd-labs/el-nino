@@ -9,6 +9,7 @@ import {
   QueryList,
   signal,
   computed,
+  effect,
   inject,
   HostListener
 } from '@angular/core';
@@ -19,13 +20,18 @@ import * as d3Geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { EVENTS, KIND } from '../../core/constants/enso-data';
+import { ThemeService } from '../../core/services/theme.service';
+import { EVENTS_META } from '../../core/constants/enso-data';
 import { RAIN_REGIONS } from '../../core/constants/impacts-data';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { EnsoPhase, ImpactKind, ImpactLocation } from '../../core/models/enso.model';
+import { EnsoPhase, ImpactLocationMeta } from '../../core/models/enso.model';
+import { isAtMost } from '../../core/utils/breakpoints';
+import { PopupService } from '../ui/popup/popup.service';
+import { TooltipService } from '../ui/tooltip/tooltip.service';
+import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
 
 interface PinItem {
-  loc: ImpactLocation;
+  loc: ImpactLocationMeta;
   sp: THREE.Sprite;
   p: THREE.Vector3;
   a: number;
@@ -58,7 +64,7 @@ interface CloudPuff {
   imports: [CommonModule],
   templateUrl: './globe.component.html',
   styleUrl: './globe.component.scss',
-  host: { '[class.is-hidden]': "state.view() === 'walker'" }
+  host: { '[class.is-hidden]': 'state.crossSectionView()' }
 })
 export class GlobeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasRef') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -68,11 +74,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lblKelvinRef') lblKelvinRef!: ElementRef<HTMLDivElement>;
   @ViewChild('lblIodRef') lblIodRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('rainLbl') rainLblRefs!: QueryList<ElementRef<HTMLDivElement>>;
-  @ViewChild('tooltipRef') tooltipRef!: ElementRef<HTMLDivElement>;
 
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
+  private theme = inject(ThemeService);
+  private popup = inject(PopupService);
+  private tooltip = inject(TooltipService);
 
   /** DMI formatted like the Niño 3.4 readout, e.g. "+0.6 °C". */
   readonly formattedDmi = computed(() => {
@@ -85,6 +93,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private controls!: OrbitControls;
+  private glowMat?: THREE.ShaderMaterial;
+  private globeMat?: THREE.MeshLambertMaterial;
+  private landMat?: THREE.MeshLambertMaterial;
+  private hemiLight?: THREE.HemisphereLight;
+  private stars?: THREE.Points;
+  private loadedLandFeature: any = null;
   private animId: number | null = null;
   private clock = new THREE.Clock();
 
@@ -102,6 +116,75 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   // Land overlay
   private landCanvas!: HTMLCanvasElement;
   private landTex!: THREE.CanvasTexture;
+
+  constructor() {
+    effect(() => {
+      const mode = this.theme.theme();
+      this.math.refreshLutsFromTokens();
+      this.applyThemeVisuals(mode);
+      if (this.landCanvas) {
+        this.drawLand(this.loadedLandFeature);
+      }
+      if (this.impCanvas && this.impDrawn !== 0) {
+        this.drawImpacts(this.impDrawn);
+      }
+      this.lastMode = '';
+    });
+  }
+
+  private applyThemeVisuals(mode: 'light' | 'dark') {
+    const isLight = mode === 'light';
+    if (this.scene) {
+      this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', isLight ? '#f5f7fb' : '#040812'));
+    }
+    if (this.stars) {
+      this.stars.visible = true;
+      const mat = this.stars.material as THREE.PointsMaterial;
+      mat.color.set(this.theme.getTokenColor('globe-star', isLight ? '#475569' : '#94a3b8'));
+      mat.opacity = isLight ? 0.85 : 0.7;
+      mat.needsUpdate = true;
+    }
+    if (this.hemiLight) {
+      this.hemiLight.color.setHex(isLight ? 0xffffff : 0xdfe8ff);
+      this.hemiLight.groundColor.setHex(isLight ? 0xdbe4f0 : 0x223044);
+      this.hemiLight.intensity = isLight ? 1.25 : 0.95;
+    }
+    if (this.globeMat && this.sstTex) {
+      if (isLight) {
+        // Unshaded emissive texture in light mode so neutral water (#f5f7fb) matches the background exactly without grey Lambert darkening
+        this.globeMat.color.setHex(0x000000);
+        this.globeMat.emissive.setHex(0xffffff);
+        this.globeMat.emissiveMap = this.sstTex;
+      } else {
+        this.globeMat.color.setHex(0xffffff);
+        this.globeMat.emissive.setHex(0x000000);
+        this.globeMat.emissiveMap = null;
+      }
+      this.globeMat.needsUpdate = true;
+    }
+    if (this.landMat && this.landTex) {
+      if (isLight) {
+        this.landMat.color.setHex(0x000000);
+        this.landMat.emissive.setHex(0xffffff);
+        this.landMat.emissiveMap = this.landTex;
+      } else {
+        this.landMat.color.setHex(0xffffff);
+        this.landMat.emissive.setHex(0x000000);
+        this.landMat.emissiveMap = null;
+      }
+      this.landMat.needsUpdate = true;
+    }
+    if (this.glowMat) {
+      this.glowMat.uniforms['c'].value.set(this.theme.getTokenColor('globe-glow', isLight ? '#0f172a' : '#93c5fd'));
+      this.glowMat.uniforms['uOpacity'].value = isLight ? 0.22 : 0.5;
+      this.glowMat.uniforms['uPower'].value = isLight ? 2.2 : 1.9;
+      this.glowMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+      this.glowMat.needsUpdate = true;
+    }
+    this.cWind.set(this.theme.getTokenColor('globe-wind', isLight ? '#1e293b' : '#ffffff'));
+    this.cWaveWarm.set(this.theme.getTokenColor('globe-wave-warm', isLight ? '#0284c7' : '#bae6fd'));
+    this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', isLight ? '#2563eb' : '#60a5fa'));
+  }
 
   // Atmosphere
   private atmGroup!: THREE.Group;
@@ -211,6 +294,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private lastS = 999;
   private lastMode = '';
 
+  private rotateResumeTimer: ReturnType<typeof setTimeout> | null = null;
+  private uiResizeObs: ResizeObserver | null = null;
+
   ngAfterViewInit() {
     this.ngZone.runOutsideAngular(() => {
       this.initThree();
@@ -219,16 +305,45 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initAtmosphere();
       this.initPins();
       this.initImpacts();
+      this.applyThemeVisuals(this.theme.theme());
       this.handleResize();
+      this.initUiResizeObserver();
       this.animate();
     });
   }
 
   ngOnDestroy() {
+    this.uiResizeObs?.disconnect();
+    if (this.rotateResumeTimer !== null) {
+      clearTimeout(this.rotateResumeTimer);
+    }
     if (this.animId !== null) {
       cancelAnimationFrame(this.animId);
     }
     this.renderer?.dispose();
+  }
+
+  private initUiResizeObserver() {
+    this.uiResizeObs = new ResizeObserver(() => this.handleResize());
+    const headerEl = document.querySelector('.header');
+    const dockEl = document.querySelector('.dock-wrap');
+    if (headerEl) this.uiResizeObs.observe(headerEl);
+    if (dockEl) this.uiResizeObs.observe(dockEl);
+  }
+
+  private scheduleRotateResume(delayMs = 5000) {
+    if (this.rotateResumeTimer !== null) {
+      clearTimeout(this.rotateResumeTimer);
+    }
+    this.rotateResumeTimer = setTimeout(() => {
+      this.rotateResumeTimer = null;
+      if (!this.state.selectedLocation()) {
+        this.controls.autoRotate = true;
+        this.ngZone.run(() => {
+          this.state.toggleAutoRotate(true);
+        });
+      }
+    }, delayMs);
   }
 
   private initThree() {
@@ -237,7 +352,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x03060d);
+    this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', '#040812'));
 
     this.camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 400);
     this.scene.add(this.camera);
@@ -247,18 +362,26 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.minDistance = 7.5;
     this.controls.maxDistance = 40;
     this.controls.enablePan = false;
-    this.controls.autoRotate = this.state.autoRotate();
+    this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.35;
 
     this.controls.addEventListener('start', () => {
+      if (this.rotateResumeTimer !== null) {
+        clearTimeout(this.rotateResumeTimer);
+        this.rotateResumeTimer = null;
+      }
+      this.controls.autoRotate = false;
       this.ngZone.run(() => {
         this.state.toggleAutoRotate(false);
       });
-      this.controls.autoRotate = false;
     });
 
-    const hemiLight = new THREE.HemisphereLight(0xdfe8ff, 0x223044, 0.95);
-    this.scene.add(hemiLight);
+    this.controls.addEventListener('end', () => {
+      this.scheduleRotateResume(5000);
+    });
+
+    this.hemiLight = new THREE.HemisphereLight(0xdfe8ff, 0x223044, 0.95);
+    this.scene.add(this.hemiLight);
 
     const headLight = new THREE.DirectionalLight(0xffffff, 0.75);
     headLight.position.set(2, 3, 5);
@@ -269,14 +392,20 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.math.pos(-165, 12, isPortrait ? 26 : 16, this.camera.position);
     this.controls.update();
 
-    // Glow shader & starry background
+    // Glow / uniform drop shadow shader & starry background
     this.initGlowAndStars();
   }
 
   private initGlowAndStars() {
     const R = this.math.R;
-    const glowMat = new THREE.ShaderMaterial({
-      uniforms: { c: { value: new THREE.Color(0x3d8bff) } },
+    const isLight = this.theme.theme() === 'light';
+    // Outer halo sphere (radius R * 1.15). At the globe's limb (r = R), -dot(vN, vV) = sqrt(1 - (1/1.15)^2) = 0.4938.
+    this.glowMat = new THREE.ShaderMaterial({
+      uniforms: {
+        c: { value: new THREE.Color(this.theme.getTokenColor('globe-glow', isLight ? '#0f172a' : '#93c5fd')) },
+        uOpacity: { value: isLight ? 0.22 : 0.5 },
+        uPower: { value: isLight ? 2.2 : 1.9 }
+      },
       vertexShader: `
         varying vec3 vN;
         varying vec3 vV;
@@ -289,21 +418,24 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       `,
       fragmentShader: `
         uniform vec3 c;
+        uniform float uOpacity;
+        uniform float uPower;
         varying vec3 vN;
         varying vec3 vV;
         void main() {
           float d = clamp(-dot(vN, vV), 0.0, 1.0);
-          float i = pow(d, 1.6) * 1.4;
-          gl_FragColor = vec4(c * i, i);
+          float t = clamp(d / 0.4938, 0.0, 1.0);
+          float a = pow(t, uPower) * uOpacity;
+          gl_FragColor = vec4(c, a);
         }
       `,
       side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
+      blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
       transparent: true,
       depthWrite: false
     });
 
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(R * 1.13, 64, 32), glowMat);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(R * 1.15, 64, 32), this.glowMat);
     this.scene.add(glow);
 
     // Star points
@@ -316,17 +448,18 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    const stars = new THREE.Points(
+    this.stars = new THREE.Points(
       starGeo,
       new THREE.PointsMaterial({
-        color: 0x9fb4d8,
+        color: new THREE.Color(this.theme.getTokenColor('globe-star', isLight ? '#475569' : '#94a3b8')),
         size: 0.6,
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.7
+        opacity: isLight ? 0.85 : 0.7
       })
     );
-    this.scene.add(stars);
+    this.stars.visible = true;
+    this.scene.add(this.stars);
   }
 
   private initSstData() {
@@ -356,9 +489,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     this.recolorTexture(this.state.sCur(), this.state.displayMode());
 
+    this.globeMat = new THREE.MeshLambertMaterial({ map: this.sstTex });
     const globeMesh = new THREE.Mesh(
       new THREE.SphereGeometry(this.math.R, 128, 64),
-      new THREE.MeshLambertMaterial({ map: this.sstTex })
+      this.globeMat
     );
     this.scene.add(globeMesh);
   }
@@ -370,6 +504,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sk = Math.max(0, s - 1.4);
     const sn = Math.max(0, -s);
     const isSST = mode === 'sst';
+    const isLight = this.theme.theme() === 'light';
 
     for (let i = 0; i < this.NG; i++) {
       const a = sp * this.BP[i] + sk * this.BC[i] + sn * this.BN[i];
@@ -377,10 +512,17 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
       const o = i * 4;
       if (dim) {
-        // muted, darker ocean: keeps the anomaly readable but lets the rainfall regions stand out
-        this.texData[o] = 14 + lut[k] * 0.38;
-        this.texData[o + 1] = 24 + lut[k + 1] * 0.38;
-        this.texData[o + 2] = 40 + lut[k + 2] * 0.38;
+        if (isLight) {
+          // Muted, light ocean blending into the #f5f7fb background so rainfall regions stand out without grey water
+          this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
+          this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
+          this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
+        } else {
+          // Muted, darker ocean in dark mode
+          this.texData[o] = 14 + lut[k] * 0.38;
+          this.texData[o + 1] = 24 + lut[k + 1] * 0.38;
+          this.texData[o + 2] = 40 + lut[k + 2] * 0.38;
+        }
       } else {
         this.texData[o] = lut[k];
         this.texData[o + 1] = lut[k + 1];
@@ -401,9 +543,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.landTex.colorSpace = THREE.SRGBColorSpace;
     this.landTex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
+    this.landMat = new THREE.MeshLambertMaterial({ map: this.landTex, transparent: true, depthWrite: false });
     const landMesh = new THREE.Mesh(
       new THREE.SphereGeometry(this.math.R * 1.003, 128, 64),
-      new THREE.MeshLambertMaterial({ map: this.landTex, transparent: true, depthWrite: false })
+      this.landMat
     );
     this.scene.add(landMesh);
 
@@ -418,6 +561,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         }
         const topology = await resp.json();
         const landFeature = topojson.feature(topology, topology.objects.land as any);
+        this.loadedLandFeature = landFeature;
         this.drawLand(landFeature);
         this.ngZone.run(() => {
           this.state.mapLoaded.set(true);
@@ -447,23 +591,23 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     ctx.beginPath();
     path(d3Geo.geoGraticule().step([30, 30])());
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.10)';
+    ctx.strokeStyle = this.theme.getTokenColor('globe-graticule', 'rgba(255, 255, 255, 0.10)');
     ctx.lineWidth = Wc / 2048;
     ctx.stroke();
 
     if (land) {
       ctx.beginPath();
       path(land);
-      ctx.fillStyle = '#2a3830';
+      ctx.fillStyle = this.theme.getTokenColor('globe-land-fill', '#25332d');
       ctx.fill();
-      ctx.strokeStyle = 'rgba(205, 230, 215, 0.6)';
+      ctx.strokeStyle = this.theme.getTokenColor('globe-land-stroke', 'rgba(205, 230, 215, 0.55)');
       ctx.lineWidth = Wc / 1800;
       ctx.stroke();
     }
 
     // Equator dashed line
     ctx.setLineDash([Wc / 300, Wc / 400]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.strokeStyle = this.theme.getTokenColor('globe-equator', 'rgba(255, 255, 255, 0.22)');
     ctx.lineWidth = Wc / 2048;
     ctx.beginPath();
     ctx.moveTo(0, Y(0));
@@ -472,12 +616,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     // Niño 3.4 boundary box: 170°W–120°W, 5°S–5°N
     ctx.setLineDash([Wc / 400, Wc / 600]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.strokeStyle = this.theme.getTokenColor('globe-nino-box', 'rgba(255, 255, 255, 0.9)');
     ctx.lineWidth = Wc / 1100;
     ctx.strokeRect(X(-170), Y(5), X(-120) - X(-170), Y(-5) - Y(5));
 
     // Indian Ocean Dipole poles: west 50–70°E, 10°S–10°N; east 90–110°E, 10°S–0°
-    ctx.strokeStyle = 'rgba(200, 175, 255, 0.85)';
+    ctx.strokeStyle = this.theme.getTokenColor('kind-other', 'rgba(200, 175, 255, 0.85)');
     ctx.strokeRect(X(50), Y(10), X(70) - X(50), Y(-10) - Y(10));
     ctx.strokeRect(X(90), Y(0), X(110) - X(90), Y(-10) - Y(0));
     ctx.setLineDash([]);
@@ -515,12 +659,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.atmGroup = new THREE.Group();
     this.scene.add(this.atmGroup);
 
-    // Additive blending: a vertex colour fading to black fades the line out
+    // Normal blending with 4-component RGBA vertex colours so trails work on both dark and white oceans
     const lineMat = () => new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending
+      blending: THREE.NormalBlending
     });
 
     // Wind streaks: each particle keeps a short history of positions drawn as a fading trail
@@ -536,9 +680,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const wSeg = this.NW * (this.TRAIL - 1) * 2;
     this.wGeo = new THREE.BufferGeometry();
     this.wPos = new Float32Array(wSeg * 3);
-    this.wCol = new Float32Array(wSeg * 3);
+    this.wCol = new Float32Array(wSeg * 4);
     this.wGeo.setAttribute('position', new THREE.BufferAttribute(this.wPos, 3));
-    this.wGeo.setAttribute('color', new THREE.BufferAttribute(this.wCol, 3));
+    this.wGeo.setAttribute('color', new THREE.BufferAttribute(this.wCol, 4));
     this.atmGroup.add(new THREE.LineSegments(this.wGeo, lineMat()));
 
     // Wave crests: short marks perpendicular to the direction of travel
@@ -552,9 +696,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
     this.vGeo = new THREE.BufferGeometry();
     this.vPos = new Float32Array(this.NV * 4 * 3);
-    this.vCol = new Float32Array(this.NV * 4 * 3);
+    this.vCol = new Float32Array(this.NV * 4 * 4);
     this.vGeo.setAttribute('position', new THREE.BufferAttribute(this.vPos, 3));
-    this.vGeo.setAttribute('color', new THREE.BufferAttribute(this.vCol, 3));
+    this.vGeo.setAttribute('color', new THREE.BufferAttribute(this.vCol, 4));
     this.atmGroup.add(new THREE.LineSegments(this.vGeo, lineMat()));
 
     // Convective towers: stacked cumulonimbus with a dark base, billowing column and flat anvil
@@ -661,9 +805,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sy = H / 180;
     ctx.clearRect(0, 0, W, H);
     ctx.filter = 'blur(10px)';
+    ctx.globalAlpha = 0.62;
+    const dryCol = this.theme.getTokenColor('rain-dry', '#f5a623');
+    const wetCol = this.theme.getTokenColor('rain-wet', '#22b8cf');
     for (const r of RAIN_REGIONS) {
       const dry = (r.kind === 'dry') === (sign > 0);
-      ctx.fillStyle = dry ? 'rgba(245, 166, 35, 0.62)' : 'rgba(34, 184, 207, 0.62)';
+      ctx.fillStyle = dry ? dryCol : wetCol;
       // drawn three times so regions crossing the date line wrap around
       for (const off of [-360, 0, 360]) {
         ctx.beginPath();
@@ -671,6 +818,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         ctx.fill();
       }
     }
+    ctx.globalAlpha = 1;
     ctx.filter = 'none';
     this.impTex.needsUpdate = true;
     this.impDrawn = sign;
@@ -712,10 +860,17 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     rc.fill();
     const ringTex = new THREE.CanvasTexture(ringCanvas);
 
-    this.pins = EVENTS.map(loc => {
+    this.pins = EVENTS_META.map(loc => {
       const sp = new THREE.Sprite(
-        new THREE.SpriteMaterial({ map: ringTex, transparent: true, depthWrite: false, opacity: 0 })
+        new THREE.SpriteMaterial({
+          map: ringTex,
+          transparent: true,
+          depthTest: false,
+          depthWrite: false,
+          opacity: 0
+        })
       );
+      sp.renderOrder = 10;
       const p = this.math.pos(loc.lon, loc.lat, this.math.R * 1.012);
       sp.position.copy(p);
       sp.visible = false;
@@ -815,6 +970,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const R = this.math.R * 1.012;
     const T = this.TRAIL;
     const spd = 7.5; // degrees per second at unit wind
+    const isLight = this.theme.theme() === 'light';
+    const alphaScale = isLight ? 0.62 : 0.48;
     let w = 0;
     for (let i = 0; i < this.NW; i++) {
       this.wAge[i] += dt;
@@ -841,19 +998,22 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const edge = this.math.sstep(this.W_LAT + 2, this.W_LAT - 8, Math.abs(this.wLat[i]))
         * this.math.sstep(this.W_LON0, this.W_LON0 + 15, this.wLon[i])
         * this.math.sstep(this.W_LON1, this.W_LON1 - 10, this.wLon[i]);
-      const a = 0.3 * Math.min(1, life * 5, (1 - life) * 3) * edge * (0.3 + 0.7 * mag);
+      const a = alphaScale * Math.min(1, life * 5, (1 - life) * 3) * edge * (0.35 + 0.65 * mag);
 
       const o = i * T * 3;
       for (let k = 0; k < T - 1; k++) {
-        const fa = a * (1 - k / (T - 1)) ** 1.5;
-        const fb = a * (1 - (k + 1) / (T - 1)) ** 1.5;
+        const fa = a * (1 - k / (T - 1)) ** 1.3;
+        const fb = a * (1 - (k + 1) / (T - 1)) ** 1.3;
         for (let j = 0; j < 6; j++) this.wPos[w * 3 + j] = this.wHist[o + k * 3 + j];
-        this.wCol[w * 3] = this.cWind.r * fa;
-        this.wCol[w * 3 + 1] = this.cWind.g * fa;
-        this.wCol[w * 3 + 2] = this.cWind.b * fa;
-        this.wCol[w * 3 + 3] = this.cWind.r * fb;
-        this.wCol[w * 3 + 4] = this.cWind.g * fb;
-        this.wCol[w * 3 + 5] = this.cWind.b * fb;
+        const cIdx = w * 4;
+        this.wCol[cIdx] = this.cWind.r;
+        this.wCol[cIdx + 1] = this.cWind.g;
+        this.wCol[cIdx + 2] = this.cWind.b;
+        this.wCol[cIdx + 3] = fa;
+        this.wCol[cIdx + 4] = this.cWind.r;
+        this.wCol[cIdx + 5] = this.cWind.g;
+        this.wCol[cIdx + 6] = this.cWind.b;
+        this.wCol[cIdx + 7] = fb;
         w += 2;
       }
     }
@@ -902,13 +1062,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const basin = io
         ? Kio * this.math.sstep(this.IO_LON0, this.IO_LON0 + 8, lon) * this.math.sstep(this.IO_LON1, this.IO_LON1 - 5, lon)
         : K * this.math.sstep(this.V_LON0, this.V_LON0 + 10, lon) * this.math.sstep(this.V_LON1, this.V_LON1 - 6, lon);
-      const a = Math.sin(Math.PI * life) * basin * pulse * 0.42
+      const a = Math.sin(Math.PI * life) * basin * pulse * 0.48
         * (0.3 + 0.7 * Math.exp(-lat * lat / 30));
       const col = io ? this.cWaveIO : this.cWave;
 
       // crest: a short piece of the front, brightest in the middle, fading at the tips
       const half = 0.35 + 0.55 * ((i * 0.618) % 1);
       const o = i * 12;
+      const oCol = i * 16;
       this.math.pos(lon + this.frontBow(lat - half), lat - half, R, this.tmpVec);
       this.vPos[o] = this.tmpVec.x; this.vPos[o + 1] = this.tmpVec.y; this.vPos[o + 2] = this.tmpVec.z;
       this.math.pos(lon + this.frontBow(lat), lat, R, this.tmpVec);
@@ -918,9 +1079,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.vPos[o + 9] = this.tmpVec.x; this.vPos[o + 10] = this.tmpVec.y; this.vPos[o + 11] = this.tmpVec.z;
       for (let j = 0; j < 4; j++) {
         const f = j === 1 || j === 2 ? a : a * 0.1;
-        this.vCol[o + j * 3] = col.r * f;
-        this.vCol[o + j * 3 + 1] = col.g * f;
-        this.vCol[o + j * 3 + 2] = col.b * f;
+        this.vCol[oCol + j * 4] = col.r;
+        this.vCol[oCol + j * 4 + 1] = col.g;
+        this.vCol[oCol + j * 4 + 2] = col.b;
+        this.vCol[oCol + j * 4 + 3] = f;
       }
     }
     this.vGeo.attributes['position'].needsUpdate = true;
@@ -1021,16 +1183,20 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     for (const pn of this.pins) {
       const on = showEvents && pn.phases.has(curPhase);
       pn.a += ((on ? 1 : 0) - pn.a) * Math.min(1, dt * 4);
-      pn.sp.visible = pn.a > 0.01;
 
       if (on) {
         const evItem = pn.loc.ev.find(e => e.ph === curPhase);
         if (evItem) {
-          pn.sp.material.color.setHex(KIND[evItem.kind]);
+          pn.sp.material.color.setHex(this.math.getKindHexNumber(evItem.kind));
         }
       }
-      pn.sp.material.opacity = pn.a;
-      const isHighlighted = pn === this.hoverPin || (selectedLoc && pn.loc.name === selectedLoc.name);
+      const facing = this.facingOf(pn.p);
+      const limbFade = this.math.clamp((facing - 0.08) * 5, 0, 1);
+      const finalOpacity = pn.a * limbFade;
+      pn.sp.material.opacity = finalOpacity;
+      pn.sp.visible = finalOpacity > 0.01;
+
+      const isHighlighted = pn === this.hoverPin || (selectedLoc && pn.loc.id === selectedLoc.id);
       const big = isHighlighted ? 1.4 : 1;
       pn.sp.scale.setScalar((0.34 + 0.05 * Math.sin(t * 3 + pn.p.x)) * big * (0.6 + 0.4 * pn.a));
     }
@@ -1141,48 +1307,101 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     return best;
   }
 
+  private pinHoldTimer: ReturnType<typeof setTimeout> | null = null;
+  private pinHoldTriggered = false;
+
+  private clearPinHoldTimer() {
+    if (this.pinHoldTimer !== null) {
+      clearTimeout(this.pinHoldTimer);
+      this.pinHoldTimer = null;
+    }
+  }
+
   onPointerDown(e: PointerEvent) {
     this.downXY = [e.clientX, e.clientY];
+    this.pinHoldTriggered = false;
+    this.clearPinHoldTimer();
+
+    if (e.pointerType !== 'mouse') {
+      const pn = this.pickPin(e.clientX, e.clientY, 34);
+      if (pn) {
+        this.pinHoldTimer = setTimeout(() => {
+          this.pinHoldTimer = null;
+          this.pinHoldTriggered = true;
+          this.hoverPin = pn;
+          const [sx, sy] = this.screenOf(pn.p);
+          this.ngZone.run(() => {
+            this.tooltip.show(this.i18n.location(pn.loc).name, sx, sy - 16, 'top', 1800);
+          });
+        }, 420);
+      }
+    }
   }
 
   onPointerUp(e: PointerEvent) {
+    this.clearPinHoldTimer();
     if (!this.downXY) return;
     const moved = Math.hypot(e.clientX - this.downXY[0], e.clientY - this.downXY[1]);
     this.downXY = null;
+    if (this.pinHoldTriggered) {
+      this.pinHoldTriggered = false;
+      this.hoverPin = null;
+      return;
+    }
     if (moved > 6) return;
 
     const pn = this.pickPin(e.clientX, e.clientY, e.pointerType === 'touch' ? 34 : 22);
     this.ngZone.run(() => {
       if (pn) {
-        this.state.selectLocation(pn.loc);
-      } else {
-        this.state.selectLocation(null);
+        this.tooltip.hide();
+        const loc = pn.loc;
+        this.state.selectLocation(loc);
+        this.popup.open({
+          id: 'impact-details',
+          title: computed(() => this.i18n.location(loc).name),
+          subtitle: computed(() => this.i18n.location(loc).region),
+          component: ImpactModalComponent,
+          size: 'md',
+          actions: [
+            {
+              label: computed(() => this.i18n.t().close),
+              variant: 'default'
+            }
+          ],
+          onClose: () => {
+            this.state.selectLocation(null);
+            this.scheduleRotateResume(5000);
+          }
+        });
       }
     });
   }
 
   onPointerMove(e: PointerEvent) {
-    if (e.pointerType !== 'mouse') return;
+    if (e.pointerType !== 'mouse') {
+      if (this.downXY && this.pinHoldTimer !== null) {
+        const moved = Math.hypot(e.clientX - this.downXY[0], e.clientY - this.downXY[1]);
+        if (moved > 8) {
+          this.clearPinHoldTimer();
+        }
+      }
+      return;
+    }
     this.hoverPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
     const canvas = this.canvasRef.nativeElement;
     canvas.style.cursor = this.hoverPin ? 'pointer' : '';
 
-    const tip = this.tooltipRef?.nativeElement;
-    if (tip) {
-      if (this.hoverPin) {
-        tip.textContent = this.i18n.location(this.hoverPin.loc).name;
-        tip.style.transform = `translate(${e.clientX + 14}px,${e.clientY - 30}px)`;
-        tip.style.opacity = '1';
-      } else {
-        tip.style.opacity = '0';
-      }
+    if (this.hoverPin) {
+      this.tooltip.show(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY - 14, 'top');
+    } else {
+      this.tooltip.hide();
     }
   }
 
   onPointerLeave() {
+    this.clearPinHoldTimer();
     this.hoverPin = null;
-    const tip = this.tooltipRef?.nativeElement;
-    if (tip) tip.style.opacity = '0';
+    this.tooltip.hide();
   }
 
   @HostListener('window:resize')
@@ -1190,15 +1409,21 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (!this.renderer || !this.camera) return;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const portrait = w / h < 0.9;
+    const portrait = w / h < 0.9 || isAtMost('mobile');
 
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    if (portrait) {
-      this.camera.setViewOffset(w, h, 0, h * 0.17, w, h);
-    } else {
-      this.camera.clearViewOffset();
-    }
+
+    // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
+    const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
+    const dockEl = document.querySelector('.dock-wrap');
+    const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : 52);
+    const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 130;
+
+    // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
+    const offsetY = (bottomOccupied - topOccupied) / 2;
+    this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+
     this.camera.updateProjectionMatrix();
     this.controls.minDistance = portrait ? 11 : 7.5;
   }
@@ -1214,7 +1439,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.state.updateInterpolatedStrength(dt);
 
     // the cycle keeps running in other views; only the globe itself pauses
-    if (this.state.view() === 'walker') return;
+    if (this.state.crossSectionView()) return;
 
     const s = this.state.sCur();
     // the impacts view shows the ocean as a muted anomaly under the rainfall regions

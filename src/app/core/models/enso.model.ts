@@ -1,11 +1,25 @@
 export type EnsoPhase = 'nina' | 'neu' | 'nino' | 'super';
 export type DisplayMode = 'sst' | 'anom';
-export type ViewMode = 'globe' | 'walker' | 'impacts';
+export type ViewMode = 'globe' | 'walker' | 'thermocline' | 'impacts';
 export type ImpactKind = 'dry' | 'fire' | 'wet' | 'other';
 
 export interface EnsoSource {
   title: string;
   url: string;
+}
+
+export interface HistoricalEventMeta {
+  ph: EnsoPhase;
+  yrs: string;
+  kind: ImpactKind;
+  srcKey: string;
+}
+
+export interface ImpactLocationMeta {
+  id: string;
+  lon: number;
+  lat: number;
+  ev: HistoricalEventMeta[];
 }
 
 export interface HistoricalEvent {
@@ -20,6 +34,7 @@ export interface HistoricalEvent {
 }
 
 export interface ImpactLocation {
+  id: string;
   name: string;
   region: string;
   lon: number;
@@ -35,7 +50,6 @@ export interface PhaseInfo {
 
 export interface Preset {
   ph: EnsoPhase;
-  label: string;
   strength: number;
   hot?: boolean;
 }

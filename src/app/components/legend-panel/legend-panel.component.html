@@ -1,0 +1,80 @@
+@let t = i18n.t();
+
+<aside class="legend-panel glass-panel">
+  <!-- 1. Niño 3.4 Readout -->
+  <div class="legend-panel__readout">
+    <div class="legend-panel__readout-main">
+      <span class="legend-panel__label">{{ t.readoutTitle }}</span>
+      <div class="legend-panel__readout-row">
+        <span class="legend-panel__val">{{ formattedNino() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Legend Dropdown (SST / Anomaly Scale Bar, Phase Impacts Pins & Continental Rainfall Anomalies) -->
+  <div class="legend-panel__dropdown-wrap">
+    <div class="legend-panel__legend-row">
+    <app-dropdown
+      variant="default"
+      align="right"
+      [fullWidth]="true"
+      [icon]="bp.mobile() ? null : layersIcon"
+      [label]="t.impactsTab"
+      [ariaLabel]="t.impactsTab">
+      <div class="legend-panel__dropdown-content">
+        <!-- SST / Anomaly Scale Bar -->
+        <div class="legend-panel__group" [appTooltip]="scaleMode() === 'sst' ? t.scaleSst : t.scaleAnom">
+          <div class="legend-panel__section-title">
+            {{ scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
+          </div>
+          <canvas #scaleCanvas class="legend-panel__bar" width="260" height="6"></canvas>
+          <div class="legend-panel__ticks">
+            <span>{{ scaleMode() === 'sst' ? '−2 °C' : '−3 °C' }}</span>
+            <span>{{ scaleMode() === 'sst' ? '15 °C' : '0 °C' }}</span>
+            <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
+          </div>
+        </div>
+
+        @if (showImpactsLegend()) {
+          <!-- Historical Impact Pins Legend -->
+          <div class="legend-panel__group legend-panel__group--divider">
+            <div class="legend-panel__section-title">{{ t.pinLegendTitle(state.category().name) }}</div>
+            <div class="legend-panel__grid">
+              <span class="legend-panel__item legend-panel__item--dry"><i></i>{{ t.kindDry }}</span>
+              <span class="legend-panel__item legend-panel__item--fire"><i></i>{{ t.kindFire }}</span>
+              <span class="legend-panel__item legend-panel__item--wet"><i></i>{{ t.kindWet }}</span>
+              <span class="legend-panel__item legend-panel__item--other"><i></i>{{ t.kindOther }}</span>
+            </div>
+          </div>
+
+          <!-- Continental Rainfall Anomaly Legend -->
+          <div class="legend-panel__group legend-panel__group--divider">
+            <div class="legend-panel__section-title">{{ rainTitle() }}</div>
+            <div class="legend-panel__items">
+              <span class="legend-panel__item legend-panel__item--rain-dry">
+                <i></i>{{ t.rainDry }}
+              </span>
+              <span class="legend-panel__item legend-panel__item--rain-wet">
+                <i></i>{{ t.rainWet }}
+              </span>
+            </div>
+            <div class="legend-panel__sources">
+              {{ t.sources }}
+              @for (src of sources; track src.id; let i = $index, last = $last) {
+                <a [href]="src.url" target="_blank" rel="noopener noreferrer" [appTooltip]="t.impactSourceTitles[i]">{{ src.short }}</a>{{ last ? '' : ' ·' }}
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </app-dropdown>
+    <app-button
+      [iconOnly]="true"
+      [ariaLabel]="t.layerGlossary"
+      [titleText]="t.layerGlossaryTitle"
+      (btnClick)="openGlossaryPopup()">
+      <lucide-icon [img]="bookOpenIcon" [size]="15"></lucide-icon>
+    </app-button>
+    </div>
+  </div>
+</aside>

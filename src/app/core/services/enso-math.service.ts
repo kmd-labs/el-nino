@@ -1,7 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as THREE from 'three';
-import { EnsoPhase, PhaseInfo } from '../models/enso.model';
-import { KEY, TEMP_HEX, ANOM_HEX } from '../constants/enso-data';
+import { EnsoPhase, ImpactKind, PhaseInfo } from '../models/enso.model';
+import {
+  ANOM_COLOR_TOKENS,
+  KEY,
+  KIND_COLOR_TOKENS,
+  PHASE_COLOR_TOKENS,
+  TEMP_COLOR_TOKENS
+} from '../constants/enso-data';
+import { ThemeService } from './theme.service';
 
 export interface ColorLut {
   lut: Uint8Array;
@@ -13,15 +20,54 @@ export interface ColorLut {
   providedIn: 'root'
 })
 export class EnsoMathService {
+  private themeService = inject(ThemeService);
+
   readonly R = 5;
   readonly DEG = Math.PI / 180;
 
-  readonly lutSst: ColorLut;
-  readonly lutAnom: ColorLut;
+  lutSst!: ColorLut;
+  lutAnom!: ColorLut;
 
   constructor() {
-    this.lutSst = this.buildLUT(TEMP_HEX);
-    this.lutAnom = this.buildLUT(ANOM_HEX);
+    this.refreshLutsFromTokens();
+  }
+
+  /** Rebuilds the thermal and anomaly LUTs directly from `:root` SCSS design token CSS variables. */
+  refreshLutsFromTokens() {
+    this.lutSst = this.buildLUT(this.getThermalStops());
+    this.lutAnom = this.buildLUT(this.getAnomalyStops());
+  }
+
+  /** Returns thermal (SST) stops `[temp, hexColor][]` derived from SCSS design tokens. */
+  getThermalStops(): [number, string][] {
+    return TEMP_COLOR_TOKENS.map(([val, token]) => [
+      val,
+      this.themeService.getTokenColor(token, '#1f86cf')
+    ]);
+  }
+
+  /** Returns anomaly stops `[anom, hexColor][]` derived from SCSS design tokens. */
+  getAnomalyStops(): [number, string][] {
+    return ANOM_COLOR_TOKENS.map(([val, token]) => [
+      val,
+      this.themeService.getTokenColor(token, '#eef1f6')
+    ]);
+  }
+
+  /** Resolves phase color from SCSS design token (`--color-phase-*`). */
+  getPhaseColor(phase: EnsoPhase): string {
+    return this.themeService.getTokenColor(PHASE_COLOR_TOKENS[phase], '#6f7d98');
+  }
+
+  /** Resolves impact kind color from SCSS design token (`--color-kind-*`). */
+  getKindColor(kind: ImpactKind): string {
+    return this.themeService.getTokenColor(KIND_COLOR_TOKENS[kind], '#ff9a3d');
+  }
+
+  /** Resolves impact kind color as integer hex for Three.js materials. */
+  getKindHexNumber(kind: ImpactKind): number {
+    const hex = this.getKindColor(kind).replace('#', '');
+    return parseInt(hex, 16) || 0xff9a3d;
   }
 
   clamp(v: number, a: number, b: number): number {
@@ -131,17 +177,20 @@ export class EnsoMathService {
   }
 
   category(n: number): PhaseInfo {
-    if (n >= 2) return { k: 'super', name: 'Super El Niño', col: '#e8361f' };
-    if (n >= 0.5) return { k: 'nino', name: 'El Niño', col: '#f08a1c' };
-    if (n <= -0.5) return { k: 'nina', name: 'La Niña', col: '#2f7fe8' };
-    return { k: 'neu', name: 'Neutralny', col: '#6f7d98' };
+    if (n >= 2) return { k: 'super', name: 'Super El Niño', col: this.getPhaseColor('super') };
+    if (n >= 0.5) return { k: 'nino', name: 'El Niño', col: this.getPhaseColor('nino') };
+    if (n <= -0.5) return { k: 'nina', name: 'La Niña', col: this.getPhaseColor('nina') };
+    return { k: 'neu', name: 'Neutral', col: this.getPhaseColor('neu') };
   }
 
   buildLUT(st: [number, string][]): ColorLut {
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
     const lut = new Uint8Array(256 * 3);
-    const rgb = (h: string) => [1, 3, 5].map(i => parseInt(h.substring(i, i + 2), 16));
+    const parseColor = (c: string): [number, number, number] => {
+      const th = new THREE.Color(c);
+      return [Math.round(th.r * 255), Math.round(th.g * 255), Math.round(th.b * 255)];
+    };
 
     for (let i = 0; i < 256; i++) {
       const v = lo + (hi - lo) * i / 255;
@@ -150,8 +199,8 @@ export class EnsoMathService {
       const a = st[k - 1];
       const b = st[k];
       const t = this.clamp((v - a[0]) / (b[0] - a[0]), 0, 1);
-      const ca = rgb(a[1]);
-      const cb = rgb(b[1]);
+      const ca = parseColor(a[1]);
+      const cb = parseColor(b[1]);
       for (let j = 0; j < 3; j++) {
         lut[i * 3 + j] = Math.round(ca[j] + (cb[j] - ca[j]) * t);
       }
@@ -183,6 +232,29 @@ export class EnsoMathService {
       }
     }
     return KEY[0][1];
+  }
+
+  /**
+   * Find the month index m in [12, 35] (the rising La Niña -> Super El Niño branch)
+   * whose cycleS(m) matches the given strength s, so pressing Play starts at the
+   * current playhead position and moves forward (to the right).
+   */
+  cycleTFromStrength(s: number): number {
+    const minS = KEY[2][1]; // -1.4 at month 12
+    const maxS = KEY[7][1]; //  2.7 at month 35
+    if (s >= maxS - 0.05) return 35;
+    if (s <= minS + 0.05) return 12;
+    let lo = 12;
+    let hi = 35;
+    for (let iter = 0; iter < 24; iter++) {
+      const mid = (lo + hi) / 2;
+      if (this.cycleS(mid) < s) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return (lo + hi) / 2;
   }
 
   pos(lon: number, lat: number, r: number = this.R, out = new THREE.Vector3()): THREE.Vector3 {

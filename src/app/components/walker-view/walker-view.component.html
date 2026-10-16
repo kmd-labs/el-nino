@@ -11,16 +11,24 @@
 
   <div class="walker__foot">
     <div class="walker__ctrl">
-      <button type="button" class="wbtn" [attr.aria-label]="t.walkerPrev" (click)="prev()">‹</button>
+      <button type="button" class="wbtn" [attr.aria-label]="t.walkerPrev" (click)="prev()">
+        <lucide-icon [img]="chevronLeftIcon" [size]="16"></lucide-icon>
+      </button>
       <button
         type="button"
         class="wbtn wbtn--play"
         [class.wbtn--on]="playing()"
         [attr.aria-label]="playing() ? t.walkerPause : t.walkerPlay"
         (click)="togglePlay()">
-        {{ playing() ? '❚❚' : '▶' }}
+        @if (playing()) {
+          <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
+        } @else {
+          <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
+        }
       </button>
-      <button type="button" class="wbtn" [attr.aria-label]="t.walkerNext" (click)="next()">›</button>
+      <button type="button" class="wbtn" [attr.aria-label]="t.walkerNext" (click)="next()">
+        <lucide-icon [img]="chevronRightIcon" [size]="16"></lucide-icon>
+      </button>
       <div class="walker__dots">
         @for (st of steps; track $index) {
           <button

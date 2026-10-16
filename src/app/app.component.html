@@ -4,12 +4,10 @@
   @if (state.view() === 'walker') {
     <app-walker-view></app-walker-view>
   }
+  @if (state.view() === 'thermocline') {
+    <app-thermocline-view></app-thermocline-view>
+  }
   <app-map-dock></app-map-dock>
-  @if (state.glossaryOpen()) {
-    <app-glossary></app-glossary>
-  }
-  <app-impact-modal></app-impact-modal>
-  @if (!i18n.chosen()) {
-    <app-welcome></app-welcome>
-  }
+  <app-popup></app-popup>
+  <app-tooltip></app-tooltip>
 </main>

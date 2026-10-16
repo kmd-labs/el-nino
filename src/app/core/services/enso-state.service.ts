@@ -1,8 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { DisplayMode, EnsoPhase, ImpactLocation, PhaseInfo, ViewMode } from '../models/enso.model';
-import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS, PRESETS } from '../constants/enso-data';
+import { DisplayMode, EnsoPhase, ImpactLocationMeta, PhaseInfo, ViewMode } from '../models/enso.model';
+import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../constants/enso-data';
 import { EnsoMathService } from './enso-math.service';
 import { I18nService } from '../i18n/i18n.service';
+import { ThemeService } from './theme.service';
 
 /** Initial ENSO strength: the "El Niño" preset. */
 const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
@@ -13,13 +14,15 @@ const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
 export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
+  private theme = inject(ThemeService);
 
-  // start (desktop and mobile) in El Niño, shown as a temperature anomaly
+  // Start in El Niño, shown as a temperature anomaly
   readonly sTarget = signal<number>(START_STRENGTH);
   readonly sCur = signal<number>(START_STRENGTH);
   readonly displayMode = signal<DisplayMode>('anom');
   readonly view = signal<ViewMode>('globe');
-  readonly glossaryOpen = signal<boolean>(false);
+  /** Views that replace the globe with a flat cross-section (the globe stays hidden and paused). */
+  readonly crossSectionView = computed(() => this.view() === 'walker' || this.view() === 'thermocline');
   readonly showAtmosphere = signal<boolean>(true);
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
@@ -30,8 +33,8 @@ export class EnsoStateService {
   readonly mapLoaded = signal<boolean>(false);
   readonly mapError = signal<boolean>(false);
 
-  readonly selectedLocation = signal<ImpactLocation | null>(null);
-  readonly hoveredLocation = signal<ImpactLocation | null>(null);
+  readonly selectedLocation = signal<ImpactLocationMeta | null>(null);
+  readonly hoveredLocation = signal<ImpactLocationMeta | null>(null);
 
   readonly nino34Value = computed<number>(() => {
     return this.math.nino34(this.sCur());
@@ -41,6 +44,8 @@ export class EnsoStateService {
   readonly dmiValue = computed<number>(() => this.math.dmi(this.sCur()));
 
   readonly category = computed<PhaseInfo>(() => {
+    // Depend on theme() so token colors re-evaluate if theme changes
+    this.theme.theme();
     const c = this.math.category(this.nino34Value());
     return { ...c, name: this.i18n.t().phase[c.k] };
   });
@@ -55,7 +60,7 @@ export class EnsoStateService {
 
   readonly activeEventsCount = computed<number>(() => {
     const currentPhase = this.phase();
-    return EVENTS.filter(l => l.ev.some(e => e.ph === currentPhase)).length;
+    return EVENTS_META.filter(l => l.ev.some(e => e.ph === currentPhase)).length;
   });
 
   readonly hint = computed<string>(() => {
@@ -64,20 +69,17 @@ export class EnsoStateService {
     return t.hintPins(this.activeEventsCount(), this.category().name);
   });
 
-  /** "Year 3 · December (≈ 2026, forecast)" for the running cycle, '' when stopped. */
+  /** "Yr 3 · December (≈ 2026, forecast)" for the running cycle, '' when stopped. */
   readonly monthText = computed<string>(() => {
     const m = this.cycleMonth();
     if (m === null) return '';
     const t = this.i18n.t();
     const year = Math.floor(m / 12) + 1;
-    // approximate real time of the current cycle (see CYCLE_START_YEAR)
     return t.cycleMonth(year, t.months[m % 12], CYCLE_START_YEAR + year - 1, m >= CYCLE_FORECAST_FROM);
   });
 
   /**
-   * Very rough chance that the 2026 ENSO peak (Oct–Dec, Niño 3.4) falls in the slider's range.
-   * Based on the NOAA CPC ENSO discussion of 8 Oct 2026: El Niño advisory, Niño 3.4 ≈ +2.1 °C,
-   * ~83% chance of ≥ +2.5 °C in Oct–Dec.
+   * Rough chance that the 2026 ENSO peak (Oct–Dec, Niño 3.4) falls in the slider's range.
    */
   readonly prob2026 = computed<string>(() => {
     const n = this.math.nino34(this.sTarget());
@@ -100,8 +102,10 @@ export class EnsoStateService {
   }
 
   startPlaying() {
+    const startT = this.math.cycleTFromStrength(this.sTarget());
+    this.cycleT.set(startT);
+    this.cycleMonth.set(Math.floor(startT) % 48);
     this.isPlaying.set(true);
-    this.cycleT.set(0);
   }
 
   stopPlaying() {
@@ -127,7 +131,7 @@ export class EnsoStateService {
   setView(v: ViewMode) {
     if (v === this.view()) return;
     this.view.set(v);
-    if (v === 'walker') {
+    if (v === 'walker' || v === 'thermocline') {
       this.selectedLocation.set(null);
     }
   }
@@ -147,18 +151,14 @@ export class EnsoStateService {
     this.autoRotate.update(v => val !== undefined ? val : !v);
   }
 
-  toggleGlossary(open?: boolean) {
-    this.glossaryOpen.update(v => open !== undefined ? open : !v);
-  }
-
-  selectLocation(loc: ImpactLocation | null) {
+  selectLocation(loc: ImpactLocationMeta | null) {
     this.selectedLocation.set(loc);
     if (loc) {
       this.autoRotate.set(false);
     }
   }
 
-  setHoveredLocation(loc: ImpactLocation | null) {
+  setHoveredLocation(loc: ImpactLocationMeta | null) {
     this.hoveredLocation.set(loc);
   }
 

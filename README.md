@@ -1,121 +1,149 @@
-# Super El Niño — Glob 3D
+# Super El Niño — 3D Globe Visualization
 
-Interaktywna aplikacja webowa w **Angular 21** wizualizująca cykl zjawiska **El Niño–Southern Oscillation (ENSO)** oraz **Super El Niño** w trójwymiarowej przestrzeni z wykorzystaniem **Three.js**.
+[![Deploy to GitHub Pages](https://github.com/kmd-labs/el-nino/actions/workflows/deploy.yml/badge.svg)](https://github.com/kmd-labs/el-nino/actions/workflows/deploy.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-kmd--labs.github.io%2Fel--nino-ff6a2e?style=for-the-badge&logo=google-chrome&logoColor=white)](https://kmd-labs.github.io/el-nino/)
+[![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.dev/)
+[![Three.js](https://img.shields.io/badge/Three.js-r184-000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Projekt łączy fizyczno-klimatologiczny model anomalii temperatury oceanu (SST), model cyrkulacji atmosferycznej Walkera, przekrój głębokościowy termokliny wzdłuż równika oraz bazę udokumentowanych historycznych skutków klimatycznych i gospodarczych na całym świecie.
+An interactive 3D WebGL climatological simulation visualizing the **El Niño–Southern Oscillation (ENSO)** cycle and **Super El Niño** extremes. Built with **Angular 21**, **Three.js**, and modern SCSS design tokens.
 
-Aplikacja jest przystosowana do hostingu na **GitHub Pages** pod adresem:  
-`https://kmd-labs.github.io/el-nino/`
-
----
-
-## 🌟 Główne funkcjonalności
-
-- **Interaktywny Glob 3D (Three.js)**:
-  - Generowanie w czasie rzeczywistym dynamicznej tekstury danych SST (720×360 punktów siatki, 259 200 komórek) z tablicami kolorów (LUT) dla temperatury bezwzględnej oraz anomalii.
-  - Wektory lądów w oparciu o Natural Earth / `world-atlas` (z lokalnym fallbackiem bez zależności od sieci zewnętrznej).
-  - Oznaczenie prostokąta monitorowania wskaźnika **Niño 3.4** (170°W–120°W, 5°S–5°N).
-  - Shader poświaty atmosferycznej oraz gwiezdne tło w głębokiej przestrzeni.
-  - OrbitControls z automatycznym obrotem i płynnym tłumieniem (damping).
-
-- **Atmosfera i Cyrkulacja Walkera**:
-  - Symulacja cząsteczkowa przepływu powietrza wzdłuż pasatów i komórek Walkera z gradientem temperatury (unoszenie ciepłego powietrza, opadanie chłodnego).
-  - Proceduralne chmury konwekcyjne skupiające się wokół przemieszczającego się centrum konwekcji.
-  - Smugi opadów deszczu pod centrum burzowym.
-
-- **Przekrój Pionowy Termokliny Pacyfiku (0–300 m)**:
-  - Dynamiczny profil głębokościowy wzdłuż równika od Indonezji (120°E) po wybrzeże Ameryki Południowej (80°W).
-  - Rysowanie krzywej termokliny oraz warstw termicznych zależnych od siły pasatów i fazy ENSO.
-
-- **Baza Historycznych Skutków (Impact Pins)**:
-  - 23 globalne lokalizacje i ponad 30 szczegółowo opisanych zdarzeń (susze, pożary, powodzie, załamania rybołówstwa, epidemie).
-  - Interaktywne pinezki 3D z detekcją kliknięć i najechania myszą.
-  - Karta informacyjna z opisem wpływu na PKB/ludność, rolą ENSO oraz odnośnikami do źródeł naukowych i międzynarodowych (ONZ, FAO, CDC, Bank Światowy).
-
-- **Panel Sterowania i Symulacja Cyklu**:
-  - Predefiniowane stany: *La Niña*, *Neutralny*, *El Niño*, *Super El Niño*.
-  - Płynny suwak siły ENSO (-2.00 do +3.00).
-  - Animowany, 4-letni cykl ENSO odzwierciedlający fazy narastania, szczytu i wygasania z licznikiem miesięcy i lat.
+🔗 **Explore Live Demo:** [https://kmd-labs.github.io/el-nino/](https://kmd-labs.github.io/el-nino/)
 
 ---
 
-## 🏗️ Architektura Aplikacji (Angular Best Practices)
+## 🌍 Key Features
 
-Aplikacja została zaprojektowana zgodnie ze standardami architektury komponentowej Angular:
+- **Interactive 3D WebGL Globe**:
+  - Real-time procedural Sea Surface Temperature (SST) data texture (720×360 grid, 259,200 points) dynamically computed using scientific basis functions and color LUTs.
+  - Natural Earth continent vector overlays (`world-atlas` GeoJSON) with offline local asset fallback.
+  - Precise delineation of the official **Niño 3.4 monitoring box** (170°W–120°W, 5°S–5°N).
+  - Atmospheric rim glow shader with additive blending and starfield point cloud.
+  - Smooth OrbitControls with momentum damping and toggleable auto-rotation.
+
+- **Walker Circulation & Atmospheric Dynamics**:
+  - Dual-cell tropospheric stream particle simulation with altitude-dependent thermodynamic coloring (warm rising air vs. cool subsiding air).
+  - Procedural convective storm cloud puffs clustered around the shifting Pacific warm pool.
+  - Dynamic rainfall streaks beneath the convective center.
+
+- **Equatorial Thermocline Vertical Cross-Section (0–300 m)**:
+  - Real-time depth profile across the equatorial Pacific from Indonesia (120°E) to South America (80°W).
+  - Interactive visualization of the 20 °C isotherm / thermocline tilt under varying trade wind strengths.
+
+- **Historical Impacts Database**:
+  - 23 global pin locations with 30+ peer-documented climate events across South America, North America, Africa, Asia, and Oceania.
+  - Interactive 3D billboard sprites with screen-space occlusion and raycast picking.
+  - Detailed modal cards highlighting human and economic tolls (GDP loss, casualties, agricultural failure) with links to international institutions (UN OCHA, World Bank, CDC, FAO, NOAA).
+
+- **Simulation & Time Controls**:
+  - One-click presets: *La Niña* (-1.6), *Neutral* (0.0), *El Niño* (+1.2), and *Super El Niño* (+2.6).
+  - Continuous ENSO strength slider (-2.00 to +3.00).
+  - 4-year idealized ENSO cycle simulation with animated monthly progression.
+
+---
+
+## 🏗️ Architecture & Component Design
+
+The codebase follows modern Angular standalone component architecture with reactive state management powered by **Angular Signals**:
 
 ```
 src/
-├── _variables.scss               # System tokenów SCSS (kolory, typografia, promienie, animacje, mixiny)
-├── styles.scss                   # Globalne style i reset
+├── _variables.scss               # Reusable SCSS design system tokens (colors, radii, mixins, glass panels)
+├── styles.scss                   # Global resets and typography
+├── index.html                    # HTML entry point configured for GitHub Pages
+├── main.ts                       # Application bootstrap
 ├── app/
+│   ├── app.component.ts|html|scss# Root application shell
 │   ├── core/
 │   │   ├── constants/
-│   │   │   └── enso-data.ts      # Dane naukowe, palety LUT, punkty cyklu, baza historycznych zdarzeń
+│   │   │   └── enso-data.ts      # Scientific data constants, color LUTs, and historical event records
 │   │   ├── models/
-│   │   │   └── enso.model.ts     # Ścisłe interfejsy i typy TypeScript
+│   │   │   └── enso.model.ts     # TypeScript interfaces and domain types
 │   │   └── services/
-│   │       ├── enso-math.service.ts # Model matematyczny SST, cyrkulacji, projekcji sferycznych
-│   │       └── enso-state.service.ts# Reaktywny stan aplikacji oparty na Angular Signals
-│   ├── components/
-│   │   ├── globe/                # Komponent 3D Three.js (WebGL, cząsteczki, pinezki, etykiety)
-│   │   ├── header/               # Nagłówek ze wskaźnikiem anomalii i stanem wczytywania mapy
-│   │   ├── control-panel/        # Pływający panel sterowania, legendy i przekrój termokliny
-│   │   ├── impact-modal/         # Modal z detalami wybranego zdarzenia historycznego
-│   │   └── ui/
-│   │       ├── button/           # Reużywalny komponent przycisku (warianty, stany active/hot)
-│   │       └── badge/            # Reużywalny komponent odznaki/statusu
-│   ├── app.component.ts|html|scss# Główny kontener aplikacji
-│   └── app.config.ts / main.ts
+│   │       ├── enso-math.service.ts # Pure math model (climatology, anomalies, thermocline, 3D math)
+│   │       └── enso-state.service.ts# Centralized reactive state using Angular Signals
+│   └── components/
+│       ├── globe/                # Three.js 3D viewport, particles, labels, and raycasting
+│       ├── header/               # Top status bar with live Niño 3.4 index readout and badge
+│       ├── control-panel/        # Floating glassmorphic control dock & thermocline canvas
+│       ├── impact-modal/         # Event detail dialog with external research links
+│       └── ui/
+│           ├── button/           # Reusable button component with variant states
+│           └── badge/            # Status badge pill with dynamic color transitions
 └── assets/
     └── data/
-        └── land-50m.json         # Topologia kontynentów dla nakładki globu
+        └── land-50m.json         # Bundled Natural Earth land topology
 ```
 
 ---
 
-## 🎨 Reużywalne Tokeny SCSS
+## 🎨 Design System & SCSS Tokens
 
-Projekt korzysta z modularnego systemu SCSS w `src/_variables.scss`:
-- Mapy SCSS: `$colors`, `$breakpoints`, `$transitions`, `$radii`, `$font-weights`, `$font-sizes`.
-- Funkcje dostępowe: `color($key)`, `radius($key)`, `font-size($key)`, `font-weight($key)`, `transition($key)`.
-- Mixiny:
-  - `@mixin glass-panel($heavy)` — nowoczesny efekt frosted glass z `backdrop-filter: blur(...)`.
-  - `@mixin respond-to($breakpoint)` — responsywność dopasowana do urządzeń mobilnych i desktopowych.
-  - `@mixin custom-scrollbar` — minimalistyczny scrollbar pasujący do ciemnego motywu.
+All UI styling is strictly tokenized in [`src/_variables.scss`](src/_variables.scss):
+
+- **Maps**: `$colors`, `$breakpoints`, `$transitions`, `$radii`, `$font-weights`, `$font-sizes`.
+- **Accessor Functions**: `color($key)`, `radius($key)`, `font-size($key)`, `font-weight($key)`, `transition($key)`.
+- **Mixins**:
+  - `@mixin glass-panel($heavy)`: Glassmorphic panel styling with `backdrop-filter: blur(...)` and glowing border highlights.
+  - `@mixin respond-to($breakpoint)`: Mobile-first responsive layout breakpoints.
+  - `@mixin custom-scrollbar`: Sleek, unobtrusive dark-theme scrollbars.
 
 ---
 
-## 🚀 Uruchomienie Lokalne
+## 🔬 Scientific Foundations
 
-Wymagany Node.js (wersja 20+) oraz npm:
+1. **Sea Surface Temperature (SST) Climatology**:
+   $$T_{\text{clim}}(\lambda, \phi) = -1.8 + 30.5 \cos^{2.2}(\phi) + \sum_{k} A_k \exp\left(-\frac{\Delta\lambda_k^2}{w_k^2}\right) \exp\left(-\frac{\phi^2}{\sigma_k^2}\right)$$
+   Models the Pacific warm pool, equatorial cold tongue, Humboldt Current, and global oceanic features.
 
+2. **ENSO Anomaly Formulation**:
+   $$A(\lambda, \phi, s) = \begin{cases} s \cdot \text{basis}_P + \max(0, s - 1.4) \cdot \text{basis}_C & \text{if } s \ge 0 \\ -s \cdot \text{basis}_N & \text{if } s < 0 \end{cases}$$
+   Incorporates the non-linear coastal Peruvian warming characteristic of historic *Super El Niño* events (1982–83, 1997–98, 2015–16).
+
+3. **Thermocline Profile**:
+   Calculates the 20 °C isotherm depth across $120^\circ\text{E} \to 80^\circ\text{W}$ coupled to trade wind strength variations:
+   $$z(\lambda, s) = -1.75 + 0.85 \cdot \text{trade}(s) \cdot u(\lambda)$$
+
+---
+
+## 💻 Local Development
+
+### Prerequisites
+- Node.js version 20+ (Node 22 LTS recommended)
+- npm 10+
+
+### Setup & Run
 ```bash
-# Instalacja zależności
+# Clone the repository
+git clone https://github.com/kmd-labs/el-nino.git
+cd el-nino
+
+# Install dependencies
 npm install
 
-# Uruchomienie serwera deweloperskiego (dostępny pod http://localhost:4200/)
+# Start local development server (runs on http://localhost:4200/)
 npm start
 
-# Budowanie wersji produkcyjnej
+# Production build
 npm run build
 
-# Budowanie z właściwym base-href dla GitHub Pages
+# Production build with GitHub Pages base-href
 npm run build:gh-pages
 ```
 
 ---
 
-## 🌐 Wdrażanie na GitHub Pages (GitHub Actions)
+## 🚀 Continuous Deployment (GitHub Actions)
 
-Aplikacja wdraża się automatycznie na GitHub Pages przy pomocy przepływu CI/CD w `.github/workflows/deploy.yml`:
+Deployments to GitHub Pages are automated via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
 
-1. Po wypchnięciu zmian do gałęzi `main`, GitHub Actions uruchamia efemeryczną maszynę wirtualną (`ubuntu-latest`).
-2. Maszyna pobiera kod, instaluje zależności (`npm ci`) i buduje zoptymalizowane pliki statyczne (`npm run build:gh-pages`).
-3. Akcja `actions/upload-pages-artifact@v3` pakuje wygenerowany katalog `dist/el-nino/browser`.
-4. Akcja `actions/deploy-pages@v4` publikuje statyczną stronę bezpośrednio na GitHub Pages.
-5. Po zakończeniu zadania maszyna i wszystkie tymczasowe pliki są niszczone.
-6. Katalog `dist/` jest w `.gitignore` i nigdy nie obciąża repozytorium gita.
+1. **Trigger**: Pushes to `main` or manual `workflow_dispatch`.
+2. **Build Stage**: Runs on `ubuntu-latest`, compiles the application with `npm run build:gh-pages` (`--base-href /el-nino/`), and uploads static assets via `actions/upload-pages-artifact@v3`.
+3. **Deploy Stage**: Publishes to GitHub Pages with `actions/deploy-pages@v4`.
+4. **Clean Workspace**: The build directory (`dist/`) is gitignored, and build artifacts reside strictly in ephemeral runner environments.
 
-### Konfiguracja repozytorium GitHub:
-W ustawieniach repozytorium w sekcji **Settings -> Pages**:
-- **Source**: wybierz **GitHub Actions**.
+---
+
+## 📄 License
+
+This project is open-sourced under the [MIT License](LICENSE).
