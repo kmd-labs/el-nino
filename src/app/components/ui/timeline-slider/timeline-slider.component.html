@@ -1,27 +1,28 @@
 <div class="timeline-slider" [style.--thumb-color]="thumbColor()">
-  <!-- Main Timeline Column (Event Buttons on top + Scrollbar Track below) -->
-  <div class="timeline-slider__main">
-    @if (markers().length > 0) {
-      <div class="timeline-slider__events">
-        @for (m of markers(); track m.id) {
-          <div
-            class="timeline-slider__event"
-            [class.timeline-slider__event--active]="m.active"
-            [class.timeline-slider__event--hot]="!!m.hot"
-            [style.left.%]="markerPct(m)">
-            <app-button
-              variant="toggle"
-              [active]="!!m.active"
-              [hot]="!!m.hot"
-              (btnClick)="onMarkerSelect(m)">
-              {{ m.label }}
-            </app-button>
-            <span class="timeline-slider__stem" aria-hidden="true"></span>
-          </div>
-        }
-      </div>
-    }
+  <!-- Top: Event Buttons -->
+  @if (markers().length > 0) {
+    <div class="timeline-slider__events">
+      @for (m of markers(); track m.id) {
+        <div
+          class="timeline-slider__event"
+          [class.timeline-slider__event--active]="m.active"
+          [class.timeline-slider__event--hot]="!!m.hot"
+          [style.left.%]="markerPct(m)">
+          <app-button
+            variant="toggle"
+            [active]="!!m.active"
+            [hot]="!!m.hot"
+            (btnClick)="onMarkerSelect(m)">
+            {{ m.label }}
+          </app-button>
+          <span class="timeline-slider__stem" aria-hidden="true"></span>
+        </div>
+      }
+    </div>
+  }
 
+  <!-- Bottom: Slider Track + Action Button vertically centered together -->
+  <div class="timeline-slider__row">
     <div class="timeline-slider__track">
       <div class="timeline-slider__rail" aria-hidden="true">
         @for (m of markers(); track m.id) {
@@ -44,10 +45,10 @@
         [value]="value()"
         (input)="onRangeInput($event)" />
     </div>
-  </div>
 
-  <!-- Action Slot right next to the scrollbar (e.g. Play/Pause button) -->
-  <div class="timeline-slider__action">
-    <ng-content select="[timelineAction]"></ng-content>
+    <!-- Action Slot (Play/Pause button) vertically centered with the slider -->
+    <div class="timeline-slider__action">
+      <ng-content select="[timelineAction]"></ng-content>
+    </div>
   </div>
 </div>
