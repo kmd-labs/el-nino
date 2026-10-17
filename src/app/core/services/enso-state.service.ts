@@ -33,6 +33,10 @@ export class EnsoStateService {
   readonly mapLoaded = signal<boolean>(false);
   readonly mapError = signal<boolean>(false);
 
+  constructor() {
+    this.startPlaying();
+  }
+
   readonly selectedLocation = signal<ImpactLocationMeta | null>(null);
   readonly hoveredLocation = signal<ImpactLocationMeta | null>(null);
 
@@ -164,7 +168,7 @@ export class EnsoStateService {
 
   updateCycle(dt: number) {
     if (!this.isPlaying()) return;
-    const nextT = this.cycleT() + dt / 0.6;
+    const nextT = this.cycleT() + dt / 1.2;
     this.cycleT.set(nextT);
     const newTarget = this.math.cycleS(nextT);
     this.sTarget.set(newTarget);

@@ -46,8 +46,19 @@
     }
   </div>
 
-  <!-- 4. Merged Niño 3.4 Anomaly Readout, Scale Bar & Impacts/Pins Legend -->
+  <!-- 3. Standalone View / Anomaly Mode Dropdown -->
   <div class="header__right">
-    <app-legend-panel></app-legend-panel>
+    <div class="header__view glass-panel">
+      <app-dropdown
+        variant="ghost"
+        align="right"
+        [fullWidth]="true"
+        [options]="viewOptions()"
+        [value]="currentView()"
+        [icon]="currentViewIcon()"
+        [ariaLabel]="t.chooseView"
+        (valueChange)="onViewChange($event)">
+      </app-dropdown>
+    </div>
   </div>
 </header>

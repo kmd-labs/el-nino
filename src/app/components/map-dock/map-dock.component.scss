@@ -37,31 +37,61 @@
   width: min(740px, 100%);
   animation: panelSlideIn 0.22s ease-out;
 
+  &__readout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px 10px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  &__readout-label {
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  &__readout-full {
+    display: inline;
+  }
+
+  &__readout-short {
+    display: none;
+  }
+
+  &__readout-val {
+    font-size: font-size("lg");
+    font-weight: font-weight("bold");
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: color("text-bright");
+    white-space: nowrap;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 18px;
+    background: color("line-strong");
+    flex: none;
+    margin: 0 4px;
+  }
+
   &__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
 
-    &--views {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-
-      app-button {
-        width: 100%;
-        min-width: 0;
-
-        ::ng-deep .btn {
-          width: 100%;
-          min-width: 0;
-        }
-
-        span {
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      }
+    &--readout {
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      width: 100%;
     }
 
     &--enso {
@@ -73,29 +103,40 @@
 
 @include respond-to("mobile") {
   .dock-wrap {
-    left: 10px;
-    right: 10px;
+    left: 8px;
+    right: 8px;
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
   .dock {
-    padding: 8px 10px 10px;
+    padding: 8px 8px 10px;
     gap: 8px;
 
-    &__row--views {
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
+    &__readout {
+      gap: 6px;
+    }
 
-      app-button ::ng-deep .btn {
-        padding-inline: 6px;
-        gap: 4px;
-        font-size: font-size("xxs");
-      }
+    &__readout-full {
+      display: none;
+    }
 
-      // Icon-only buttons on small screens
-      .dock__label {
-        display: none;
-      }
+    &__readout-short {
+      display: inline;
+    }
+
+    &__readout-val {
+      font-size: font-size("sm");
+    }
+
+    &__divider {
+      height: 14px;
+      margin: 0 2px;
+    }
+
+    &__row--readout {
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: nowrap;
     }
 
     &__row--enso {

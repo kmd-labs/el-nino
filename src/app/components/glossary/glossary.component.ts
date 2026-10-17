@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ExternalLink, Search } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -12,12 +12,10 @@ import { GlossaryGroup } from '../../core/i18n/i18n.types';
   templateUrl: './glossary.component.html',
   styleUrl: './glossary.component.scss'
 })
-export class GlossaryComponent implements AfterViewInit {
+export class GlossaryComponent {
   i18n = inject(I18nService);
   readonly searchIcon = Search;
   readonly externalLinkIcon = ExternalLink;
-
-  @ViewChild('search') searchRef!: ElementRef<HTMLInputElement>;
 
   readonly query = signal('');
 
@@ -29,10 +27,6 @@ export class GlossaryComponent implements AfterViewInit {
       .map(g => ({ ...g, terms: g.terms.filter(t => (t.term + ' ' + t.text).toLowerCase().includes(q)) }))
       .filter(g => g.terms.length > 0);
   });
-
-  ngAfterViewInit() {
-    this.searchRef?.nativeElement.focus({ preventScroll: true });
-  }
 
   onSearch(e: Event) {
     this.query.set((e.target as HTMLInputElement).value);

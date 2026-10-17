@@ -15,10 +15,9 @@ import { PopupService } from '../ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
 
 /**
- * Merged sidepanel component combining:
- * 1. Niño 3.4 Anomaly readout & current ENSO phase badge
- * 2. Thermal / Anomaly color scale bar
- * 3. Legend Dropdown containing Continental Rainfall Anomalies & Historical Impact Pins
+ * Legend & Glossary controls:
+ * 1. Thermal / Anomaly color scale bar, Phase Impacts Pins & Continental Rainfall Anomalies
+ * 2. Searchable Glossary modal trigger
  */
 @Component({
   selector: 'app-legend-panel',
@@ -48,12 +47,6 @@ export class LegendPanelComponent {
   readonly scaleMode = computed<DisplayMode>(() => {
     const v = this.state.view();
     return v === 'walker' || v === 'thermocline' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
-  });
-
-  readonly formattedNino = computed(() => {
-    const n = this.state.nino34Value();
-    const sign = n >= 0 ? '+' : '−';
-    return `${sign}${Math.abs(n).toFixed(1)} °C`;
   });
 
   readonly rainTitle = computed(() => {

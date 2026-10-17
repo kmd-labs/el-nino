@@ -338,7 +338,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.rotateResumeTimer = setTimeout(() => {
       this.rotateResumeTimer = null;
       if (!this.state.selectedLocation()) {
-        this.controls.autoRotate = true;
         this.ngZone.run(() => {
           this.state.toggleAutoRotate(true);
         });
@@ -362,8 +361,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.minDistance = 7.5;
     this.controls.maxDistance = 40;
     this.controls.enablePan = false;
-    this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.35;
+    this.controls.autoRotate = false;
 
     this.controls.addEventListener('start', () => {
       if (this.rotateResumeTimer !== null) {
@@ -1458,7 +1456,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.updateAtm(s, dt, t);
     }
 
-    this.controls.autoRotate = this.state.autoRotate();
+    if (this.state.autoRotate()) {
+      const dist = this.camera.position.length();
+      const targetLon = 185 + this.math.clamp(s * 18, -30, 45);
+      const targetLat = 8;
+      this.math.pos(targetLon, targetLat, dist, this.tmpVec);
+      this.camera.position.lerp(this.tmpVec, Math.min(1, dt * 0.9)).setLength(dist);
+    }
     this.controls.update();
     this.camDir.copy(this.camera.position).normalize();
 

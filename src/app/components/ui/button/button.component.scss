@@ -8,12 +8,12 @@
   font: inherit;
   font-size: font-size("xs");
   font-weight: font-weight("medium");
-  line-height: 1;
+  line-height: 1.25;
   color: color("text-main");
   background: color("btn-bg");
   border: 1px solid color("line");
   border-radius: radius("control");
-  padding: 7px 12px;
+  padding: 6px 12px;
   height: $control-height;
   min-height: $control-height;
   gap: 6px;
@@ -50,7 +50,8 @@
     border-color: transparent;
     color: color("text-dim");
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled),
+    &.btn--active {
       background: color("btn-hover");
       color: color("text-bright");
     }
