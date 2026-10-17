@@ -8,53 +8,17 @@
   }
 
   <div class="dock glass-panel">
-    <!-- Row 1: View Switcher -->
-    <div class="dock__row dock__row--views" role="group" [attr.aria-label]="t.chooseView">
-      <app-button
-        [ariaLabel]="t.viewTemp"
-        [titleText]="t.viewTemp"
-        variant="toggle"
-        [active]="state.view() === 'globe' && state.displayMode() === 'sst'"
-        (btnClick)="onModeClick('sst')">
-        <lucide-icon [img]="thermometerIcon" [size]="14"></lucide-icon>
-        <span class="dock__label">{{ t.viewTemp }}</span>
-      </app-button>
-      <app-button
-        [ariaLabel]="t.viewAnom"
-        [titleText]="t.viewAnom"
-        variant="toggle"
-        [active]="state.view() === 'globe' && state.displayMode() === 'anom'"
-        (btnClick)="onModeClick('anom')">
-        <lucide-icon [img]="activityIcon" [size]="14"></lucide-icon>
-        <span class="dock__label">{{ t.viewAnom }}</span>
-      </app-button>
-      <app-button
-        [ariaLabel]="t.viewWalker"
-        [titleText]="t.viewWalker"
-        variant="toggle"
-        [active]="isWalker()"
-        (btnClick)="state.setView('walker')">
-        <lucide-icon [img]="windIcon" [size]="14"></lucide-icon>
-        <span class="dock__label">{{ t.viewWalker }}</span>
-      </app-button>
-      <app-button
-        [ariaLabel]="t.viewImpacts"
-        [titleText]="t.viewImpacts"
-        variant="toggle"
-        [active]="state.view() === 'impacts'"
-        (btnClick)="state.setView('impacts')">
-        <lucide-icon [img]="cloudRainIcon" [size]="14"></lucide-icon>
-        <span class="dock__label">{{ t.viewImpacts }}</span>
-      </app-button>
-      <app-button
-        [ariaLabel]="t.thermoChip"
-        [titleText]="t.thermoChip"
-        variant="toggle"
-        [active]="isThermocline()"
-        (btnClick)="state.setView('thermocline')">
-        <lucide-icon [img]="wavesIcon" [size]="14"></lucide-icon>
-        <span class="dock__label">{{ t.thermoChip }}</span>
-      </app-button>
+    <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
+    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
+      <div class="dock__readout">
+        <span class="dock__readout-label">
+          <span class="dock__readout-full">{{ t.readoutTitle }}</span>
+          <span class="dock__readout-short">Niño 3.4</span>
+        </span>
+        <span class="dock__readout-val">{{ formattedNino() }}</span>
+      </div>
+
+      <app-legend-panel></app-legend-panel>
     </div>
 
     <!-- Row 2: ENSO Timeline Slider + Play Button on the right of the scrollbar -->

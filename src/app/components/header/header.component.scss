@@ -7,7 +7,7 @@
   right: 16px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   pointer-events: none;
   z-index: 20;
@@ -15,9 +15,10 @@
   &__left {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     pointer-events: auto;
+    flex: none;
   }
 
   &__brand {
@@ -93,10 +94,41 @@
     flex: none;
   }
 
+  &__view {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: radius("pill");
+    width: 205px;
+    box-sizing: border-box;
+
+    app-dropdown {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  @include respond-to("tablet") {
+    &__view {
+      width: 180px;
+    }
+  }
+
   @include respond-to("mobile") {
     top: 10px;
-    left: 10px;
-    right: 10px;
+    left: 8px;
+    right: 8px;
+    gap: 8px;
+
+    &__left {
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
+    &__brand {
+      padding: 4px 10px;
+      height: 38px;
+    }
 
     &__app-name {
       display: none;
@@ -104,6 +136,26 @@
 
     &__brand .header__divider {
       display: none;
+    }
+
+    &__settings {
+      padding: 3px;
+      height: 38px;
+      gap: 2px;
+    }
+
+    &__view {
+      width: 140px;
+      height: 38px;
+      padding: 3px;
+
+      ::ng-deep .btn {
+        padding: 4px 8px;
+        height: 32px;
+        min-height: 32px;
+        font-size: font-size("xxs");
+        gap: 5px;
+      }
     }
   }
 }

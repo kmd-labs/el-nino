@@ -25,6 +25,7 @@
     <div
       class="dropdown__menu glass-panel--heavy"
       [class.dropdown__menu--right]="align() === 'right'"
+      [class.dropdown__menu--up]="direction() === 'up'"
       [attr.role]="options().length ? 'listbox' : 'region'"
       [attr.aria-label]="ariaLabel() || triggerText()">
       @if (options().length > 0) {
