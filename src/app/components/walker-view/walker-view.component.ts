@@ -313,7 +313,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private text(str: string, x: number, y: number, align: CanvasTextAlign, color: string, bold = false) {
     const ctx = this.ctx;
-    ctx.font = `${bold ? '600 ' : ''}11px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    ctx.font = `${bold ? '600 ' : ''}11px ${this.theme.getFontFamily()}`;
     ctx.textAlign = align;
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = color;

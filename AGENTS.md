@@ -11,6 +11,7 @@ This document defines the mandatory UI, architectural, and engineering conventio
 - **Single Light Theme:** KMD applications use a single, cohesive **Light Theme** defined in `_variables.scss` (`neutral-50` `#f5f7fb` airy background with frosted glass panels).
   - Do **not** implement dark mode, light/dark toggle buttons, or theme persistence in `localStorage`.
   - Canvas/WebGL renderers read design tokens at runtime via `ThemeService.getTokenColor(token)` from `:root` CSS custom properties (`--color-*`).
+- **Unified Typography (`Inter`):** All UI elements and `<canvas>` 2D/3D text labels use a single font family (`$font-family: "Inter", sans-serif;` emitted as `--font-family` on `:root`). Canvas renderers must use `ThemeService.getFontFamily()` instead of hardcoding system font stacks like `"Segoe UI"`.
 
 ---
 

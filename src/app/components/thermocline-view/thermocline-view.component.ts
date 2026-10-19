@@ -138,7 +138,7 @@ export class ThermoclineViewComponent implements AfterViewInit, OnDestroy {
     }
     ctx.stroke();
 
-    ctx.font = '600 12px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = `600 12px ${this.theme.getFontFamily()}`;
     ctx.fillStyle = ink;
     ctx.shadowColor = halo;
     ctx.shadowBlur = 4;
