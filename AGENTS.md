@@ -20,7 +20,7 @@ This document defines the mandatory UI, architectural, and engineering conventio
 Every KMD visualization app follows a strict three-zone HUD floating over the full-screen visualization:
 
 1. **Top-Left — Brand Logotype & Language Selector (`.header__left`):**
-   - **Brand Pill (`.header__brand.glass-panel`):** Displays the `KMD` logotype (bold uppercase with the signature `accent` dot) separated by a `1px` vertical divider from the application name (e.g., `KMD | El Niño`). On `mobile` (`≤ 640px`), the divider and app name hide so only `KMD.` remains.
+   - **Brand Pill (`.header__brand.glass-panel`):** Displays the official `KMD` SVG logotype (`assets/design-system/logo/kmd-black-orange.svg` — black wordmark with `#D37400` orange accent dot) separated by a `1px` vertical divider from the application name (e.g., `KMD | El Niño`). On `mobile` (`≤ 640px`), the divider and app name hide so only the `KMD` logotype remains.
    - **Language Pill (`.header__settings.glass-panel`):** Contains **only** the compact language `app-dropdown` (`EN`, `PL`, `ES`). No theme buttons or extra settings icons.
 2. **Top-Right — View Switcher (`.header__right`):**
    - **View Pill (`.header__view.glass-panel`):** Contains a single right-aligned `app-dropdown` (`align="right"`) that switches between the app's primary visualization modes/views.

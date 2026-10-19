@@ -35,23 +35,11 @@
     align-items: center;
   }
 
-  &__logo-mark {
-    font-size: font-size("base");
-    font-weight: font-weight("bold");
-    letter-spacing: 0.12em;
-    color: color("text-bright");
-    position: relative;
-
-    &::after {
-      content: "";
-      display: inline-block;
-      width: 5px;
-      height: 5px;
-      margin-left: 2px;
-      border-radius: 50%;
-      background: color("accent");
-      vertical-align: baseline;
-    }
+  &__logo-img {
+    height: 16px;
+    width: auto;
+    display: block;
+    user-select: none;
   }
 
   &__divider {
