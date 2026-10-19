@@ -44,13 +44,21 @@ Breakpoints are defined **once** in `_variables.scss` and emitted as `:root` CSS
 
 ---
 
-## 4. Language & Localization (`I18nService`)
+## 4. Internationalization (`I18nService`) & `localStorage` Persistence
 
-- **Zero-Friction Detection:** On startup, language is resolved in this exact order:
-  1. `localStorage` (`el-nino.lang` or `<app-slug>.lang`) if a supported `Lang` (`'en' | 'pl' | 'es'`) was previously chosen.
-  2. Browser `navigator.languages` / `navigator.language` prefix match (`en`, `pl`, `es`).
-  3. Fallback to `'en'`.
-- **Persistence:** Whenever the user selects a language from the top-left dropdown, an Angular `effect()` updates `document.documentElement.lang`, `document.title`, and persists the choice to `localStorage`.
+- **Mandatory Internationalization (Zero Hardcoded Strings):**
+  - Every user-facing string in Angular templates (`.html`), TypeScript components (`.ts`), popups/glossaries, tooltips, ARIA labels, and `<canvas>` / WebGL 2D/3D text labels **must** be resolved through `I18nService` (`i18n.t()`).
+  - Never hardcode English or Polish strings directly inside components, services, or canvas renderers.
+- **Modular Type-Safe Dictionaries (`src/app/core/i18n/`):**
+  - `i18n.types.ts` — defines `Lang` (`'en' | 'pl'`, plus any optional additional locales such as `'es'`) and the `Dict` interface. Always add new translation keys to `Dict` first so TypeScript enforces completeness across every language file.
+  - `en.ts` (`EN: Dict`) & `pl.ts` (`PL: Dict`) — every scaffolded KMD app ships with English (`en.ts`) and Polish (`pl.ts`) dictionary files. Whenever you add or modify any UI text, label, or glossary entry, you **must** update both `en.ts` and `pl.ts` simultaneously.
+  - `i18n.service.ts` — exposes reactive `lang = signal<Lang>(...)` and `t = computed(() => DICTS[this.lang()])` signals.
+- **Zero-Friction Detection & `localStorage` Persistence:**
+  - On startup, initial language is resolved in this exact order:
+    1. `localStorage` (`<app-slug>.lang`, e.g., `el-nino.lang`) if a supported `Lang` was previously saved.
+    2. Browser `navigator.languages` / `navigator.language` prefix match (`en`, `pl`, etc.).
+    3. Fallback to `'en'`.
+  - **Persistence to `localStorage`:** Whenever the user selects a language from the top-left dropdown (`i18n.setLang(lang)`), an Angular `effect()` automatically updates `document.documentElement.lang`, `document.title`, and persists the selected language to `localStorage.setItem('<app-slug>.lang', lang)`.
 
 ---
 
