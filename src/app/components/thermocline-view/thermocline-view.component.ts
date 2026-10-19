@@ -12,9 +12,9 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ExternalLink } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { BadgeComponent } from '../ui/badge/badge.component';
+import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
 
 /** Resolution of the temperature field; it is scaled up to the canvas so dragging the slider stays cheap. */
 const FIELD_W = 440;
@@ -56,10 +56,9 @@ export class ThermoclineViewComponent implements AfterViewInit, OnDestroy {
     this.field.width = FIELD_W;
     this.field.height = FIELD_H;
     effect(() => {
-      // redraw whenever the animated strength, language or theme (colour tokens) changes
+      // redraw whenever the animated strength or language changes
       this.state.sCur();
       this.i18n.lang();
-      this.theme.theme();
       if (this.ready) this.draw();
     });
   }
@@ -139,7 +138,7 @@ export class ThermoclineViewComponent implements AfterViewInit, OnDestroy {
     }
     ctx.stroke();
 
-    ctx.font = '600 12px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = `600 12px ${this.theme.getFontFamily()}`;
     ctx.fillStyle = ink;
     ctx.shadowColor = halo;
     ctx.shadowBlur = 4;

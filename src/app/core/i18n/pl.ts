@@ -18,9 +18,6 @@ export const PL: Dict = {
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
   changeLanguage: 'Język',
-  themeLight: 'Tryb jasny',
-  themeDark: 'Tryb ciemny',
-  toggleTheme: 'Zmień motyw kolorystyczny',
 
   ensoLabel: 'Faza ENSO',
   strengthAria: 'Siła ENSO',

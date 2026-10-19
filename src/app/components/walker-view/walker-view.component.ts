@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
 
@@ -313,7 +313,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private text(str: string, x: number, y: number, align: CanvasTextAlign, color: string, bold = false) {
     const ctx = this.ctx;
-    ctx.font = `${bold ? '600 ' : ''}11px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    ctx.font = `${bold ? '600 ' : ''}11px ${this.theme.getFontFamily()}`;
     ctx.textAlign = align;
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = color;

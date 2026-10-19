@@ -18,9 +18,6 @@ export const ES: Dict = {
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',
   changeLanguage: 'Idioma',
-  themeLight: 'Modo claro',
-  themeDark: 'Modo oscuro',
-  toggleTheme: 'Cambiar tema de color',
 
   ensoLabel: 'Fase ENSO',
   strengthAria: 'Intensidad de ENSO',

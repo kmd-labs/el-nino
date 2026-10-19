@@ -20,14 +20,14 @@ import * as d3Geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { EVENTS_META } from '../../core/constants/enso-data';
 import { RAIN_REGIONS } from '../../core/constants/impacts-data';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { EnsoPhase, ImpactLocationMeta } from '../../core/models/enso.model';
-import { isAtMost } from '../../core/utils/breakpoints';
-import { PopupService } from '../ui/popup/popup.service';
-import { TooltipService } from '../ui/tooltip/tooltip.service';
+import { isAtMost } from '@kmd/design-system/utils/breakpoints';
+import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
 
 interface PinItem {
@@ -117,73 +117,45 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private landCanvas!: HTMLCanvasElement;
   private landTex!: THREE.CanvasTexture;
 
-  constructor() {
-    effect(() => {
-      const mode = this.theme.theme();
-      this.math.refreshLutsFromTokens();
-      this.applyThemeVisuals(mode);
-      if (this.landCanvas) {
-        this.drawLand(this.loadedLandFeature);
-      }
-      if (this.impCanvas && this.impDrawn !== 0) {
-        this.drawImpacts(this.impDrawn);
-      }
-      this.lastMode = '';
-    });
-  }
-
-  private applyThemeVisuals(mode: 'light' | 'dark') {
-    const isLight = mode === 'light';
+  private applyThemeVisuals() {
     if (this.scene) {
-      this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', isLight ? '#f5f7fb' : '#040812'));
+      this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', '#f5f7fb'));
     }
     if (this.stars) {
       this.stars.visible = true;
       const mat = this.stars.material as THREE.PointsMaterial;
-      mat.color.set(this.theme.getTokenColor('globe-star', isLight ? '#475569' : '#94a3b8'));
-      mat.opacity = isLight ? 0.85 : 0.7;
+      mat.color.set(this.theme.getTokenColor('globe-star', '#475569'));
+      mat.opacity = 0.85;
       mat.needsUpdate = true;
     }
     if (this.hemiLight) {
-      this.hemiLight.color.setHex(isLight ? 0xffffff : 0xdfe8ff);
-      this.hemiLight.groundColor.setHex(isLight ? 0xdbe4f0 : 0x223044);
-      this.hemiLight.intensity = isLight ? 1.25 : 0.95;
+      this.hemiLight.color.setHex(0xffffff);
+      this.hemiLight.groundColor.setHex(0xdbe4f0);
+      this.hemiLight.intensity = 1.25;
     }
     if (this.globeMat && this.sstTex) {
-      if (isLight) {
-        // Unshaded emissive texture in light mode so neutral water (#f5f7fb) matches the background exactly without grey Lambert darkening
-        this.globeMat.color.setHex(0x000000);
-        this.globeMat.emissive.setHex(0xffffff);
-        this.globeMat.emissiveMap = this.sstTex;
-      } else {
-        this.globeMat.color.setHex(0xffffff);
-        this.globeMat.emissive.setHex(0x000000);
-        this.globeMat.emissiveMap = null;
-      }
+      // Unshaded emissive texture so neutral water (#f5f7fb) matches the background exactly without grey Lambert darkening
+      this.globeMat.color.setHex(0x000000);
+      this.globeMat.emissive.setHex(0xffffff);
+      this.globeMat.emissiveMap = this.sstTex;
       this.globeMat.needsUpdate = true;
     }
     if (this.landMat && this.landTex) {
-      if (isLight) {
-        this.landMat.color.setHex(0x000000);
-        this.landMat.emissive.setHex(0xffffff);
-        this.landMat.emissiveMap = this.landTex;
-      } else {
-        this.landMat.color.setHex(0xffffff);
-        this.landMat.emissive.setHex(0x000000);
-        this.landMat.emissiveMap = null;
-      }
+      this.landMat.color.setHex(0x000000);
+      this.landMat.emissive.setHex(0xffffff);
+      this.landMat.emissiveMap = this.landTex;
       this.landMat.needsUpdate = true;
     }
     if (this.glowMat) {
-      this.glowMat.uniforms['c'].value.set(this.theme.getTokenColor('globe-glow', isLight ? '#0f172a' : '#93c5fd'));
-      this.glowMat.uniforms['uOpacity'].value = isLight ? 0.22 : 0.5;
-      this.glowMat.uniforms['uPower'].value = isLight ? 2.2 : 1.9;
-      this.glowMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+      this.glowMat.uniforms['c'].value.set(this.theme.getTokenColor('globe-glow', '#0f172a'));
+      this.glowMat.uniforms['uOpacity'].value = 0.22;
+      this.glowMat.uniforms['uPower'].value = 2.2;
+      this.glowMat.blending = THREE.NormalBlending;
       this.glowMat.needsUpdate = true;
     }
-    this.cWind.set(this.theme.getTokenColor('globe-wind', isLight ? '#1e293b' : '#ffffff'));
-    this.cWaveWarm.set(this.theme.getTokenColor('globe-wave-warm', isLight ? '#0284c7' : '#bae6fd'));
-    this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', isLight ? '#2563eb' : '#60a5fa'));
+    this.cWind.set(this.theme.getTokenColor('globe-wind', '#1e293b'));
+    this.cWaveWarm.set(this.theme.getTokenColor('globe-wave-warm', '#0284c7'));
+    this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', '#2563eb'));
   }
 
   // Atmosphere
@@ -305,7 +277,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initAtmosphere();
       this.initPins();
       this.initImpacts();
-      this.applyThemeVisuals(this.theme.theme());
+      this.applyThemeVisuals();
       this.handleResize();
       this.initUiResizeObserver();
       this.animate();
@@ -351,7 +323,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', '#040812'));
+    this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', '#f5f7fb'));
 
     this.camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 400);
     this.scene.add(this.camera);
@@ -378,7 +350,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.scheduleRotateResume(5000);
     });
 
-    this.hemiLight = new THREE.HemisphereLight(0xdfe8ff, 0x223044, 0.95);
+    this.hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe4f0, 1.25);
     this.scene.add(this.hemiLight);
 
     const headLight = new THREE.DirectionalLight(0xffffff, 0.75);
@@ -396,13 +368,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private initGlowAndStars() {
     const R = this.math.R;
-    const isLight = this.theme.theme() === 'light';
     // Outer halo sphere (radius R * 1.15). At the globe's limb (r = R), -dot(vN, vV) = sqrt(1 - (1/1.15)^2) = 0.4938.
     this.glowMat = new THREE.ShaderMaterial({
       uniforms: {
-        c: { value: new THREE.Color(this.theme.getTokenColor('globe-glow', isLight ? '#0f172a' : '#93c5fd')) },
-        uOpacity: { value: isLight ? 0.22 : 0.5 },
-        uPower: { value: isLight ? 2.2 : 1.9 }
+        c: { value: new THREE.Color(this.theme.getTokenColor('globe-glow', '#0f172a')) },
+        uOpacity: { value: 0.22 },
+        uPower: { value: 2.2 }
       },
       vertexShader: `
         varying vec3 vN;
@@ -428,7 +399,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         }
       `,
       side: THREE.BackSide,
-      blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       transparent: true,
       depthWrite: false
     });
@@ -449,11 +420,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.stars = new THREE.Points(
       starGeo,
       new THREE.PointsMaterial({
-        color: new THREE.Color(this.theme.getTokenColor('globe-star', isLight ? '#475569' : '#94a3b8')),
+        color: new THREE.Color(this.theme.getTokenColor('globe-star', '#475569')),
         size: 0.6,
         sizeAttenuation: true,
         transparent: true,
-        opacity: isLight ? 0.85 : 0.7
+        opacity: 0.85
       })
     );
     this.stars.visible = true;
@@ -502,7 +473,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sk = Math.max(0, s - 1.4);
     const sn = Math.max(0, -s);
     const isSST = mode === 'sst';
-    const isLight = this.theme.theme() === 'light';
 
     for (let i = 0; i < this.NG; i++) {
       const a = sp * this.BP[i] + sk * this.BC[i] + sn * this.BN[i];
@@ -510,17 +480,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
       const o = i * 4;
       if (dim) {
-        if (isLight) {
-          // Muted, light ocean blending into the #f5f7fb background so rainfall regions stand out without grey water
-          this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
-          this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
-          this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
-        } else {
-          // Muted, darker ocean in dark mode
-          this.texData[o] = 14 + lut[k] * 0.38;
-          this.texData[o + 1] = 24 + lut[k + 1] * 0.38;
-          this.texData[o + 2] = 40 + lut[k + 2] * 0.38;
-        }
+        // Muted, light ocean blending into the #f5f7fb background so rainfall regions stand out without grey water
+        this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
+        this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
+        this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
       } else {
         this.texData[o] = lut[k];
         this.texData[o + 1] = lut[k + 1];
@@ -968,8 +931,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const R = this.math.R * 1.012;
     const T = this.TRAIL;
     const spd = 7.5; // degrees per second at unit wind
-    const isLight = this.theme.theme() === 'light';
-    const alphaScale = isLight ? 0.62 : 0.48;
+    const alphaScale = 0.62;
     let w = 0;
     for (let i = 0; i < this.NW; i++) {
       this.wAge[i] += dt;

@@ -11,7 +11,7 @@
       <h1 class="header__app-name">El Niño</h1>
     </div>
 
-    <!-- 2. Settings Container (Language Dropdown + Light/Dark Theme Switcher) -->
+    <!-- 2. Language Selector Container -->
     <div class="header__settings glass-panel" role="group" [attr.aria-label]="t.changeLanguage">
       <app-dropdown
         variant="ghost"
@@ -21,21 +21,6 @@
         [ariaLabel]="t.changeLanguage"
         (valueChange)="onLangChange($event)">
       </app-dropdown>
-
-      <span class="header__divider" aria-hidden="true"></span>
-
-      <app-button
-        variant="ghost"
-        [iconOnly]="true"
-        [ariaLabel]="t.toggleTheme"
-        [titleText]="theme.theme() === 'dark' ? t.themeLight : t.themeDark"
-        (btnClick)="theme.toggleTheme()">
-        @if (theme.theme() === 'dark') {
-          <lucide-icon [img]="sunIcon" [size]="15"></lucide-icon>
-        } @else {
-          <lucide-icon [img]="moonIcon" [size]="15"></lucide-icon>
-        }
-      </app-button>
     </div>
 
 

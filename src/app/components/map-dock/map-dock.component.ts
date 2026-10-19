@@ -15,9 +15,9 @@ import {
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PRESETS } from '../../core/constants/enso-data';
-import { ButtonComponent } from '../ui/button/button.component';
-import { TimelineSliderComponent } from '../ui/timeline-slider/timeline-slider.component';
-import { TimelineMarker } from '../ui/timeline-slider/timeline-slider.model';
+import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
+import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/timeline-slider.component';
+import { TimelineMarker } from '@kmd/design-system/ui/timeline-slider/timeline-slider.model';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 

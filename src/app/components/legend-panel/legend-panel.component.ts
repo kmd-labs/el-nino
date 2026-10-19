@@ -3,15 +3,14 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Layers, BookOpen } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { ThemeService } from '../../core/services/theme.service';
-import { BreakpointService } from '../../core/services/breakpoint.service';
+import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DisplayMode } from '../../core/models/enso.model';
 import { IMPACT_SOURCES } from '../../core/constants/impacts-data';
-import { DropdownComponent } from '../ui/dropdown/dropdown.component';
-import { TooltipDirective } from '../ui/tooltip/tooltip.directive';
-import { ButtonComponent } from '../ui/button/button.component';
-import { PopupService } from '../ui/popup/popup.service';
+import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
+import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
+import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
 
 /**
@@ -29,7 +28,6 @@ import { GlossaryComponent } from '../glossary/glossary.component';
 export class LegendPanelComponent {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
-  theme = inject(ThemeService);
   bp = inject(BreakpointService);
   private math = inject(EnsoMathService);
   private popup = inject(PopupService);
@@ -79,7 +77,6 @@ export class LegendPanelComponent {
 
   constructor() {
     effect(() => {
-      this.theme.theme();
       this.drawScale(this.scaleMode());
     });
   }
