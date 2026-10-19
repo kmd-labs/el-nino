@@ -18,7 +18,15 @@
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/design-system/assets",
+                "output": "assets/design-system"
+              }
+            ],
             "styles": ["src/styles.scss"],
             "scripts": [],
             "stylePreprocessorOptions": {
@@ -82,7 +90,15 @@
             "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/design-system/assets",
+                "output": "assets/design-system"
+              }
+            ],
             "styles": ["src/styles.scss"],
             "scripts": [],
             "stylePreprocessorOptions": {
