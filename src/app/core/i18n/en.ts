@@ -18,9 +18,6 @@ export const EN: Dict = {
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',
   changeLanguage: 'Language',
-  themeLight: 'Light mode',
-  themeDark: 'Dark mode',
-  toggleTheme: 'Toggle color theme',
 
   ensoLabel: 'ENSO phase',
   strengthAria: 'ENSO strength',

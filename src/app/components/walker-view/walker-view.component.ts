@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
-import { ThemeService } from '../../core/services/theme.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
 

@@ -60,9 +60,6 @@ export interface Dict {
   loadingMap: string;
   mapError: string;
   changeLanguage: string;
-  themeLight: string;
-  themeDark: string;
-  toggleTheme: string;
 
   // ENSO state & dock controls
   ensoLabel: string;

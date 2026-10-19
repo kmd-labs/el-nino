@@ -8,7 +8,7 @@ import {
   PHASE_COLOR_TOKENS,
   TEMP_COLOR_TOKENS
 } from '../constants/enso-data';
-import { ThemeService } from './theme.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 
 export interface ColorLut {
   lut: Uint8Array;

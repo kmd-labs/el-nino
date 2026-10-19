@@ -22,7 +22,7 @@
             "styles": ["src/styles.scss"],
             "scripts": [],
             "stylePreprocessorOptions": {
-              "includePaths": ["src"]
+              "includePaths": ["src", "src/design-system"]
             }
           },
           "configurations": {
@@ -86,7 +86,7 @@
             "styles": ["src/styles.scss"],
             "scripts": [],
             "stylePreprocessorOptions": {
-              "includePaths": ["src"]
+              "includePaths": ["src", "src/design-system"]
             }
           }
         }

@@ -1,0 +1,70 @@
+# KMD Engineering & Design System Practices (`AGENTS.md`)
+
+This document defines the mandatory UI, architectural, and engineering conventions for all **KMD (`kmd-labs`)** interactive visualization applications. Every human contributor and AI coding agent MUST follow these rules.
+
+---
+
+## 1. Core Philosophy: Zero Friction, Visualization First
+
+- **Immediate Immersion:** The interactive visualization (3D globe, canvas, simulation, or chart) occupies `100vw × 100vh` and is immediately interactive upon page load.
+- **No Settings Bloat:** Never add settings modals, preferences drawers, theme switchers, or onboarding popups that block or distract from the visualization.
+- **Single Light Theme:** KMD applications use a single, cohesive **Light Theme** defined in `_variables.scss` (`neutral-50` `#f5f7fb` airy background with frosted glass panels).
+  - Do **not** implement dark mode, light/dark toggle buttons, or theme persistence in `localStorage`.
+  - Canvas/WebGL renderers read design tokens at runtime via `ThemeService.getTokenColor(token)` from `:root` CSS custom properties (`--color-*`).
+
+---
+
+## 2. Canonical Viewport Layout
+
+Every KMD visualization app follows a strict three-zone HUD floating over the full-screen visualization:
+
+1. **Top-Left — Brand Logotype & Language Selector (`.header__left`):**
+   - **Brand Pill (`.header__brand.glass-panel`):** Displays the `KMD` logotype (bold uppercase with the signature `accent` dot) separated by a `1px` vertical divider from the application name (e.g., `KMD | El Niño`). On `mobile` (`≤ 640px`), the divider and app name hide so only `KMD.` remains.
+   - **Language Pill (`.header__settings.glass-panel`):** Contains **only** the compact language `app-dropdown` (`EN`, `PL`, `ES`). No theme buttons or extra settings icons.
+2. **Top-Right — View Switcher (`.header__right`):**
+   - **View Pill (`.header__view.glass-panel`):** Contains a single right-aligned `app-dropdown` (`align="right"`) that switches between the app's primary visualization modes/views.
+3. **Bottom Dock — Application Logic, Sliders & Glossaries (`.dock-wrap`):**
+   - All simulation controls, timeline/parameter sliders (`app-timeline-slider`), play/pause buttons, layer toggles, color-scale legends, and glossary triggers (`PopupService`) live in floating glassmorphic panels anchored to the **bottom** of the viewport.
+
+---
+
+## 3. Responsive Breakpoints (Single Source of Truth)
+
+Breakpoints are defined **once** in `_variables.scss` and emitted as `:root` CSS custom properties (`--bp-mobile`, `--bp-tablet`, `--bp-desktop`):
+
+| Token | Max-Width | Usage |
+| :--- | :--- | :--- |
+| `mobile` | `640px` | Compact single-column dock, icon-only controls, hidden app subtitle in brand pill |
+| `tablet` | `960px` | Narrower view switcher and stacked dock panels |
+| `desktop` | `1280px` | Full multi-panel bottom dock layout |
+
+- **In SCSS:** Always use `@include respond-to("mobile")`, `@include respond-to("tablet")`, or `@include respond-to("desktop")`. Never hardcode `@media (max-width: ...)` pixel values.
+- **In TypeScript / Templates:** Always inject `BreakpointService` (`bp.mobile()`, `bp.tablet()`, `bp.desktop()`) or use `isAtMost()` from `@kmd/design-system/utils/breakpoints`.
+
+---
+
+## 4. Language & Localization (`I18nService`)
+
+- **Zero-Friction Detection:** On startup, language is resolved in this exact order:
+  1. `localStorage` (`el-nino.lang` or `<app-slug>.lang`) if a supported `Lang` (`'en' | 'pl' | 'es'`) was previously chosen.
+  2. Browser `navigator.languages` / `navigator.language` prefix match (`en`, `pl`, `es`).
+  3. Fallback to `'en'`.
+- **Persistence:** Whenever the user selects a language from the top-left dropdown, an Angular `effect()` updates `document.documentElement.lang`, `document.title`, and persists the choice to `localStorage`.
+
+---
+
+## 5. Design System Architecture (`@kmd/design-system`)
+
+Shared styles, UI primitives, and core utilities live in the [`kmd-labs/design-system`](https://github.com/kmd-labs/design-system) repository and are projected into each app via a **Git Submodule** at `src/design-system`:
+
+- **SCSS Design Tokens:** `src/design-system/_variables.scss` (imported via `@use "variables" as *;` configured in `angular.json` `stylePreprocessorOptions.includePaths`).
+- **UI Components (`@kmd/design-system/ui/*`):**
+  - `ButtonComponent` (`app-button`) — unified `32px` control height (`$control-height`), pill radius.
+  - `DropdownComponent` (`app-dropdown`) — accessible floating menu with icon/badge support.
+  - `PopupComponent` & `PopupService` (`app-popup`) — modal dialogs for glossaries and deep-dive data.
+  - `TooltipComponent`, `TooltipDirective`, & `TooltipService` (`[appTooltip]`).
+  - `BadgeComponent` (`app-badge`) — semantic status and phase pills.
+  - `TimelineSliderComponent` (`app-timeline-slider`) — interactive range slider with preset markers.
+- **Core Services & Utils (`@kmd/design-system/services/*`, `@kmd/design-system/utils/*`):**
+  - `BreakpointService` & `breakpoints.ts`
+  - `ThemeService` (stateless CSS `--color-*` token reader for WebGL/Canvas).

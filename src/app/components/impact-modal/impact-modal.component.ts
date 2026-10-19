@@ -4,7 +4,7 @@ import { LucideAngularModule, ExternalLink } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { BadgeComponent } from '../ui/badge/badge.component';
+import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
 
 @Component({
   selector: 'app-impact-modal',

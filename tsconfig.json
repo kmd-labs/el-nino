@@ -1,6 +1,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@kmd/design-system": ["./src/design-system/index.ts"],
+      "@kmd/design-system/*": ["./src/design-system/*"]
+    },
     "outDir": "./dist/out-tsc",
     "rootDir": "./src",
     "forceConsistentCasingInFileNames": true,

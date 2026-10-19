@@ -1,0 +1,35 @@
+name: Sync Design System Submodule
+
+on:
+  schedule:
+    # Run every 6 hours to check if kmd-labs/design-system was updated
+    - cron: '0 */6 * * *'
+  repository_dispatch:
+    types: [design-system-updated]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update design-system submodule to latest main
+        run: |
+          git submodule update --remote --merge src/design-system
+
+      - name: Create Pull Request with design-system updates
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(design-system): sync kmd-labs/design-system to latest"
+          title: "chore(design-system): sync kmd-labs/design-system to latest"
+          body: "Automated sync of `src/design-system` submodule from `kmd-labs/design-system`."
+          branch: chore/sync-design-system
+          delete-branch: true

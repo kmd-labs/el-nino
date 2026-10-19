@@ -3,7 +3,6 @@ import { DisplayMode, EnsoPhase, ImpactLocationMeta, PhaseInfo, ViewMode } from 
 import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../constants/enso-data';
 import { EnsoMathService } from './enso-math.service';
 import { I18nService } from '../i18n/i18n.service';
-import { ThemeService } from './theme.service';
 
 /** Initial ENSO strength: the "El Niño" preset. */
 const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
@@ -14,7 +13,6 @@ const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
 export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
-  private theme = inject(ThemeService);
 
   // Start in El Niño, shown as a temperature anomaly
   readonly sTarget = signal<number>(START_STRENGTH);
@@ -48,8 +46,6 @@ export class EnsoStateService {
   readonly dmiValue = computed<number>(() => this.math.dmi(this.sCur()));
 
   readonly category = computed<PhaseInfo>(() => {
-    // Depend on theme() so token colors re-evaluate if theme changes
-    this.theme.theme();
     const c = this.math.category(this.nino34Value());
     return { ...c, name: this.i18n.t().phase[c.k] };
   });
