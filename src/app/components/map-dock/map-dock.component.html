@@ -1,28 +1,45 @@
 @let t = i18n.t();
 
 <div #wrap class="dock-wrap">
-  @if (state.monthText()) {
-    <div class="cycle-pill glass-panel">
-      <span>{{ state.monthText() }}</span>
-    </div>
-  }
+  <!-- Cycle pill: when playing cycle show monthText; otherwise show interpolated real date -->
+  <div class="cycle-pill glass-panel" role="status">
+    <span>{{ activeDateLabel() || '2026' }}</span>
+  </div>
 
   <div class="dock glass-panel">
     <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
     <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
       <div class="dock__readout">
-        <span class="dock__readout-label">
-          <span class="dock__readout-full">{{ t.readoutTitle }}</span>
-          <span class="dock__readout-short">Niño 3.4</span>
-        </span>
+        <span class="dock__readout-label">{{ t.readoutTitle }}</span>
         <span class="dock__readout-val">{{ formattedNino() }}</span>
       </div>
 
       <app-legend-panel></app-legend-panel>
     </div>
 
-    <!-- Row 2: ENSO Timeline Slider + Play Button on the right of the scrollbar -->
+    <!-- Row 2: ENSO Timeline Dates (above) + Slider + Play Button -->
     <div class="dock__row dock__row--enso" role="group" [attr.aria-label]="t.ensoTab">
+      <!-- Dates directly above the phase buttons with NOW and FORECAST on top -->
+      <div class="dock__timeline-dates">
+        @for (dm of dateMarkers(); track dm.id) {
+          <div
+            class="dock__timeline-date"
+            [class.dock__timeline-date--active]="dm.active"
+            [class.dock__timeline-date--hot]="dm.hot"
+            [style.left.%]="markerPct(dm.value)"
+            role="button"
+            tabindex="0"
+            (click)="onDateClick(dm.value)"
+            (keydown.enter)="onDateClick(dm.value)"
+            (keydown.space)="onDateClick(dm.value)">
+            @if (dm.subLabel) {
+              <span class="dock__timeline-sub">{{ dm.subLabel }}</span>
+            }
+            <span class="dock__timeline-label">{{ dm.label }}</span>
+          </div>
+        }
+      </div>
+
       <app-timeline-slider
         [min]="-2"
         [max]="3"

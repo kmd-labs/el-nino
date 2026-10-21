@@ -51,5 +51,8 @@ export interface PhaseInfo {
 export interface Preset {
   ph: EnsoPhase;
   strength: number;
+  dateIso?: string;
+  now?: boolean;
+  forecast?: boolean;
   hot?: boolean;
 }

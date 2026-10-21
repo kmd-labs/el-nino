@@ -12,6 +12,7 @@ import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directiv
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
+import { CurrentWeatherService } from '../../core/services/current-weather.service';
 
 /**
  * Legend & Glossary controls:
@@ -38,14 +39,11 @@ export class LegendPanelComponent {
 
   @ViewChild('scaleCanvas') set scaleCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
     this.scaleRef = ref;
-    if (ref) this.drawScale(this.scaleMode());
+    if (ref) this.drawScale();
   }
   private scaleRef: ElementRef<HTMLCanvasElement> | undefined;
 
-  readonly scaleMode = computed<DisplayMode>(() => {
-    const v = this.state.view();
-    return v === 'walker' || v === 'thermocline' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
-  });
+  readonly scaleMode = computed<DisplayMode>(() => 'sst');
 
   readonly rainTitle = computed(() => {
     const s = this.state.sCur();
@@ -55,9 +53,7 @@ export class LegendPanelComponent {
     return t.rainTitleNino;
   });
 
-  readonly showImpactsLegend = computed(() => {
-    return !this.state.crossSectionView();
-  });
+  readonly showImpactsLegend = computed(() => !this.state.crossSectionView());
 
   openGlossaryPopup() {
     this.popup.open({
@@ -77,15 +73,15 @@ export class LegendPanelComponent {
 
   constructor() {
     effect(() => {
-      this.drawScale(this.scaleMode());
+      this.drawScale();
     });
   }
 
-  private drawScale(mode: DisplayMode) {
+  private drawScale() {
     const c = this.scaleRef?.nativeElement;
     const ctx = c?.getContext('2d');
     if (!c || !ctx) return;
-    const st = mode === 'sst' ? this.math.getThermalStops() : this.math.getAnomalyStops();
+    const st = this.math.getThermalStops();
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
     const gr = ctx.createLinearGradient(0, 0, c.width, 0);

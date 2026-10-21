@@ -91,11 +91,31 @@ export interface Dict {
   viewAnom: string;
   viewWalker: string;
   viewImpacts: string;
+  viewCurrent: string;
+  timelineNow: string;
+  timelineForecast: string;
+  /** current-situation view: live-data badge */
+  currentLive: string;
+  currentAt: (time: string) => string;
+  currentWind: string;
+  currentWaves: string;
+  scaleSstNow: string;
+  scaleSstOn: (date: string) => string;
+  scaleNoData: string;
+  currentSources: string;
+  currentSourceTitle: string;
+  sstSourceTitle: (date: string, preliminary: boolean) => string;
+  currentLoading: string;
+  currentError: string;
   scaleSst: string;
   scaleAnom: string;
   scaleSstShort: string;
   scaleAnomShort: string;
   impactsTab: string;
+  flowLegendTitle: string;
+  flowWindLabel: string;
+  flowWaveLabel: string;
+  flowDesc: string;
   layersAria: string;
   layerAtm: string;
   layerAtmTitle: string;
@@ -116,6 +136,8 @@ export interface Dict {
   rainTitleNeutral: string;
   rainTitleNino: string;
   sources: string;
+  sourceOisstTooltip: string;
+  sourceOpenMeteoTooltip: string;
 
   // globe labels
   lblConvection: string;

@@ -1,2 +1,13 @@
 @use "variables" as *;
 @use "base";
+
+:root {
+  --color-globe-wind: #{palette("neutral-600")};
+  --color-globe-wave-warm: #{palette("neutral-0")};
+  --color-globe-wave-cold: #{palette("neutral-0")};
+}
+
+.ui-tooltip {
+  max-width: min(260px, calc(100vw - 24px));
+  word-break: break-word;
+}

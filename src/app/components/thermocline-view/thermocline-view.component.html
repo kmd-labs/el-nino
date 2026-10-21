@@ -2,7 +2,7 @@
 <section class="thermo" [attr.aria-label]="t.thermoAria">
   <div class="thermo__step glass-panel" aria-live="polite">
     <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
-    <span class="thermo__val">Niño 3.4: {{ formattedNino() }}</span>
+    <span class="thermo__val">{{ t.readoutTitle }}: {{ formattedNino() }}</span>
     <span class="thermo__title">{{ state.description() }}</span>
   </div>
 

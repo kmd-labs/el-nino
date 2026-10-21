@@ -16,3 +16,4 @@
 
 # Ephemeral build artifacts
 /build/
+scripts/.cache/

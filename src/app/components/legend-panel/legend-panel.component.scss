@@ -121,22 +121,51 @@
     &--rain-wet i {
       background: color("rain-wet");
     }
+
+    &--wind i {
+      width: 14px;
+      height: 3px;
+      border-radius: radius("pill");
+      background: palette("neutral-600");
+    }
+
+    &--wave i {
+      width: 14px;
+      height: 3px;
+      border-radius: radius("pill");
+      background: palette("neutral-0");
+      border: 1px solid color("line-strong");
+      box-shadow: 0 0 2px rgba(palette("neutral-900"), 0.15);
+    }
   }
 
   &__sources {
     font-size: font-size("xxs");
     color: color("text-dim");
+    line-height: 1.45;
+    max-width: 270px;
+    white-space: normal;
 
     a {
       color: color("link-color");
       text-decoration: none;
-      margin-left: 3px;
+      margin: 0 1px;
       font-weight: font-weight("medium");
+      white-space: nowrap;
 
       &:hover {
         text-decoration: underline;
       }
     }
+  }
+
+  &__flow-desc {
+    margin: 2px 0 0;
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    line-height: 1.4;
+    max-width: 260px;
+    white-space: normal;
   }
 
   @include respond-to("mobile") {

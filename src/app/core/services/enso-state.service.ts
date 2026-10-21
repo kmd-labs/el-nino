@@ -4,8 +4,8 @@ import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../
 import { EnsoMathService } from './enso-math.service';
 import { I18nService } from '../i18n/i18n.service';
 
-/** Initial ENSO strength: the "El Niño" preset. */
-const START_STRENGTH = PRESETS.find(p => p.ph === 'nino')!.strength;
+const EARLIEST_STRENGTH = -1.6;
+const NOW_STRENGTH = 1.4;
 
 @Injectable({
   providedIn: 'root'
@@ -14,26 +14,24 @@ export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
 
-  // Start in El Niño, shown as a temperature anomaly
-  readonly sTarget = signal<number>(START_STRENGTH);
-  readonly sCur = signal<number>(START_STRENGTH);
-  readonly displayMode = signal<DisplayMode>('anom');
+  // Start at the earliest keyframe (Jan 2025), animating towards NOW
+  readonly sTarget = signal<number>(EARLIEST_STRENGTH);
+  readonly sCur = signal<number>(EARLIEST_STRENGTH);
+  readonly displayMode = signal<DisplayMode>('sst');
   readonly view = signal<ViewMode>('globe');
   /** Views that replace the globe with a flat cross-section (the globe stays hidden and paused). */
   readonly crossSectionView = computed(() => this.view() === 'walker' || this.view() === 'thermocline');
   readonly showAtmosphere = signal<boolean>(true);
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
-  readonly isPlaying = signal<boolean>(false);
+  readonly isPlaying = signal<boolean>(true);
   readonly cycleT = signal<number>(0);
   /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
   readonly cycleMonth = signal<number | null>(null);
   readonly mapLoaded = signal<boolean>(false);
   readonly mapError = signal<boolean>(false);
 
-  constructor() {
-    this.startPlaying();
-  }
+  constructor() {}
 
   readonly selectedLocation = signal<ImpactLocationMeta | null>(null);
   readonly hoveredLocation = signal<ImpactLocationMeta | null>(null);
@@ -102,9 +100,12 @@ export class EnsoStateService {
   }
 
   startPlaying() {
-    const startT = this.math.cycleTFromStrength(this.sTarget());
-    this.cycleT.set(startT);
-    this.cycleMonth.set(Math.floor(startT) % 48);
+    if (this.sTarget() >= NOW_STRENGTH - 0.05) {
+      this.sTarget.set(EARLIEST_STRENGTH);
+      this.sCur.set(EARLIEST_STRENGTH);
+    } else {
+      this.sCur.set(this.sTarget());
+    }
     this.isPlaying.set(true);
   }
 
@@ -164,19 +165,25 @@ export class EnsoStateService {
 
   updateCycle(dt: number) {
     if (!this.isPlaying()) return;
-    const nextT = this.cycleT() + dt / 1.2;
-    this.cycleT.set(nextT);
-    const newTarget = this.math.cycleS(nextT);
-    this.sTarget.set(newTarget);
-
-    const m = Math.floor(nextT) % 48;
-    if (m !== this.cycleMonth()) this.cycleMonth.set(m);
+    const speed = (NOW_STRENGTH - EARLIEST_STRENGTH) / 12; // 12 seconds from Jan 2025 to Oct 2026
+    const nextS = this.sTarget() + dt * speed;
+    if (nextS >= NOW_STRENGTH) {
+      this.sTarget.set(NOW_STRENGTH);
+      this.sCur.set(NOW_STRENGTH);
+      this.stopPlaying();
+    } else {
+      this.sTarget.set(nextS);
+    }
   }
 
   updateInterpolatedStrength(dt: number) {
+    if (this.isPlaying()) {
+      this.sCur.set(this.sTarget());
+      return;
+    }
     const cur = this.sCur();
     const target = this.sTarget();
-    const next = cur + (target - cur) * Math.min(1, dt * 2.5);
+    const next = cur + (target - cur) * Math.min(1, dt * 5.0);
     this.sCur.set(next);
   }
 }

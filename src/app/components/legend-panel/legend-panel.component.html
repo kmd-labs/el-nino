@@ -11,17 +11,31 @@
     [label]="t.impactsTab"
     [ariaLabel]="t.impactsTab">
     <div class="legend-panel__dropdown-content">
-      <!-- SST / Anomaly Scale Bar -->
-      <div class="legend-panel__group" [appTooltip]="scaleMode() === 'sst' ? t.scaleSst : t.scaleAnom">
+      <!-- SST / Water Temperature Scale Bar -->
+      <div class="legend-panel__group" [appTooltip]="t.scaleSst">
         <div class="legend-panel__section-title">
-          {{ scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
+          {{ t.scaleSstShort }}
         </div>
         <canvas #scaleCanvas class="legend-panel__bar" width="260" height="6"></canvas>
         <div class="legend-panel__ticks">
-          <span>{{ scaleMode() === 'sst' ? '−2 °C' : '−3 °C' }}</span>
-          <span>{{ scaleMode() === 'sst' ? '15 °C' : '0 °C' }}</span>
-          <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
+          <span>−2 °C</span>
+          <span>15 °C</span>
+          <span>31 °C</span>
         </div>
+      </div>
+
+      <!-- Ocean Waves & Wind Circulation Legend -->
+      <div class="legend-panel__group legend-panel__group--divider">
+        <div class="legend-panel__section-title">{{ t.flowLegendTitle }}</div>
+        <div class="legend-panel__items">
+          <span class="legend-panel__item legend-panel__item--wind">
+            <i aria-hidden="true"></i>{{ t.flowWindLabel }}
+          </span>
+          <span class="legend-panel__item legend-panel__item--wave">
+            <i aria-hidden="true"></i>{{ t.flowWaveLabel }}
+          </span>
+        </div>
+        <p class="legend-panel__flow-desc">{{ t.flowDesc }}</p>
       </div>
 
       @if (showImpactsLegend()) {
@@ -47,14 +61,36 @@
               <i></i>{{ t.rainWet }}
             </span>
           </div>
-          <div class="legend-panel__sources">
-            {{ t.sources }}
+        </div>
+      }
+
+      <!-- Sources: SST Temperature Tiles, Open-Meteo Wind/Waves & Rainfall Impacts -->
+      <div class="legend-panel__group legend-panel__group--divider">
+        <div class="legend-panel__sources">
+          {{ t.sources }}
+          <a
+            href="https://www.ncei.noaa.gov/products/optimum-interpolation-sst"
+            target="_blank"
+            rel="noopener noreferrer"
+            [appTooltip]="t.sourceOisstTooltip">
+            NOAA OISST v2.1
+          </a>
+          ·
+          <a
+            href="https://open-meteo.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            [appTooltip]="t.sourceOpenMeteoTooltip">
+            Open-Meteo
+          </a>
+          @if (showImpactsLegend()) {
+            ·
             @for (src of sources; track src.id; let i = $index, last = $last) {
               <a [href]="src.url" target="_blank" rel="noopener noreferrer" [appTooltip]="t.impactSourceTitles[i]">{{ src.short }}</a>{{ last ? '' : ' ·' }}
             }
-          </div>
+          }
         </div>
-      }
+      </div>
     </div>
   </app-dropdown>
 

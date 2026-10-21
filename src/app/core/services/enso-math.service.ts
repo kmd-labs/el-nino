@@ -183,13 +183,21 @@ export class EnsoMathService {
     return { k: 'neu', name: 'Neutral', col: this.getPhaseColor('neu') };
   }
 
-  buildLUT(st: [number, string][]): ColorLut {
+  /**
+   * 256-step colour table for a stop list. With `srgb` the bytes are the tokens' own sRGB values,
+   * so an SRGBColorSpace texture shows exactly the token colours; without it they are the linear
+   * values THREE.Color converts to (the established look of the model views, darker and more saturated).
+   */
+  buildLUT(st: [number, string][], srgb = false): ColorLut {
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
     const lut = new Uint8Array(256 * 3);
+    const rgb = { r: 0, g: 0, b: 0 };
     const parseColor = (c: string): [number, number, number] => {
       const th = new THREE.Color(c);
-      return [Math.round(th.r * 255), Math.round(th.g * 255), Math.round(th.b * 255)];
+      if (srgb) th.getRGB(rgb, THREE.SRGBColorSpace);
+      else Object.assign(rgb, { r: th.r, g: th.g, b: th.b });
+      return [Math.round(rgb.r * 255), Math.round(rgb.g * 255), Math.round(rgb.b * 255)];
     };
 
     for (let i = 0; i < 256; i++) {
