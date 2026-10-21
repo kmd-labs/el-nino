@@ -1,6 +1,18 @@
 import { Injectable, signal } from '@angular/core';
 
-/** Snapshot written by scripts/fetch-current-weather.mjs (Open-Meteo, global 10° grid). */
+/** Daily sea surface temperature from NOAA OISST v2.1, averaged to a global 1° grid. */
+export interface SstSnapshot {
+  source: string;
+  sourceUrl: string;
+  /** analysis day, e.g. "2026-10-19" */
+  date: string;
+  preliminary: boolean;
+  grid: { lat0: number; lon0: number; step: number; nLat: number; nLon: number };
+  /** °C, rows south → north; null where there is no ocean nearby */
+  values: (number | null)[];
+}
+
+/** Snapshot written by scripts/fetch-current-weather.mjs (wind & waves: Open-Meteo 10° grid; SST: NOAA OISST 1°). */
 export interface CurrentWeatherData {
   source: string;
   sourceUrl: string;
@@ -12,8 +24,7 @@ export interface CurrentWeatherData {
   waveHeight: (number | null)[];
   waveDir: (number | null)[];
   wavePeriod: (number | null)[];
-  /** sea surface temperature (°C); null over land and sea ice. Missing in snapshots older than this field. */
-  sst?: (number | null)[];
+  sst?: SstSnapshot | null;
 }
 
 /** Wind vector in m/s (+u east, +v north). */
@@ -49,6 +60,7 @@ export class CurrentWeatherService {
   private wx = new Float32Array(0);
   private wy = new Float32Array(0);
   private sstT = new Float32Array(0);
+  private sstGrid: SstSnapshot['grid'] | null = null;
 
   load() {
     if (this.status() !== 'idle') return;
@@ -77,11 +89,9 @@ export class CurrentWeatherService {
     this.wp = new Float32Array(n);
     this.wx = new Float32Array(n);
     this.wy = new Float32Array(n);
-    this.sstT = new Float32Array(n);
+    this.sstGrid = d.sst?.grid ?? null;
+    this.sstT = Float32Array.from(d.sst?.values ?? [], v => (v == null ? NaN : v));
     for (let i = 0; i < n; i++) {
-      const t = d.sst?.[i];
-      this.sstT[i] = t == null ? NaN : t;
-
       const sp = d.windSpeed[i];
       const dir = d.windDir[i];
       // meteorological direction = where the wind blows FROM
@@ -125,14 +135,25 @@ export class CurrentWeatherService {
 
   /** true when the snapshot carries sea surface temperature */
   hasSst(): boolean {
-    return !!this.data()?.sst;
+    return !!this.data()?.sst?.values?.length;
   }
 
-  /** Sea surface temperature (°C) from the ocean nodes of the surrounding cell; NaN where there is no data. */
+  private clampF(v: number, a: number, b: number): number {
+    return Math.max(a, Math.min(b, v));
+  }
+
+  /** Sea surface temperature (°C) from the ocean nodes of the surrounding 1° cell; NaN where there is no data. */
   sst(lon: number, lat: number): number {
-    const c = this.cell(lon, lat);
-    if (!c) return NaN;
-    const [a, b, cc, d, tx, ty] = c;
+    const g = this.sstGrid;
+    if (!g) return NaN;
+    const fy = this.clampF((lat - g.lat0) / g.step, 0, g.nLat - 1.0001);
+    const fx = ((((lon - g.lon0) % 360) + 360) % 360) / g.step;
+    const x0 = Math.floor(fx) % g.nLon;
+    const x1 = (x0 + 1) % g.nLon;
+    const y0 = Math.floor(fy);
+    const tx = fx - Math.floor(fx);
+    const ty = fy - y0;
+    const a = y0 * g.nLon + x0, b = y0 * g.nLon + x1, cc = (y0 + 1) * g.nLon + x0, d = (y0 + 1) * g.nLon + x1;
     const idx = [a, b, cc, d];
     const wts = [(1 - tx) * (1 - ty), tx * (1 - ty), (1 - tx) * ty, tx * ty];
     let sw = 0, sum = 0;
@@ -142,7 +163,15 @@ export class CurrentWeatherService {
       sw += wts[k];
       sum += v * wts[k];
     }
-    return sw < 0.15 ? NaN : sum / sw;
+    return sw < 0.01 ? NaN : sum / sw;
+  }
+
+  /** Day of the SST analysis, e.g. "19 Oct", in the given locale; '' when there is none. */
+  sstDay(locale: string): string {
+    const date = this.data()?.sst?.date;
+    if (!date) return '';
+    return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: 'UTC' })
+      .format(new Date(`${date}T12:00:00Z`));
   }
 
   /** Waves at a point, from the ocean nodes of the surrounding cell; false over land / sea ice. */

@@ -20,7 +20,7 @@
           @if (weather.hasSst()) {
             <!-- labelled water-temperature scale (same colours as the ocean on the globe) -->
             <span class="live-pill__scale" [appTooltip]="t.scaleSst">
-              <span class="live-pill__scale-title">{{ t.scaleSstNow }}</span>
+              <span class="live-pill__scale-title">{{ sstDate() ? t.scaleSstOn(sstDate()) : t.scaleSstNow }}</span>
               <span class="live-pill__scale-body">
                 <span class="live-pill__bar" [style.background]="sstGradient()"></span>
                 <span class="live-pill__ticks">
@@ -30,12 +30,16 @@
               <span class="live-pill__nodata"><i aria-hidden="true"></i>{{ t.scaleNoData }}</span>
             </span>
           }
-          <a
-            class="live-pill__src"
-            [href]="weather.data()?.sourceUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            [appTooltip]="t.currentSourceTitle">{{ t.currentSource }} ↗</a>
+          <span class="live-pill__src">
+            {{ t.currentSources }}
+            <a [href]="weather.data()?.sourceUrl" target="_blank" rel="noopener noreferrer"
+              [appTooltip]="t.currentSourceTitle">Open-Meteo ↗</a>
+            @if (weather.hasSst()) {
+              ·
+              <a [href]="weather.data()?.sst?.sourceUrl" target="_blank" rel="noopener noreferrer"
+                [appTooltip]="t.sstSourceTitle(sstDate(), !!weather.data()?.sst?.preliminary)">NOAA OISST ↗</a>
+            }
+          </span>
         }
         @case ('error') {
           <span class="live-pill__time">{{ t.currentError }}</span>

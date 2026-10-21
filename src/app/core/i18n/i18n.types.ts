@@ -98,9 +98,11 @@ export interface Dict {
   currentWind: string;
   currentWaves: string;
   scaleSstNow: string;
+  scaleSstOn: (date: string) => string;
   scaleNoData: string;
-  currentSource: string;
+  currentSources: string;
   currentSourceTitle: string;
+  sstSourceTitle: (date: string, preliminary: boolean) => string;
   currentLoading: string;
   currentError: string;
   scaleSst: string;

@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    # every 3 hours: also refreshes the live wind & wave snapshot for the "Current situation" view
+    # every 3 hours: also refreshes the live wind, wave & water-temperature snapshot for the "Current situation" view
     - cron: '0 */3 * * *'
   repository_dispatch:
     types: [design-system-updated]
@@ -42,7 +42,7 @@ jobs:
         run: npm ci
 
       # Never fails the build: on an API error the committed snapshot is kept
-      - name: Fetch current wind & waves (Open-Meteo)
+      - name: Fetch current wind & waves (Open-Meteo) and sea surface temperature (NOAA OISST)
         run: npm run fetch:weather
 
       - name: Build Angular application for GitHub Pages

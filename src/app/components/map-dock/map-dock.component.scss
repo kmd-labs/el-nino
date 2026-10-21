@@ -138,12 +138,16 @@
   }
 
   &__src {
-    color: color("link-color");
-    text-decoration: none;
-    font-weight: font-weight("medium");
+    white-space: nowrap;
 
-    &:hover {
-      text-decoration: underline;
+    a {
+      color: color("link-color");
+      text-decoration: none;
+      font-weight: font-weight("medium");
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }

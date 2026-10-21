@@ -12,6 +12,7 @@ import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directiv
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
+import { CurrentWeatherService } from '../../core/services/current-weather.service';
 
 /**
  * Legend & Glossary controls:
@@ -57,6 +58,9 @@ export class LegendPanelComponent {
 
   /** Live view: the scale shows measured water temperature. */
   readonly live = computed(() => this.state.view() === 'current');
+  private weather = inject(CurrentWeatherService);
+  /** Day of the live water-temperature analysis, e.g. "19 Oct". */
+  readonly sstDate = computed(() => this.weather.sstDay(this.i18n.t().htmlLang));
 
   readonly showImpactsLegend = computed(() => {
     // pins and rainfall patterns belong to the ENSO model, not to today's weather

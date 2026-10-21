@@ -14,7 +14,7 @@
       <!-- SST / Anomaly Scale Bar -->
       <div class="legend-panel__group" [appTooltip]="scaleMode() === 'sst' ? t.scaleSst : t.scaleAnom">
         <div class="legend-panel__section-title">
-          {{ live() ? t.scaleSstNow : scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
+          {{ live() ? (sstDate() ? t.scaleSstOn(sstDate()) : t.scaleSstNow) : scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
         </div>
         <canvas #scaleCanvas class="legend-panel__bar" width="260" height="6"></canvas>
         <div class="legend-panel__ticks">

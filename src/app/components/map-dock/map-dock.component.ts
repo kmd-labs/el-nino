@@ -37,6 +37,9 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   weather = inject(CurrentWeatherService);
   private math = inject(EnsoMathService);
 
+  /** Day of the sea-surface-temperature analysis, e.g. "19 Oct", in the UI language. */
+  readonly sstDate = computed(() => this.weather.sstDay(this.i18n.t().htmlLang));
+
   /** CSS gradient of the temperature scale, built from the same stops as the globe texture. */
   readonly sstGradient = computed(() => {
     const st = this.math.getThermalStops();
