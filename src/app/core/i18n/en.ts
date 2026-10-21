@@ -52,7 +52,6 @@ export const EN: Dict = {
   currentAt: time => `as of ${time} UTC`,
   currentWind: '10 m wind',
   currentWaves: 'waves',
-  currentSst: 'water temperature',
   scaleSstNow: 'Water temperature – now',
   scaleNoData: 'no data',
   currentSource: 'Source: Open-Meteo',

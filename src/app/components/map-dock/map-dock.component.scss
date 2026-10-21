@@ -81,11 +81,59 @@
       background: color("globe-wave-cold");
     }
 
-    &--sst i {
-      width: 16px;
+  }
+
+  // labelled water-temperature scale
+  &__scale {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 10px;
+    border-left: 1px solid color("line");
+  }
+
+  &__scale-title {
+    font-weight: font-weight("semibold");
+    color: color("text-main");
+    white-space: nowrap;
+  }
+
+  &__scale-body {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 130px;
+  }
+
+  &__bar {
+    display: block;
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  &__ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: font-size("xxs");
+    font-variant-numeric: tabular-nums;
+    color: color("text-dim");
+    line-height: 1.1;
+  }
+
+  &__nodata {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: font-size("xxs");
+    white-space: nowrap;
+
+    // neutral-200: the globe's grey "no data" ocean
+    i {
+      width: 10px;
       height: 6px;
-      border-radius: 3px;
-      background: linear-gradient(90deg, color("sst-15"), color("sst-23"), color("sst-25-5"), color("sst-29-2"));
+      border-radius: 2px;
+      background: palette("neutral-200");
+      border: 1px solid color("globe-land-stroke");
     }
   }
 
@@ -180,6 +228,14 @@
 }
 
 @include respond-to("mobile") {
+  // the badge wraps: the scale takes its own line
+  .live-pill__scale {
+    flex-basis: 100%;
+    justify-content: center;
+    padding-left: 0;
+    border-left: none;
+  }
+
   .dock-wrap {
     left: 8px;
     right: 8px;

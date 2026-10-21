@@ -22,6 +22,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { EnsoMathService } from '../../core/services/enso-math.service';
 
 @Component({
   selector: 'app-map-dock',
@@ -34,6 +35,15 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
+  private math = inject(EnsoMathService);
+
+  /** CSS gradient of the temperature scale, built from the same stops as the globe texture. */
+  readonly sstGradient = computed(() => {
+    const st = this.math.getThermalStops();
+    const lo = st[0][0];
+    const hi = st[st.length - 1][0];
+    return `linear-gradient(90deg, ${st.map(([v, c]) => `${c} ${((v - lo) / (hi - lo) * 100).toFixed(1)}%`).join(', ')})`;
+  });
 
   /** Model time of the live data, e.g. "21 Oct, 07:30" (UTC), in the UI language. */
   readonly currentTime = computed(() => {

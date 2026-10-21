@@ -18,7 +18,17 @@
           <span class="live-pill__key live-pill__key--wind"><i aria-hidden="true"></i>{{ t.currentWind }}</span>
           <span class="live-pill__key live-pill__key--wave"><i aria-hidden="true"></i>{{ t.currentWaves }}</span>
           @if (weather.hasSst()) {
-            <span class="live-pill__key live-pill__key--sst"><i aria-hidden="true"></i>{{ t.currentSst }}</span>
+            <!-- labelled water-temperature scale (same colours as the ocean on the globe) -->
+            <span class="live-pill__scale" [appTooltip]="t.scaleSst">
+              <span class="live-pill__scale-title">{{ t.scaleSstNow }}</span>
+              <span class="live-pill__scale-body">
+                <span class="live-pill__bar" [style.background]="sstGradient()"></span>
+                <span class="live-pill__ticks">
+                  <span>−2 °C</span><span>15 °C</span><span>31 °C</span>
+                </span>
+              </span>
+              <span class="live-pill__nodata"><i aria-hidden="true"></i>{{ t.scaleNoData }}</span>
+            </span>
           }
           <a
             class="live-pill__src"
