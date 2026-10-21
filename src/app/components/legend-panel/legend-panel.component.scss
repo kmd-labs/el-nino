@@ -121,6 +121,17 @@
     &--rain-wet i {
       background: color("rain-wet");
     }
+
+    // live view: grey ocean where there is no measurement (matches the globe's neutral-200)
+    &--no-data {
+      margin-top: 6px;
+
+      i {
+        border-radius: 2px;
+        background: palette("neutral-200");
+        border: 1px solid color("globe-land-stroke");
+      }
+    }
   }
 
   &__sources {

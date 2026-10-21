@@ -12,6 +12,8 @@ export interface CurrentWeatherData {
   waveHeight: (number | null)[];
   waveDir: (number | null)[];
   wavePeriod: (number | null)[];
+  /** sea surface temperature (°C); null over land and sea ice. Missing in snapshots older than this field. */
+  sst?: (number | null)[];
 }
 
 /** Wind vector in m/s (+u east, +v north). */
@@ -46,6 +48,7 @@ export class CurrentWeatherService {
   private wp = new Float32Array(0);
   private wx = new Float32Array(0);
   private wy = new Float32Array(0);
+  private sstT = new Float32Array(0);
 
   load() {
     if (this.status() !== 'idle') return;
@@ -74,7 +77,11 @@ export class CurrentWeatherService {
     this.wp = new Float32Array(n);
     this.wx = new Float32Array(n);
     this.wy = new Float32Array(n);
+    this.sstT = new Float32Array(n);
     for (let i = 0; i < n; i++) {
+      const t = d.sst?.[i];
+      this.sstT[i] = t == null ? NaN : t;
+
       const sp = d.windSpeed[i];
       const dir = d.windDir[i];
       // meteorological direction = where the wind blows FROM
@@ -114,6 +121,28 @@ export class CurrentWeatherService {
     out.u = this.u[a] * w00 + this.u[b] * w10 + this.u[cc] * w01 + this.u[d] * w11;
     out.v = this.v[a] * w00 + this.v[b] * w10 + this.v[cc] * w01 + this.v[d] * w11;
     return true;
+  }
+
+  /** true when the snapshot carries sea surface temperature */
+  hasSst(): boolean {
+    return !!this.data()?.sst;
+  }
+
+  /** Sea surface temperature (°C) from the ocean nodes of the surrounding cell; NaN where there is no data. */
+  sst(lon: number, lat: number): number {
+    const c = this.cell(lon, lat);
+    if (!c) return NaN;
+    const [a, b, cc, d, tx, ty] = c;
+    const idx = [a, b, cc, d];
+    const wts = [(1 - tx) * (1 - ty), tx * (1 - ty), (1 - tx) * ty, tx * ty];
+    let sw = 0, sum = 0;
+    for (let k = 0; k < 4; k++) {
+      const v = this.sstT[idx[k]];
+      if (Number.isNaN(v)) continue;
+      sw += wts[k];
+      sum += v * wts[k];
+    }
+    return sw < 0.15 ? NaN : sum / sw;
   }
 
   /** Waves at a point, from the ocean nodes of the surrounding cell; false over land / sea ice. */

@@ -14,7 +14,7 @@
       <!-- SST / Anomaly Scale Bar -->
       <div class="legend-panel__group" [appTooltip]="scaleMode() === 'sst' ? t.scaleSst : t.scaleAnom">
         <div class="legend-panel__section-title">
-          {{ scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
+          {{ live() ? t.scaleSstNow : scaleMode() === 'sst' ? t.scaleSstShort : t.scaleAnomShort }}
         </div>
         <canvas #scaleCanvas class="legend-panel__bar" width="260" height="6"></canvas>
         <div class="legend-panel__ticks">
@@ -22,6 +22,10 @@
           <span>{{ scaleMode() === 'sst' ? '15 °C' : '0 °C' }}</span>
           <span>{{ scaleMode() === 'sst' ? '31 °C' : '+3 °C' }}</span>
         </div>
+        @if (live()) {
+          <!-- live view: grey ocean = no measurement (polar seas, sea ice, or data unavailable) -->
+          <span class="legend-panel__item legend-panel__item--no-data"><i></i>{{ t.scaleNoData }}</span>
+        }
       </div>
 
       @if (showImpactsLegend()) {

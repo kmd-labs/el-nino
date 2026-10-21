@@ -80,6 +80,13 @@
       height: 10px;
       background: color("globe-wave-cold");
     }
+
+    &--sst i {
+      width: 16px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, color("sst-15"), color("sst-23"), color("sst-25-5"), color("sst-29-2"));
+    }
   }
 
   &__src {

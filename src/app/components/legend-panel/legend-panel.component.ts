@@ -55,6 +55,9 @@ export class LegendPanelComponent {
     return t.rainTitleNino;
   });
 
+  /** Live view: the scale shows measured water temperature. */
+  readonly live = computed(() => this.state.view() === 'current');
+
   readonly showImpactsLegend = computed(() => {
     // pins and rainfall patterns belong to the ENSO model, not to today's weather
     return !this.state.crossSectionView() && this.state.view() !== 'current';

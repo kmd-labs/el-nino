@@ -487,6 +487,39 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.scene.add(globeMesh);
   }
 
+  /**
+   * Live view: colour the ocean with the measured sea surface temperature (same scale as the
+   * Temperature view); grey wherever there is no data – near the poles, under sea ice, or when the
+   * snapshot could not be loaded. Land is drawn over it by the land layer.
+   */
+  private recolorLiveTexture() {
+    const { lut, lo, hi } = this.math.lutSst;
+    const sc = 255 / (hi - lo);
+    // neutral-200: lighter than the land fill (neutral-300), so 'no data' never reads as land
+    const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
+    const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
+    const hasData = this.weather.status() === 'ready' && this.weather.hasSst();
+    for (let r = 0; r < this.GH; r++) {
+      const lat = -90 + (r + 0.5) * 180 / this.GH;
+      for (let c = 0; c < this.GW; c++) {
+        const o = (r * this.GW + c) * 4;
+        const v = hasData ? this.weather.sst(-180 + (c + 0.5) * 360 / this.GW, lat) : NaN;
+        if (Number.isNaN(v)) {
+          this.texData[o] = gr;
+          this.texData[o + 1] = gg;
+          this.texData[o + 2] = gb;
+        } else {
+          const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
+          this.texData[o] = lut[k];
+          this.texData[o + 1] = lut[k + 1];
+          this.texData[o + 2] = lut[k + 2];
+        }
+        this.texData[o + 3] = 255;
+      }
+    }
+    this.sstTex.needsUpdate = true;
+  }
+
   private recolorTexture(s: number, mode: 'sst' | 'anom', dim = false) {
     const { lut, lo, hi } = mode === 'sst' ? this.math.lutSst : this.math.lutAnom;
     const sc = 255 / (hi - lo);
@@ -1429,15 +1462,23 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     // the current-situation view as muted temperature under the real wind and waves
     const impacts = this.state.view() === 'impacts';
     const current = this.state.view() === 'current';
-    const mode = impacts ? 'anom' : current ? 'sst' : this.state.displayMode();
-    const modeKey = impacts ? 'impacts' : current ? 'current' : mode;
-    // today's weather is not tied to the ENSO slider: show the neutral climatology underneath
-    const sTex = current ? 0 : s;
+    const mode = impacts ? 'anom' : this.state.displayMode();
 
-    if (Math.abs(sTex - this.lastS) > 0.004 || modeKey !== this.lastMode) {
-      this.recolorTexture(sTex, mode, impacts || current);
-      this.lastS = sTex;
-      this.lastMode = modeKey;
+    if (current) {
+      // live view: measured temperature, repainted once the snapshot arrives (or fails)
+      this.weather.load();
+      const liveKey = `current:${this.weather.status()}:${this.weather.data()?.time ?? ''}`;
+      if (liveKey !== this.lastMode) {
+        this.recolorLiveTexture();
+        this.lastMode = liveKey;
+      }
+    } else {
+      const modeKey = impacts ? 'impacts' : mode;
+      if (Math.abs(s - this.lastS) > 0.004 || modeKey !== this.lastMode) {
+        this.recolorTexture(s, mode, impacts);
+        this.lastS = s;
+        this.lastMode = modeKey;
+      }
     }
 
     // modelled atmosphere (ENSO wind, Kelvin waves, convection) vs. real wind and waves
@@ -1447,7 +1488,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
     this.currentLayer.group.visible = current;
     if (current) {
-      this.weather.load();
       this.currentLayer.update(dt);
     }
 

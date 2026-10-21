@@ -17,6 +17,9 @@
           <span class="live-pill__time">{{ t.currentAt(currentTime()) }}</span>
           <span class="live-pill__key live-pill__key--wind"><i aria-hidden="true"></i>{{ t.currentWind }}</span>
           <span class="live-pill__key live-pill__key--wave"><i aria-hidden="true"></i>{{ t.currentWaves }}</span>
+          @if (weather.hasSst()) {
+            <span class="live-pill__key live-pill__key--sst"><i aria-hidden="true"></i>{{ t.currentSst }}</span>
+          }
           <a
             class="live-pill__src"
             [href]="weather.data()?.sourceUrl"

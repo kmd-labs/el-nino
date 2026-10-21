@@ -97,6 +97,9 @@ export interface Dict {
   currentAt: (time: string) => string;
   currentWind: string;
   currentWaves: string;
+  currentSst: string;
+  scaleSstNow: string;
+  scaleNoData: string;
   currentSource: string;
   currentSourceTitle: string;
   currentLoading: string;

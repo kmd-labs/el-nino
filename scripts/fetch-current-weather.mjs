@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fetches the current surface wind and ocean waves on a global 10° grid from Open-Meteo
+ * Fetches the current surface wind, ocean waves and sea surface temperature on a global 10° grid from Open-Meteo
  * (https://open-meteo.com, CC BY 4.0) and writes them to src/assets/data/current-weather.json
  * for the "Current situation" view.
  *
@@ -61,7 +61,7 @@ async function fetchCurrent(baseUrl, variables, extra = '') {
 async function main() {
   const wind = await fetchCurrent(WIND_URL, ['wind_speed_10m', 'wind_direction_10m'], '&wind_speed_unit=ms');
   await sleep(PAUSE_BETWEEN_APIS_MS);
-  const waves = await fetchCurrent(WAVE_URL, ['wave_height', 'wave_direction', 'wave_period']);
+  const waves = await fetchCurrent(WAVE_URL, ['wave_height', 'wave_direction', 'wave_period', 'sea_surface_temperature']);
 
   const data = {
     source: 'Open-Meteo.com (CC BY 4.0)',
@@ -76,7 +76,9 @@ async function main() {
     /** significant wave height (m), direction the waves come FROM (degrees), period (s); null over land */
     waveHeight: waves.map(w => round1(w.wave_height)),
     waveDir: waves.map(w => round1(w.wave_direction)),
-    wavePeriod: waves.map(w => round1(w.wave_period))
+    wavePeriod: waves.map(w => round1(w.wave_period)),
+    /** sea surface temperature (°C); null over land and sea ice */
+    sst: waves.map(w => round1(w.sea_surface_temperature))
   };
   await writeFile(OUT, JSON.stringify(data) + '\n');
   console.log(`current-weather: wrote ${points.length} points for ${data.time} UTC to ${OUT}`);

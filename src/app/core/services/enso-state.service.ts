@@ -131,6 +131,10 @@ export class EnsoStateService {
   setView(v: ViewMode) {
     if (v === this.view()) return;
     this.view.set(v);
+    // the live view shows today's weather, so the modelled ENSO cycle stops
+    if (v === 'current') {
+      this.stopPlaying();
+    }
     if (v === 'walker' || v === 'thermocline') {
       this.selectedLocation.set(null);
     }
