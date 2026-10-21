@@ -32,6 +32,24 @@ export const TEMP_COLOR_TOKENS: [number, string][] = [
 ];
 
 /** Temperature Anomaly (°C vs normal) scale stops mapped to SCSS design tokens */
+/**
+ * Live water temperature (°C): blue → yellow → red, stops spaced roughly evenly in °C and no
+ * green; a near-white stop between light blue and yellow keeps the blend from turning green,
+ * and the yellows span ~19–25 °C. Yellow tokens are app-level (src/styles.scss).
+ */
+export const LIVE_SST_COLOR_TOKENS: [number, string][] = [
+  [-2, 'primary-900'],
+  [4, 'primary-700'],
+  [9, 'primary-500'],
+  [14, 'primary-300'],
+  [17.5, 'neutral-100'],
+  [20, 'live-sst-yellow-light'],
+  [23, 'live-sst-yellow'],
+  [26, 'warning-400'],
+  [29, 'danger-500'],
+  [32, 'danger-800']
+];
+
 export const ANOM_COLOR_TOKENS: [number, string][] = [
   [-3, 'anom-m3'],
   [-1.5, 'anom-m1-5'],

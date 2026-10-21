@@ -40,9 +40,9 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   /** Day of the sea-surface-temperature analysis, e.g. "19 Oct", in the UI language. */
   readonly sstDate = computed(() => this.weather.sstDay(this.i18n.t().htmlLang));
 
-  /** CSS gradient of the temperature scale, built from the same stops as the globe texture. */
+  /** CSS gradient of the live temperature scale, built from the same stops as the globe texture. */
   readonly sstGradient = computed(() => {
-    const st = this.math.getThermalStops();
+    const st = this.math.getLiveThermalStops();
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
     return `linear-gradient(90deg, ${st.map(([v, c]) => `${c} ${((v - lo) / (hi - lo) * 100).toFixed(1)}%`).join(', ')})`;

@@ -496,7 +496,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
    * snapshot could not be loaded. Land is drawn over it by the land layer.
    */
   private recolorLiveTexture() {
-    const { lut, lo, hi } = this.math.lutSst;
+    const { lut, lo, hi } = this.math.lutSstLive;
     const sc = 255 / (hi - lo);
     // neutral-200: lighter than the land fill (neutral-300), so 'no data' never reads as land
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
