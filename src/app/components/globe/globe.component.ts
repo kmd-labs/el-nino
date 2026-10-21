@@ -102,6 +102,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private hemiLight?: THREE.HemisphereLight;
   private stars?: THREE.Points;
   private loadedLandFeature: any = null;
+  /** Niño 3.4 / dipole boxes are drawn on the land layer (hidden in the live view) */
+  private landBoxes = true;
+  private maskBuiltFor: any = null;
   private animId: number | null = null;
   private clock = new THREE.Clock();
 
@@ -629,21 +632,26 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     ctx.lineTo(Wc, Y(0));
     ctx.stroke();
 
-    // Niño 3.4 boundary box: 170°W–120°W, 5°S–5°N
-    ctx.setLineDash([Wc / 400, Wc / 600]);
-    ctx.strokeStyle = this.theme.getTokenColor('globe-nino-box', 'rgba(255, 255, 255, 0.9)');
-    ctx.lineWidth = Wc / 1100;
-    ctx.strokeRect(X(-170), Y(5), X(-120) - X(-170), Y(-5) - Y(5));
+    if (this.landBoxes) {
+      // Niño 3.4 boundary box: 170°W–120°W, 5°S–5°N
+      ctx.setLineDash([Wc / 400, Wc / 600]);
+      ctx.strokeStyle = this.theme.getTokenColor('globe-nino-box', 'rgba(255, 255, 255, 0.9)');
+      ctx.lineWidth = Wc / 1100;
+      ctx.strokeRect(X(-170), Y(5), X(-120) - X(-170), Y(-5) - Y(5));
 
-    // Indian Ocean Dipole poles: west 50–70°E, 10°S–10°N; east 90–110°E, 10°S–0°
-    ctx.strokeStyle = this.theme.getTokenColor('kind-other', 'rgba(200, 175, 255, 0.85)');
-    ctx.strokeRect(X(50), Y(10), X(70) - X(50), Y(-10) - Y(10));
-    ctx.strokeRect(X(90), Y(0), X(110) - X(90), Y(-10) - Y(0));
+      // Indian Ocean Dipole poles: west 50–70°E, 10°S–10°N; east 90–110°E, 10°S–0°
+      ctx.strokeStyle = this.theme.getTokenColor('kind-other', 'rgba(200, 175, 255, 0.85)');
+      ctx.strokeRect(X(50), Y(10), X(70) - X(50), Y(-10) - Y(10));
+      ctx.strokeRect(X(90), Y(0), X(110) - X(90), Y(-10) - Y(0));
+    }
     ctx.setLineDash([]);
 
     this.landTex.needsUpdate = true;
 
-    if (land) this.buildLandMask(land);
+    if (land && land !== this.maskBuiltFor) {
+      this.buildLandMask(land);
+      this.maskBuiltFor = land;
+    }
   }
 
   private buildLandMask(land: any) {
@@ -1292,11 +1300,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const kelvinPos = this.math.pos(250, -3, this.math.R * 1.01);
     this.placeLabel(this.lblKelvinRef?.nativeElement, kelvinPos, showAtm && s > 0.3, 0.85, 3);
 
+    // the index boxes belong to the ENSO model views, not to today's weather
+    const showBoxes = this.state.view() !== 'current';
     const ninoPos = this.math.pos(-145, 5, this.math.R * 1.01);
-    this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, true, 1, 5);
+    this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, showBoxes, 1, 5);
 
     // above the gap between the two dipole poles
-    this.placeLabel(this.lblIodRef?.nativeElement, this.iodPos, true, 0.95, 4.5);
+    this.placeLabel(this.lblIodRef?.nativeElement, this.iodPos, showBoxes, 0.95, 4.5);
   }
 
   private screenOf(p: THREE.Vector3): [number, number] {
@@ -1486,6 +1496,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (this.atmGroup.visible) {
       this.updateAtm(s, dt, t);
     }
+    // live view: redraw the land layer without the Niño 3.4 / dipole boxes (and back)
+    if (this.landBoxes === current) {
+      this.landBoxes = !current;
+      this.drawLand(this.loadedLandFeature);
+    }
+
     this.currentLayer.group.visible = current;
     if (current) {
       this.currentLayer.update(dt);

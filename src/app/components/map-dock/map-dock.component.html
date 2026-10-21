@@ -51,47 +51,50 @@
     </div>
   }
 
-  <div class="dock glass-panel">
-    <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
-    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
-      <div class="dock__readout">
-        <span class="dock__readout-label">
-          <span class="dock__readout-full">{{ t.readoutTitle }}</span>
-          <span class="dock__readout-short">Niño 3.4</span>
-        </span>
-        <span class="dock__readout-val">{{ formattedNino() }}</span>
+  <!-- ENSO controls; hidden in the live view, which shows today's weather, not the model -->
+  @if (state.view() !== 'current') {
+    <div class="dock glass-panel">
+      <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
+      <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
+        <div class="dock__readout">
+          <span class="dock__readout-label">
+            <span class="dock__readout-full">{{ t.readoutTitle }}</span>
+            <span class="dock__readout-short">Niño 3.4</span>
+          </span>
+          <span class="dock__readout-val">{{ formattedNino() }}</span>
+        </div>
+
+        <app-legend-panel></app-legend-panel>
       </div>
 
-      <app-legend-panel></app-legend-panel>
+      <!-- Row 2: ENSO Timeline Slider + Play Button on the right of the scrollbar -->
+      <div class="dock__row dock__row--enso" role="group" [attr.aria-label]="t.ensoTab">
+        <app-timeline-slider
+          [min]="-2"
+          [max]="3"
+          [step]="0.05"
+          [value]="state.sTarget()"
+          [markers]="timelineMarkers()"
+          [thumbColor]="state.category().col"
+          [ariaLabel]="t.strengthAria"
+          (valueChange)="onSliderChange($event)"
+          (markerClick)="onMarkerClick($event)">
+          <app-button
+            timelineAction
+            variant="play"
+            [iconOnly]="true"
+            [active]="state.isPlaying()"
+            [ariaLabel]="state.isPlaying() ? t.playStop : t.playStart"
+            [titleText]="state.isPlaying() ? t.playStop : t.playStart"
+            (btnClick)="state.togglePlaying()">
+            @if (state.isPlaying()) {
+              <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
+            }
+          </app-button>
+        </app-timeline-slider>
+      </div>
     </div>
-
-    <!-- Row 2: ENSO Timeline Slider + Play Button on the right of the scrollbar -->
-    <div class="dock__row dock__row--enso" role="group" [attr.aria-label]="t.ensoTab">
-      <app-timeline-slider
-        [min]="-2"
-        [max]="3"
-        [step]="0.05"
-        [value]="state.sTarget()"
-        [markers]="timelineMarkers()"
-        [thumbColor]="state.category().col"
-        [ariaLabel]="t.strengthAria"
-        (valueChange)="onSliderChange($event)"
-        (markerClick)="onMarkerClick($event)">
-        <app-button
-          timelineAction
-          variant="play"
-          [iconOnly]="true"
-          [active]="state.isPlaying()"
-          [ariaLabel]="state.isPlaying() ? t.playStop : t.playStart"
-          [titleText]="state.isPlaying() ? t.playStop : t.playStart"
-          (btnClick)="state.togglePlaying()">
-          @if (state.isPlaying()) {
-            <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
-          } @else {
-            <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
-          }
-        </app-button>
-      </app-timeline-slider>
-    </div>
-  </div>
+  }
 </div>
