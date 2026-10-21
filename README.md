@@ -141,9 +141,3 @@ Deployments to GitHub Pages are automated via [`.github/workflows/deploy.yml`](.
 2. **Build Stage**: Runs on `ubuntu-latest`, compiles the application with `npm run build:gh-pages` (`--base-href /el-nino/`), and uploads static assets via `actions/upload-pages-artifact@v3`.
 3. **Deploy Stage**: Publishes to GitHub Pages with `actions/deploy-pages@v4`.
 4. **Clean Workspace**: The build directory (`dist/`) is gitignored, and build artifacts reside strictly in ephemeral runner environments.
-
----
-
-## 📄 License
-
-This project is open-sourced under the [MIT License](LICENSE).
