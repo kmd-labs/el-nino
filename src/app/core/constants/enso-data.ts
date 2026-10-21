@@ -35,18 +35,19 @@ export const TEMP_COLOR_TOKENS: [number, string][] = [
 /**
  * Live water temperature (°C): blue → yellow → red, stops spaced roughly evenly in °C and no
  * green; a near-white stop between light blue and yellow keeps the blend from turning green,
- * and the yellows span ~19–25 °C. Yellow tokens are app-level (src/styles.scss).
+ * and the yellows span a wide band of ~16.5–26.5 °C. Yellow tokens are app-level (src/styles.scss).
  */
 export const LIVE_SST_COLOR_TOKENS: [number, string][] = [
   [-2, 'primary-900'],
-  [4, 'primary-700'],
-  [9, 'primary-500'],
-  [14, 'primary-300'],
-  [17.5, 'neutral-100'],
-  [20, 'live-sst-yellow-light'],
-  [23, 'live-sst-yellow'],
-  [26, 'warning-400'],
-  [29, 'danger-500'],
+  [3.5, 'primary-700'],
+  [8, 'primary-500'],
+  [12, 'primary-300'],
+  [15, 'neutral-100'],
+  [17.5, 'live-sst-yellow-light'],
+  [21, 'live-sst-yellow'],
+  [25, 'live-sst-yellow'],
+  [28, 'warning-400'],
+  [30.5, 'danger-500'],
   [32, 'danger-800']
 ];
 
