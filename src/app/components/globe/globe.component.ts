@@ -29,6 +29,8 @@ import { isAtMost } from '@kmd/design-system/utils/breakpoints';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
+import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { CurrentWeatherLayer } from './current-weather.layer';
 
 interface PinItem {
   loc: ImpactLocationMeta;
@@ -88,6 +90,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} °C`;
   });
   private math = inject(EnsoMathService);
+  private weather = inject(CurrentWeatherService);
 
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
@@ -156,6 +159,23 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.cWind.set(this.theme.getTokenColor('globe-wind', '#1e293b'));
     this.cWaveWarm.set(this.theme.getTokenColor('globe-wave-warm', '#0284c7'));
     this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', '#2563eb'));
+    this.cWindStrong.set(this.theme.getTokenColor('accent', '#d37400'));
+  }
+
+  // "Current situation" view: real wind and waves (Open-Meteo snapshot)
+  private currentLayer!: CurrentWeatherLayer;
+  private readonly cWindStrong = new THREE.Color('#d37400');
+
+  private initCurrentLayer() {
+    this.currentLayer = new CurrentWeatherLayer(
+      this.math,
+      this.weather,
+      (lon, lat) => this.isLand(lon, lat),
+      this.cWind,
+      this.cWindStrong,
+      this.cWaveCold
+    );
+    this.scene.add(this.currentLayer.group);
   }
 
   // Atmosphere
@@ -275,6 +295,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initSstData();
       this.initLandOverlay();
       this.initAtmosphere();
+      this.initCurrentLayer();
       this.initPins();
       this.initImpacts();
       this.applyThemeVisuals();
@@ -1137,7 +1158,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private updatePins(t: number, dt: number) {
     const curPhase = this.state.phase();
-    const showEvents = this.state.showEvents();
+    // historical pins belong to the ENSO model views, not to today's weather
+    const showEvents = this.state.showEvents() && this.state.view() !== 'current';
     const selectedLoc = this.state.selectedLocation();
 
     for (const pn of this.pins) {
@@ -1225,7 +1247,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private updateLabels(s: number) {
     this.camDir.copy(this.camera.position).normalize();
     // the impacts view has its own region labels; the atmosphere ones would only add clutter there
-    const showAtm = this.state.showAtmosphere() && this.state.view() !== 'impacts';
+    // (and in the current-situation view they describe the model, not the real weather)
+    const showAtm = this.state.showAtmosphere() && this.state.view() !== 'impacts' && this.state.view() !== 'current';
 
     const convPos = this.math.pos(this.math.convLon(s), 10, this.math.R + 1.55);
     this.placeLabel(this.lblConvRef?.nativeElement, convPos, showAtm, 1, 4);
@@ -1402,20 +1425,30 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (this.state.crossSectionView()) return;
 
     const s = this.state.sCur();
-    // the impacts view shows the ocean as a muted anomaly under the rainfall regions
+    // the impacts view shows the ocean as a muted anomaly under the rainfall regions,
+    // the current-situation view as muted temperature under the real wind and waves
     const impacts = this.state.view() === 'impacts';
-    const mode = impacts ? 'anom' : this.state.displayMode();
-    const modeKey = impacts ? 'impacts' : mode;
+    const current = this.state.view() === 'current';
+    const mode = impacts ? 'anom' : current ? 'sst' : this.state.displayMode();
+    const modeKey = impacts ? 'impacts' : current ? 'current' : mode;
+    // today's weather is not tied to the ENSO slider: show the neutral climatology underneath
+    const sTex = current ? 0 : s;
 
-    if (Math.abs(s - this.lastS) > 0.004 || modeKey !== this.lastMode) {
-      this.recolorTexture(s, mode, impacts);
-      this.lastS = s;
+    if (Math.abs(sTex - this.lastS) > 0.004 || modeKey !== this.lastMode) {
+      this.recolorTexture(sTex, mode, impacts || current);
+      this.lastS = sTex;
       this.lastMode = modeKey;
     }
 
-    this.atmGroup.visible = this.state.showAtmosphere();
+    // modelled atmosphere (ENSO wind, Kelvin waves, convection) vs. real wind and waves
+    this.atmGroup.visible = this.state.showAtmosphere() && !current;
     if (this.atmGroup.visible) {
       this.updateAtm(s, dt, t);
+    }
+    this.currentLayer.group.visible = current;
+    if (current) {
+      this.weather.load();
+      this.currentLayer.update(dt);
     }
 
     if (this.state.autoRotate()) {

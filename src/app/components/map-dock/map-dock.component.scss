@@ -27,6 +27,77 @@
   animation: panelSlideIn 0.2s ease-out;
 }
 
+// "Current situation" view: live-data badge with the source
+.live-pill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  max-width: 100%;
+  padding: 4px 12px;
+  border-radius: radius("pill");
+  font-size: font-size("xs");
+  color: color("text-dim");
+  animation: panelSlideIn 0.2s ease-out;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: color("accent");
+    animation: livePulse 1.6s ease-in-out infinite;
+  }
+
+  &__live {
+    font-weight: font-weight("semibold");
+    color: color("accent");
+  }
+
+  &__time {
+    font-variant-numeric: tabular-nums;
+    color: color("text-main");
+  }
+
+  &__key {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    i {
+      display: inline-block;
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+    }
+
+    &--wind i {
+      background: linear-gradient(90deg, transparent, color("globe-wind"));
+    }
+
+    &--wave i {
+      width: 3px;
+      height: 10px;
+      background: color("globe-wave-cold");
+    }
+  }
+
+  &__src {
+    color: color("link-color");
+    text-decoration: none;
+    font-weight: font-weight("medium");
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 .dock {
   display: flex;
   flex-direction: column;

@@ -91,6 +91,16 @@ export interface Dict {
   viewAnom: string;
   viewWalker: string;
   viewImpacts: string;
+  viewCurrent: string;
+  /** current-situation view: live-data badge */
+  currentLive: string;
+  currentAt: (time: string) => string;
+  currentWind: string;
+  currentWaves: string;
+  currentSource: string;
+  currentSourceTitle: string;
+  currentLoading: string;
+  currentError: string;
   scaleSst: string;
   scaleAnom: string;
   scaleSstShort: string;

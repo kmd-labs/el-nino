@@ -20,17 +20,29 @@ import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/t
 import { TimelineMarker } from '@kmd/design-system/ui/timeline-slider/timeline-slider.model';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
+import { CurrentWeatherService } from '../../core/services/current-weather.service';
 
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule],
+  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
 export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
+  weather = inject(CurrentWeatherService);
+
+  /** Model time of the live data, e.g. "21 Oct, 07:30" (UTC), in the UI language. */
+  readonly currentTime = computed(() => {
+    const time = this.weather.data()?.time;
+    if (!time) return '';
+    return new Intl.DateTimeFormat(this.i18n.t().htmlLang, {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'
+    }).format(new Date(`${time}Z`));
+  });
 
   readonly playIcon = Play;
   readonly pauseIcon = Pause;

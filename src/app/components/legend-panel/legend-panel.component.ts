@@ -44,7 +44,7 @@ export class LegendPanelComponent {
 
   readonly scaleMode = computed<DisplayMode>(() => {
     const v = this.state.view();
-    return v === 'walker' || v === 'thermocline' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
+    return v === 'walker' || v === 'thermocline' || v === 'current' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
   });
 
   readonly rainTitle = computed(() => {
@@ -56,7 +56,8 @@ export class LegendPanelComponent {
   });
 
   readonly showImpactsLegend = computed(() => {
-    return !this.state.crossSectionView();
+    // pins and rainfall patterns belong to the ENSO model, not to today's weather
+    return !this.state.crossSectionView() && this.state.view() !== 'current';
   });
 
   openGlossaryPopup() {

@@ -7,6 +7,33 @@
     </div>
   }
 
+  @if (state.view() === 'current') {
+    <!-- live data badge: what is shown, when it was measured and where it comes from -->
+    <div class="live-pill glass-panel" role="status">
+      @switch (weather.status()) {
+        @case ('ready') {
+          <span class="live-pill__dot" aria-hidden="true"></span>
+          <span class="live-pill__live">{{ t.currentLive }}</span>
+          <span class="live-pill__time">{{ t.currentAt(currentTime()) }}</span>
+          <span class="live-pill__key live-pill__key--wind"><i aria-hidden="true"></i>{{ t.currentWind }}</span>
+          <span class="live-pill__key live-pill__key--wave"><i aria-hidden="true"></i>{{ t.currentWaves }}</span>
+          <a
+            class="live-pill__src"
+            [href]="weather.data()?.sourceUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            [appTooltip]="t.currentSourceTitle">{{ t.currentSource }} ↗</a>
+        }
+        @case ('error') {
+          <span class="live-pill__time">{{ t.currentError }}</span>
+        }
+        @default {
+          <span class="live-pill__time">{{ t.currentLoading }}</span>
+        }
+      }
+    </div>
+  }
+
   <div class="dock glass-panel">
     <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
     <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
