@@ -1,6 +1,10 @@
 module.exports = async function (config) {
-  const { default: puppeteer } = await import('puppeteer');
-  process.env.CHROME_BIN = puppeteer.executablePath();
+  try {
+    const { default: puppeteer } = await import('puppeteer');
+    process.env.CHROME_BIN = puppeteer.executablePath();
+  } catch {
+    process.env.CHROME_BIN = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  }
   config.set({
     basePath: "",
     frameworks: ["jasmine", "@angular-devkit/build-angular"],

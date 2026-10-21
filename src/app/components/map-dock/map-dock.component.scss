@@ -27,136 +27,6 @@
   animation: panelSlideIn 0.2s ease-out;
 }
 
-// "Current situation" view: live-data badge with the source
-.live-pill {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 4px 10px;
-  max-width: 100%;
-  padding: 4px 12px;
-  border-radius: radius("pill");
-  font-size: font-size("xs");
-  color: color("text-dim");
-  animation: panelSlideIn 0.2s ease-out;
-
-  &__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: color("accent");
-    animation: livePulse 1.6s ease-in-out infinite;
-  }
-
-  &__live {
-    font-weight: font-weight("semibold");
-    color: color("accent");
-  }
-
-  &__time {
-    font-variant-numeric: tabular-nums;
-    color: color("text-main");
-  }
-
-  &__key {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-
-    i {
-      display: inline-block;
-      width: 14px;
-      height: 2px;
-      border-radius: 1px;
-    }
-
-    &--wind i {
-      background: linear-gradient(90deg, transparent, color("globe-wind"));
-    }
-
-    &--wave i {
-      width: 3px;
-      height: 10px;
-      background: color("globe-wave-cold");
-    }
-
-  }
-
-  // labelled water-temperature scale
-  &__scale {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding-left: 10px;
-    border-left: 1px solid color("line");
-  }
-
-  &__scale-title {
-    font-weight: font-weight("semibold");
-    color: color("text-main");
-    white-space: nowrap;
-  }
-
-  &__scale-body {
-    display: inline-flex;
-    flex-direction: column;
-    gap: 1px;
-    width: 130px;
-  }
-
-  &__bar {
-    display: block;
-    height: 6px;
-    border-radius: 3px;
-  }
-
-  &__ticks {
-    display: flex;
-    justify-content: space-between;
-    font-size: font-size("xxs");
-    font-variant-numeric: tabular-nums;
-    color: color("text-dim");
-    line-height: 1.1;
-  }
-
-  &__nodata {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: font-size("xxs");
-    white-space: nowrap;
-
-    // neutral-200: the globe's grey "no data" ocean
-    i {
-      width: 10px;
-      height: 6px;
-      border-radius: 2px;
-      background: palette("neutral-200");
-      border: 1px solid color("globe-land-stroke");
-    }
-  }
-
-  &__src {
-    white-space: nowrap;
-
-    a {
-      color: color("link-color");
-      text-decoration: none;
-      font-weight: font-weight("medium");
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-}
-
-@keyframes livePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
 .dock {
   display: flex;
   flex-direction: column;
@@ -182,14 +52,6 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
-  }
-
-  &__readout-full {
-    display: inline;
-  }
-
-  &__readout-short {
-    display: none;
   }
 
   &__readout-val {
@@ -225,21 +87,124 @@
     }
 
     &--enso {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       padding-top: 10px;
       border-top: 1px solid color("line");
+      gap: 0;
+
+      // Extend top stems from the Niño buttons so they connect directly into the slider rail / nodes
+      ::ng-deep .timeline-slider {
+        &__events {
+          overflow: visible;
+        }
+
+        &__stem {
+          width: 2px;
+          height: 21px;
+          background: color("line-strong");
+          z-index: 1;
+
+          .timeline-slider__event--active & {
+            background: color("btn-active-blue-border");
+          }
+
+          .timeline-slider__event--hot.timeline-slider__event--active & {
+            background: color("btn-active-red-border");
+          }
+        }
+
+        &__node {
+          z-index: 2;
+        }
+      }
     }
+  }
+
+  &__timeline-dates {
+    position: relative;
+    width: calc(100% - 42px);
+    height: 32px;
+    margin-bottom: 4px;
+  }
+
+  &__timeline-date {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: center;
+    width: max-content;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    color: color("text-dim");
+    transition: color transition("fast");
+    user-select: none;
+    outline: none;
+
+    &:hover {
+      color: color("text-bright");
+    }
+
+    &--active {
+      color: color("text-bright");
+      font-weight: font-weight("semibold");
+    }
+
+    &--hot.dock__timeline-date--active {
+      color: color("accent");
+    }
+  }
+
+  &__timeline-sub {
+    align-self: center;
+    margin-inline: auto;
+    font-size: 8.5px;
+    font-weight: font-weight("semibold");
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1px 5px;
+    border-radius: radius("pill");
+    margin-bottom: 2px;
+    background: color("btn-bg");
+    color: color("text-dim");
+    border: 1px solid color("line");
+    text-align: center;
+    transition: background transition("fast"), border-color transition("fast"), color transition("fast");
+
+    .dock__timeline-date--active & {
+      background: color("btn-active-blue");
+      border-color: color("btn-active-blue-border");
+      color: color("btn-active-blue-border");
+    }
+
+    .dock__timeline-date--hot.dock__timeline-date--active & {
+      background: color("btn-active-red");
+      border-color: color("btn-active-red-border");
+      color: color("btn-active-red-border");
+    }
+  }
+
+  &__timeline-label {
+    align-self: center;
+    margin-inline: auto;
+    text-align: center;
+    font-size: font-size("xxs");
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    line-height: 1.1;
   }
 }
 
 @include respond-to("mobile") {
-  // the badge wraps: the scale takes its own line
-  .live-pill__scale {
-    flex-basis: 100%;
-    justify-content: center;
-    padding-left: 0;
-    border-left: none;
-  }
-
   .dock-wrap {
     left: 8px;
     right: 8px;
@@ -252,14 +217,6 @@
 
     &__readout {
       gap: 6px;
-    }
-
-    &__readout-full {
-      display: none;
-    }
-
-    &__readout-short {
-      display: inline;
     }
 
     &__readout-val {
@@ -278,7 +235,24 @@
     }
 
     &__row--enso {
-      padding-top: 8px;
+      padding-top: 4px;
+    }
+
+    &__timeline-dates {
+      width: 100%;
+      height: auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+      margin-top: 0;
+    }
+
+    &__timeline-date {
+      position: static;
+      transform: none;
+      width: 100%;
+      text-align: center;
     }
   }
 }

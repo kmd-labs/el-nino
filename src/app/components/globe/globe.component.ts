@@ -159,13 +159,15 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.glowMat.blending = THREE.NormalBlending;
       this.glowMat.needsUpdate = true;
     }
-    this.cWind.set(this.theme.getTokenColor('globe-wind', '#1e293b'));
-    this.cWaveWarm.set(this.theme.getTokenColor('globe-wave-warm', '#0284c7'));
-    this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', '#2563eb'));
+    const windColor = this.theme.getTokenColor('globe-wind', this.theme.getTokenColor('neutral-600', '#475569'));
+    const waveColor = this.theme.getTokenColor('globe-wave-warm', this.theme.getTokenColor('neutral-0', '#ffffff'));
+    this.cWind.set(windColor);
+    this.cWaveWarm.set(waveColor);
+    this.cWaveCold.set(this.theme.getTokenColor('globe-wave-cold', waveColor));
     this.cWindStrong.set(this.theme.getTokenColor('accent', '#d37400'));
   }
 
-  // "Current situation" view: real wind and waves (Open-Meteo snapshot)
+  // Real wind and waves layer (interpolated across temperature keyframes)
   private currentLayer!: CurrentWeatherLayer;
   private readonly cWindStrong = new THREE.Color('#d37400');
 
@@ -176,6 +178,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       (lon, lat) => this.isLand(lon, lat),
       this.cWind,
       this.cWindStrong,
+      this.cWaveWarm,
       this.cWaveCold
     );
     this.scene.add(this.currentLayer.group);
@@ -199,7 +202,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private wGeo!: THREE.BufferGeometry;
   private wPos!: Float32Array;
   private wCol!: Float32Array;
-  private readonly cWind = new THREE.Color('#e9eef6');
+  private ensoWindLines?: THREE.LineSegments;
+  private readonly cWind = new THREE.Color('#475569');
 
   // Ocean wave crests: equatorial Kelvin waves travelling east
   private readonly NV = 750;
@@ -215,8 +219,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private vGeo!: THREE.BufferGeometry;
   private vPos!: Float32Array;
   private vCol!: Float32Array;
-  private readonly cWaveWarm = new THREE.Color('#a8f0ff');
-  private readonly cWaveCold = new THREE.Color('#4f8fff');
+  private ensoWaveLines?: THREE.LineSegments;
+  private readonly cWaveWarm = new THREE.Color('#ffffff');
+  private readonly cWaveCold = new THREE.Color('#ffffff');
   private readonly cWave = new THREE.Color();
   private readonly cWaveIO = new THREE.Color();
   private readonly WAVE_LEN = 4.2; // spacing between wave fronts, degrees
@@ -302,6 +307,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initPins();
       this.initImpacts();
       this.applyThemeVisuals();
+      this.weather.load();
       this.handleResize();
       this.initUiResizeObserver();
       this.animate();
@@ -476,11 +482,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.texData = new Uint8Array(this.NG * 4);
     this.sstTex = new THREE.DataTexture(this.texData, this.GW, this.GH, THREE.RGBAFormat);
     this.sstTex.colorSpace = THREE.SRGBColorSpace;
-    this.sstTex.magFilter = THREE.LinearFilter;
-    this.sstTex.minFilter = THREE.LinearFilter;
+    this.sstTex.magFilter = THREE.NearestFilter;
+    this.sstTex.minFilter = THREE.NearestFilter;
     this.sstTex.wrapS = THREE.RepeatWrapping;
 
-    this.recolorTexture(this.state.sCur(), this.state.displayMode());
+    this.recolorTexture(this.state.sCur());
 
     this.globeMat = new THREE.MeshLambertMaterial({ map: this.sstTex });
     const globeMesh = new THREE.Mesh(
@@ -490,63 +496,55 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.scene.add(globeMesh);
   }
 
-  /**
-   * Live view: colour the ocean with the measured sea surface temperature (same scale as the
-   * Temperature view); grey wherever there is no data – near the poles, under sea ice, or when the
-   * snapshot could not be loaded. Land is drawn over it by the land layer.
-   */
-  private recolorLiveTexture() {
-    const { lut, lo, hi } = this.math.lutSstLive;
+  private recolorTexture(s: number, dim = false) {
+    const { lut, lo, hi } = this.math.lutSstLive || this.math.lutSst;
     const sc = 255 / (hi - lo);
-    // neutral-200: lighter than the land fill (neutral-300), so 'no data' never reads as land
+    const pair = this.weather.getKeyframePair(s);
+    const bin = this.weather.sstBin;
+
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
     const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
-    const hasData = this.weather.status() === 'ready' && this.weather.hasSst();
-    for (let r = 0; r < this.GH; r++) {
-      const lat = -90 + (r + 0.5) * 180 / this.GH;
-      for (let c = 0; c < this.GW; c++) {
-        const o = (r * this.GW + c) * 4;
-        const v = hasData ? this.weather.sst(-180 + (c + 0.5) * 360 / this.GW, lat) : NaN;
-        if (Number.isNaN(v)) {
+
+    if (pair && bin) {
+      const offsetA = pair.indexA * this.NG;
+      const offsetB = pair.indexB * this.NG;
+      const t = pair.t;
+
+      for (let i = 0; i < this.NG; i++) {
+        const va = bin[offsetA + i];
+        const vb = bin[offsetB + i];
+        const o = i * 4;
+
+        if (va !== 255 && vb !== 255) {
+          const vByte = va + (vb - va) * t;
+          const v = vByte * 0.2 - 5.0;
+          const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
+          if (dim) {
+            this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
+            this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
+            this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
+          } else {
+            this.texData[o] = lut[k];
+            this.texData[o + 1] = lut[k + 1];
+            this.texData[o + 2] = lut[k + 2];
+          }
+        } else {
+          // Real satellite missing data: land, sea ice & polar caps
           this.texData[o] = gr;
           this.texData[o + 1] = gg;
           this.texData[o + 2] = gb;
-        } else {
-          const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
-          this.texData[o] = lut[k];
-          this.texData[o + 1] = lut[k + 1];
-          this.texData[o + 2] = lut[k + 2];
         }
         this.texData[o + 3] = 255;
       }
-    }
-    this.sstTex.needsUpdate = true;
-  }
-
-  private recolorTexture(s: number, mode: 'sst' | 'anom', dim = false) {
-    const { lut, lo, hi } = mode === 'sst' ? this.math.lutSst : this.math.lutAnom;
-    const sc = 255 / (hi - lo);
-    const sp = Math.max(0, s);
-    const sk = Math.max(0, s - 1.4);
-    const sn = Math.max(0, -s);
-    const isSST = mode === 'sst';
-
-    for (let i = 0; i < this.NG; i++) {
-      const a = sp * this.BP[i] + sk * this.BC[i] + sn * this.BN[i];
-      const v = isSST ? this.CLIM[i] + a : a;
-      const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
-      const o = i * 4;
-      if (dim) {
-        // Muted, light ocean blending into the #f5f7fb background so rainfall regions stand out without grey water
-        this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
-        this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
-        this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
-      } else {
-        this.texData[o] = lut[k];
-        this.texData[o + 1] = lut[k + 1];
-        this.texData[o + 2] = lut[k + 2];
+    } else {
+      // Clean neutral grey while dataset is streaming
+      for (let i = 0; i < this.NG; i++) {
+        const o = i * 4;
+        this.texData[o] = gr;
+        this.texData[o + 1] = gg;
+        this.texData[o + 2] = gb;
+        this.texData[o + 3] = 255;
       }
-      this.texData[o + 3] = 255;
     }
     this.sstTex.needsUpdate = true;
   }
@@ -706,7 +704,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.wCol = new Float32Array(wSeg * 4);
     this.wGeo.setAttribute('position', new THREE.BufferAttribute(this.wPos, 3));
     this.wGeo.setAttribute('color', new THREE.BufferAttribute(this.wCol, 4));
-    this.atmGroup.add(new THREE.LineSegments(this.wGeo, lineMat()));
+    this.ensoWindLines = new THREE.LineSegments(this.wGeo, lineMat());
+    this.atmGroup.add(this.ensoWindLines);
 
     // Wave crests: short marks perpendicular to the direction of travel
     this.vLon = new Float32Array(this.NV);
@@ -722,13 +721,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.vCol = new Float32Array(this.NV * 4 * 4);
     this.vGeo.setAttribute('position', new THREE.BufferAttribute(this.vPos, 3));
     this.vGeo.setAttribute('color', new THREE.BufferAttribute(this.vCol, 4));
-    this.atmGroup.add(new THREE.LineSegments(this.vGeo, lineMat()));
+    this.ensoWaveLines = new THREE.LineSegments(this.vGeo, lineMat());
+    this.atmGroup.add(this.ensoWaveLines);
 
-    // Convective towers: stacked cumulonimbus with a dark base, billowing column and flat anvil
+    // Convective towers: stacked cumulonimbus with a light base, billowing column and flat anvil
     const puffGeo = new THREE.SphereGeometry(1, 18, 12);
-    const matBase = new THREE.MeshLambertMaterial({ color: 0x8f9bb0, transparent: true, opacity: 0.92 });
-    const matMid = new THREE.MeshLambertMaterial({ color: 0xdfe5f1, transparent: true, opacity: 0.9 });
-    const matTop = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+    const matBase = new THREE.MeshLambertMaterial({ color: 0xdfe5f1, transparent: true, opacity: 0.92 });
+    const matMid = new THREE.MeshLambertMaterial({ color: 0xf0f4f8, transparent: true, opacity: 0.9 });
+    const matTop = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.88 });
     this.puffs = [];
     const add = (mat: THREE.Material, dLon: number, dLat: number, alt: number, sx: number, sy: number, sz: number) => {
       const m = new THREE.Mesh(puffGeo, mat);
@@ -993,7 +993,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const R = this.math.R * 1.012;
     const T = this.TRAIL;
     const spd = 7.5; // degrees per second at unit wind
-    const alphaScale = 0.62;
+    const alphaScale = 0.22;
     let w = 0;
     for (let i = 0; i < this.NW; i++) {
       this.wAge[i] += dt;
@@ -1049,16 +1049,15 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateWaves(s: number, dt: number, xc: number) {
-    const R = this.math.R * 1.006;
+    const R = this.math.R * 1.010;
     // Downwelling Kelvin waves are weak in neutral years and dominate when El Niño builds;
     // in La Niña only faint, cold (upwelling) fronts remain.
     const nino = this.math.clamp(s, 0, 1.6) / 1.6;
-    const K = 0.28 + 0.72 * nino;
+    const K = 0.65 + 0.35 * nino;
     const speed = 2.2 + 2.3 * K; // degrees per second, eastward; non-dispersive, so all crests share it
     this.cWave.copy(this.cWaveCold).lerp(this.cWaveWarm, this.math.clamp(0.5 + s * 0.5, 0, 1));
-    // Indian Ocean: weaker equatorial Kelvin waves; during El Niño (positive dipole) they turn cold
-    // (upwelling off Sumatra), during La Niña warm
-    const Kio = 0.3 + 0.25 * Math.min(1, Math.abs(s));
+    // Indian Ocean: equatorial Kelvin waves; during El Niño (positive dipole) and La Niña
+    const Kio = 0.6 + 0.3 * Math.min(1, Math.abs(s));
     this.cWaveIO.copy(this.cWaveWarm).lerp(this.cWaveCold, this.math.clamp(0.5 + s * 0.5, 0, 1));
     const L = this.WAVE_LEN;
     this.wavePhase = (this.wavePhase + speed * dt) % L;
@@ -1084,23 +1083,23 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       const basin = io
         ? Kio * this.math.sstep(this.IO_LON0, this.IO_LON0 + 8, lon) * this.math.sstep(this.IO_LON1, this.IO_LON1 - 5, lon)
         : K * this.math.sstep(this.V_LON0, this.V_LON0 + 10, lon) * this.math.sstep(this.V_LON1, this.V_LON1 - 6, lon);
-      const a = Math.sin(Math.PI * life) * basin * pulse * 0.48
-        * (0.3 + 0.7 * Math.exp(-lat * lat / 30));
+      const a = Math.sin(Math.PI * life) * basin * pulse * 0.45
+        * (0.4 + 0.6 * Math.exp(-lat * lat / 30));
       const col = io ? this.cWaveIO : this.cWave;
 
-      // crest: a short piece of the front, brightest in the middle, fading at the tips
-      const half = 0.35 + 0.55 * ((i * 0.618) % 1);
+      // streamline segment showing eastward water propagation
+      const half = 1.2 + 1.0 * ((i * 0.618) % 1);
       const o = i * 12;
       const oCol = i * 16;
-      this.math.pos(lon + this.frontBow(lat - half), lat - half, R, this.tmpVec);
+      this.math.pos(lon - half, lat, R, this.tmpVec);
       this.vPos[o] = this.tmpVec.x; this.vPos[o + 1] = this.tmpVec.y; this.vPos[o + 2] = this.tmpVec.z;
-      this.math.pos(lon + this.frontBow(lat), lat, R, this.tmpVec);
+      this.math.pos(lon, lat, R, this.tmpVec);
       this.vPos[o + 3] = this.tmpVec.x; this.vPos[o + 4] = this.tmpVec.y; this.vPos[o + 5] = this.tmpVec.z;
       this.vPos[o + 6] = this.tmpVec.x; this.vPos[o + 7] = this.tmpVec.y; this.vPos[o + 8] = this.tmpVec.z;
-      this.math.pos(lon + this.frontBow(lat + half), lat + half, R, this.tmpVec);
+      this.math.pos(lon + half, lat, R, this.tmpVec);
       this.vPos[o + 9] = this.tmpVec.x; this.vPos[o + 10] = this.tmpVec.y; this.vPos[o + 11] = this.tmpVec.z;
       for (let j = 0; j < 4; j++) {
-        const f = j === 1 || j === 2 ? a : a * 0.1;
+        const f = j === 1 || j === 2 ? a : a * 0.35;
         this.vCol[oCol + j * 4] = col.r;
         this.vCol[oCol + j * 4 + 1] = col.g;
         this.vCol[oCol + j * 4 + 2] = col.b;
@@ -1199,8 +1198,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private updatePins(t: number, dt: number) {
     const curPhase = this.state.phase();
-    // historical pins belong to the ENSO model views, not to today's weather
-    const showEvents = this.state.showEvents() && this.state.view() !== 'current';
+    const showEvents = this.state.showEvents();
     const selectedLoc = this.state.selectedLocation();
 
     for (const pn of this.pins) {
@@ -1261,16 +1259,21 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
     const pad = 3;
+    const screenPad = 10;
+    const minTop = 64; // Below header pills
+    const maxTop = window.innerHeight - 130; // Above dock
     for (const l of q) {
       const { w, h } = this.lblSize.get(l.el)!;
-      const left = l.x - w / 2;
-      const top = l.y - 1.4 * h;
+      const rawLeft = l.x - w / 2;
+      const left = Math.max(screenPad, Math.min(window.innerWidth - w - screenPad, rawLeft));
+      const rawTop = l.y - 1.4 * h;
       let dyOk: number | null = null;
       for (const k of [0, -1, 1, -2, 2, -3]) {
         const dy = k * (h + pad);
-        const r = { x0: left - pad, y0: top + dy - pad, x1: left + w + pad, y1: top + dy + h + pad };
+        const candTop = Math.max(minTop, Math.min(maxTop - h, rawTop + dy));
+        const r = { x0: left - pad, y0: candTop - pad, x1: left + w + pad, y1: candTop + h + pad };
         if (!placed.some(p => r.x0 < p.x1 && r.x1 > p.x0 && r.y0 < p.y1 && r.y1 > p.y0)) {
-          dyOk = dy;
+          dyOk = candTop - rawTop;
           // nearly invisible labels don't claim space
           if (l.a > 0.05) placed.push(r);
           break;
@@ -1280,16 +1283,15 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         l.el.style.opacity = '0';
         continue;
       }
+      const finalTop = Math.max(minTop, Math.min(maxTop - h, rawTop + dyOk));
       l.el.style.opacity = l.a.toString();
-      l.el.style.transform = `translate(${left}px,${top + dyOk}px)`;
+      l.el.style.transform = `translate(${left}px,${finalTop}px)`;
     }
   }
 
   private updateLabels(s: number) {
     this.camDir.copy(this.camera.position).normalize();
-    // the impacts view has its own region labels; the atmosphere ones would only add clutter there
-    // (and in the current-situation view they describe the model, not the real weather)
-    const showAtm = this.state.showAtmosphere() && this.state.view() !== 'impacts' && this.state.view() !== 'current';
+    const showAtm = this.state.showAtmosphere() && this.state.view() !== 'impacts';
 
     const convPos = this.math.pos(this.math.convLon(s), 10, this.math.R + 1.55);
     this.placeLabel(this.lblConvRef?.nativeElement, convPos, showAtm, 1, 4);
@@ -1300,8 +1302,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const kelvinPos = this.math.pos(250, -3, this.math.R * 1.01);
     this.placeLabel(this.lblKelvinRef?.nativeElement, kelvinPos, showAtm && s > 0.3, 0.85, 3);
 
-    // the index boxes belong to the ENSO model views, not to today's weather
-    const showBoxes = this.state.view() !== 'current';
+    const showBoxes = true;
     const ninoPos = this.math.pos(-145, 5, this.math.R * 1.01);
     this.placeLabel(this.lblNinoRef?.nativeElement, ninoPos, showBoxes, 1, 5);
 
@@ -1343,6 +1344,16 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  private showPinTooltip(name: string, sx: number, sy: number, duration?: number) {
+    const halfW = Math.min(130, (window.innerWidth - 32) / 2);
+    const safeX = Math.max(halfW + 12, Math.min(window.innerWidth - halfW - 12, sx));
+    const placement = sy < 110 ? 'bottom' : 'top';
+    const safeY = placement === 'bottom'
+      ? Math.max(68, sy + 18)
+      : Math.min(window.innerHeight - 130, sy - 16);
+    this.tooltip.show(name, safeX, safeY, placement, duration);
+  }
+
   onPointerDown(e: PointerEvent) {
     this.downXY = [e.clientX, e.clientY];
     this.pinHoldTriggered = false;
@@ -1357,7 +1368,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
           this.hoverPin = pn;
           const [sx, sy] = this.screenOf(pn.p);
           this.ngZone.run(() => {
-            this.tooltip.show(this.i18n.location(pn.loc).name, sx, sy - 16, 'top', 1800);
+            this.showPinTooltip(this.i18n.location(pn.loc).name, sx, sy, 1800);
           });
         }, 420);
       }
@@ -1418,7 +1429,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     canvas.style.cursor = this.hoverPin ? 'pointer' : '';
 
     if (this.hoverPin) {
-      this.tooltip.show(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY - 14, 'top');
+      this.showPinTooltip(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY);
     } else {
       this.tooltip.hide();
     }
@@ -1468,43 +1479,29 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (this.state.crossSectionView()) return;
 
     const s = this.state.sCur();
-    // the impacts view shows the ocean as a muted anomaly under the rainfall regions,
-    // the current-situation view as muted temperature under the real wind and waves
     const impacts = this.state.view() === 'impacts';
-    const current = this.state.view() === 'current';
-    const mode = impacts ? 'anom' : this.state.displayMode();
+    const weatherReady = this.weather.status() === 'ready';
 
-    if (current) {
-      // live view: measured temperature, repainted once the snapshot arrives (or fails)
-      this.weather.load();
-      const liveKey = `current:${this.weather.status()}:${this.weather.data()?.time ?? ''}`;
-      if (liveKey !== this.lastMode) {
-        this.recolorLiveTexture();
-        this.lastMode = liveKey;
-      }
-    } else {
-      const modeKey = impacts ? 'impacts' : mode;
-      if (Math.abs(s - this.lastS) > 0.004 || modeKey !== this.lastMode) {
-        this.recolorTexture(s, mode, impacts);
-        this.lastS = s;
-        this.lastMode = modeKey;
-      }
+    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${Math.round(s * 100)}`;
+    if (Math.abs(s - this.lastS) > 0.004 || textureKey !== this.lastMode) {
+      this.recolorTexture(s, impacts);
+      this.lastS = s;
+      this.lastMode = textureKey;
     }
 
-    // modelled atmosphere (ENSO wind, Kelvin waves, convection) vs. real wind and waves
-    this.atmGroup.visible = this.state.showAtmosphere() && !current;
-    if (this.atmGroup.visible) {
+    const showAtm = this.state.showAtmosphere();
+    this.atmGroup.visible = showAtm;
+    if (this.ensoWindLines && this.ensoWaveLines) {
+      this.ensoWindLines.visible = !weatherReady;
+      this.ensoWaveLines.visible = !weatherReady;
+    }
+    if (showAtm) {
       this.updateAtm(s, dt, t);
     }
-    // live view: redraw the land layer without the Niño 3.4 / dipole boxes (and back)
-    if (this.landBoxes === current) {
-      this.landBoxes = !current;
-      this.drawLand(this.loadedLandFeature);
-    }
 
-    this.currentLayer.group.visible = current;
-    if (current) {
-      this.currentLayer.update(dt);
+    this.currentLayer.group.visible = showAtm && weatherReady;
+    if (showAtm && weatherReady) {
+      this.currentLayer.update(dt, s);
     }
 
     if (this.state.autoRotate()) {

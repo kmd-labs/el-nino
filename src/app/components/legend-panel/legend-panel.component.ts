@@ -39,14 +39,11 @@ export class LegendPanelComponent {
 
   @ViewChild('scaleCanvas') set scaleCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
     this.scaleRef = ref;
-    if (ref) this.drawScale(this.scaleMode());
+    if (ref) this.drawScale();
   }
   private scaleRef: ElementRef<HTMLCanvasElement> | undefined;
 
-  readonly scaleMode = computed<DisplayMode>(() => {
-    const v = this.state.view();
-    return v === 'walker' || v === 'thermocline' || v === 'current' ? 'sst' : v === 'impacts' ? 'anom' : this.state.displayMode();
-  });
+  readonly scaleMode = computed<DisplayMode>(() => 'sst');
 
   readonly rainTitle = computed(() => {
     const s = this.state.sCur();
@@ -56,16 +53,7 @@ export class LegendPanelComponent {
     return t.rainTitleNino;
   });
 
-  /** Live view: the scale shows measured water temperature. */
-  readonly live = computed(() => this.state.view() === 'current');
-  private weather = inject(CurrentWeatherService);
-  /** Day of the live water-temperature analysis, e.g. "19 Oct". */
-  readonly sstDate = computed(() => this.weather.sstDay(this.i18n.t().htmlLang));
-
-  readonly showImpactsLegend = computed(() => {
-    // pins and rainfall patterns belong to the ENSO model, not to today's weather
-    return !this.state.crossSectionView() && this.state.view() !== 'current';
-  });
+  readonly showImpactsLegend = computed(() => !this.state.crossSectionView());
 
   openGlossaryPopup() {
     this.popup.open({
@@ -85,15 +73,15 @@ export class LegendPanelComponent {
 
   constructor() {
     effect(() => {
-      this.drawScale(this.scaleMode());
+      this.drawScale();
     });
   }
 
-  private drawScale(mode: DisplayMode) {
+  private drawScale() {
     const c = this.scaleRef?.nativeElement;
     const ctx = c?.getContext('2d');
     if (!c || !ctx) return;
-    const st = mode === 'sst' ? this.math.getThermalStops() : this.math.getAnomalyStops();
+    const st = this.math.getThermalStops();
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
     const gr = ctx.createLinearGradient(0, 0, c.width, 0);

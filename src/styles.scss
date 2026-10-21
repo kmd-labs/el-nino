@@ -6,4 +6,12 @@
   // Yellows for the live water-temperature scale (blue → yellow → red); the palette has no pure yellow
   --color-live-sst-yellow-light: #fde68a;
   --color-live-sst-yellow: #facc15;
+  --color-globe-wind: #{palette("neutral-600")};
+  --color-globe-wave-warm: #{palette("neutral-0")};
+  --color-globe-wave-cold: #{palette("neutral-0")};
+}
+
+.ui-tooltip {
+  max-width: min(260px, calc(100vw - 24px));
+  word-break: break-word;
 }

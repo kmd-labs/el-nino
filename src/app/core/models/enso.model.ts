@@ -1,6 +1,6 @@
 export type EnsoPhase = 'nina' | 'neu' | 'nino' | 'super';
 export type DisplayMode = 'sst' | 'anom';
-export type ViewMode = 'globe' | 'walker' | 'thermocline' | 'impacts' | 'current';
+export type ViewMode = 'globe' | 'walker' | 'thermocline' | 'impacts';
 export type ImpactKind = 'dry' | 'fire' | 'wet' | 'other';
 
 export interface EnsoSource {
@@ -51,5 +51,8 @@ export interface PhaseInfo {
 export interface Preset {
   ph: EnsoPhase;
   strength: number;
+  dateIso?: string;
+  now?: boolean;
+  forecast?: boolean;
   hot?: boolean;
 }

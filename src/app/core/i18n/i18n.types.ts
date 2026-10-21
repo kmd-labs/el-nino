@@ -92,6 +92,8 @@ export interface Dict {
   viewWalker: string;
   viewImpacts: string;
   viewCurrent: string;
+  timelineNow: string;
+  timelineForecast: string;
   /** current-situation view: live-data badge */
   currentLive: string;
   currentAt: (time: string) => string;
@@ -110,6 +112,10 @@ export interface Dict {
   scaleSstShort: string;
   scaleAnomShort: string;
   impactsTab: string;
+  flowLegendTitle: string;
+  flowWindLabel: string;
+  flowWaveLabel: string;
+  flowDesc: string;
   layersAria: string;
   layerAtm: string;
   layerAtmTitle: string;
@@ -130,6 +136,8 @@ export interface Dict {
   rainTitleNeutral: string;
   rainTitleNino: string;
   sources: string;
+  sourceOisstTooltip: string;
+  sourceOpenMeteoTooltip: string;
 
   // globe labels
   lblConvection: string;

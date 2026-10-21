@@ -338,8 +338,8 @@ export const CYCLE_START_YEAR = 2024;
 export const CYCLE_FORECAST_FROM = (2026 - 2024) * 12 + 10;
 
 export const PRESETS: Preset[] = [
-  { ph: 'nina', strength: -1.6 },
-  { ph: 'neu', strength: 0 },
-  { ph: 'nino', strength: 1.2 },
-  { ph: 'super', strength: 2.6, hot: true }
+  { ph: 'nina', strength: -1.6, dateIso: '2025-01-15' },
+  { ph: 'neu', strength: 0.0, dateIso: '2025-07-15' },
+  { ph: 'nino', strength: 1.4, dateIso: '2026-10-20', now: true },
+  { ph: 'super', strength: 2.6, dateIso: '2026-12-15', forecast: true, hot: true }
 ];
