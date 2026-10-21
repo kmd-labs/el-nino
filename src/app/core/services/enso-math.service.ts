@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { EnsoPhase, ImpactKind, PhaseInfo } from '../models/enso.model';
 import {
   ANOM_COLOR_TOKENS,
-  LIVE_SST_COLOR_TOKENS,
   KEY,
   KIND_COLOR_TOKENS,
   PHASE_COLOR_TOKENS,
@@ -28,8 +27,6 @@ export class EnsoMathService {
 
   lutSst!: ColorLut;
   lutAnom!: ColorLut;
-  /** Live view: blue → yellow → red water-temperature scale (see getLiveThermalStops). */
-  lutSstLive!: ColorLut;
 
   constructor() {
     this.refreshLutsFromTokens();
@@ -39,8 +36,6 @@ export class EnsoMathService {
   refreshLutsFromTokens() {
     this.lutSst = this.buildLUT(this.getThermalStops());
     this.lutAnom = this.buildLUT(this.getAnomalyStops());
-    // exact token colours, so the globe matches the CSS scale in the live badge
-    this.lutSstLive = this.buildLUT(this.getLiveThermalStops(), true);
   }
 
   /** Returns thermal (SST) stops `[temp, hexColor][]` derived from SCSS design tokens. */
@@ -49,15 +44,6 @@ export class EnsoMathService {
       val,
       this.themeService.getTokenColor(token, '#1f86cf')
     ]);
-  }
-
-  /**
-   * Colours for measured water temperature (live view): blue → yellow → red, roughly linear in °C
-   * (see LIVE_SST_COLOR_TOKENS). The model scale packs most colours into 20–31 °C, which would
-   * turn the whole real tropics one red.
-   */
-  getLiveThermalStops(): [number, string][] {
-    return LIVE_SST_COLOR_TOKENS.map(([val, token]) => [val, this.themeService.getTokenColor(token, '#93c5fd')]);
   }
 
   /** Returns anomaly stops `[anom, hexColor][]` derived from SCSS design tokens. */

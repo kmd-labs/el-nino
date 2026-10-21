@@ -497,7 +497,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   }
 
   private recolorTexture(s: number, dim = false) {
-    const { lut, lo, hi } = this.math.lutSstLive || this.math.lutSst;
+    const { lut, lo, hi } = this.math.lutSst;
     const sc = 255 / (hi - lo);
     const pair = this.weather.getKeyframePair(s);
     const bin = this.weather.sstBin;

@@ -1,11 +1,7 @@
 @use "variables" as *;
 @use "base";
 
-// App-level colour tokens (not part of the shared design system), read at runtime via ThemeService.
 :root {
-  // Yellows for the live water-temperature scale (blue → yellow → red); the palette has no pure yellow
-  --color-live-sst-yellow-light: #fde68a;
-  --color-live-sst-yellow: #facc15;
   --color-globe-wind: #{palette("neutral-600")};
   --color-globe-wave-warm: #{palette("neutral-0")};
   --color-globe-wave-cold: #{palette("neutral-0")};
