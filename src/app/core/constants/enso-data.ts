@@ -23,7 +23,7 @@ export const KIND_COLOR_TOKENS: Record<ImpactKind, string> = {
  *  - no olive green: above 0 °C the blues lighten through a pale stop straight into yellow
  *    (a direct blue→yellow blend would turn khaki),
  *  - yellow starts later (297 K instead of 294 K),
- *  - a deeper, blood red at the warm end instead of Windy's orange-red.
+ *  - orange from 299.5 K and a deeper, blood red from 301 K instead of Windy's orange-red at 303 K.
  * See EnsoMathService.getThermalStops for the shift and desaturation applied on top.
  */
 export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
@@ -39,13 +39,13 @@ export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
   [290, [198, 215, 228]],
   [294, [244, 228, 160]],
   [297, [243, 183, 4]],
-  [300.5, [226, 96, 26]],
-  [303, [178, 16, 28]],
+  [299.5, [226, 96, 26]],
+  [301, [178, 16, 28]],
   [320, [92, 0, 12]]
 ];
 
 /** The scale's red stop (Kelvin): colours cooler than this are progressively desaturated. */
-export const WINDY_SST_RED_K = 303;
+export const WINDY_SST_RED_K = 301;
 
 /** Shift of the Windy scale in °C: every colour marks a temperature this much warmer (0 = as on windy.com). */
 export const SST_PALETTE_SHIFT = 4;
