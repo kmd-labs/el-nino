@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>KMD · About us</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The KMD team — the people behind the interactive data visualizations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /*
+     * Standalone mock-up of the "About us" subpage. The tokens below are a copy of
+     * src/design-system/_variables.scss so the file works without Angular and without the
+     * submodule. When porting it into the app:
+     *   - drop the :root block and use @use "variables" as *;
+     *   - replace the inlined <symbol> with assets/design-system/logo/kmd-black-orange.svg (AGENTS.md §2),
+     *   - swap the media queries for @include respond-to("mobile" | "tablet"),
+     *   - move every string into i18n (Dict + en.ts / pl.ts / es.ts) — zero hardcoded strings.
+     */
+    :root {
+      /* ── colours (1:1 with $theme-colors / $semantic-colors) ── */
+      --color-bg-deep: #f5f7fb;
+      --color-panel-bg: rgba(255, 255, 255, 0.84);
+      --color-panel-bg-solid: #ffffff;
+      --color-panel-bg-heavy: rgba(255, 255, 255, 0.96);
+      --color-line: rgba(15, 23, 42, 0.1);
+      --color-line-strong: rgba(15, 23, 42, 0.2);
+      --color-shadow-panel: rgba(15, 23, 42, 0.08);
+      --color-shadow-heavy: rgba(15, 23, 42, 0.16);
+      --color-text-bright: #0f172a;
+      --color-text-main: #1e293b;
+      --color-text-desc: #334155;
+      --color-text-note: #475569;
+      --color-text-dim: #64748b;
+      --color-link-color: #0284c7;
+      --color-btn-bg: rgba(15, 23, 42, 0.04);
+      --color-btn-hover: rgba(15, 23, 42, 0.08);
+      --color-accent: #d37400;
+      --color-accent-hover: #e6922e;
+      --color-accent-glow: rgba(211, 116, 0, 0.32);
+      --color-neutral-100: #eef2f7;
+      --color-neutral-200: #e2e8f0;
+      --color-neutral-300: #cfd8e3;
+
+      /* ── type, radii, control height ── */
+      --font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --fs-xxs: 0.6875rem;
+      --fs-xs: 0.75rem;
+      --fs-sm: 0.8125rem;
+      --fs-base: 0.875rem;
+      --fs-md: 0.9375rem;
+      --fs-lg: 1.125rem;
+      --fs-xl: 1.375rem;
+      --radius-sm: 8px;
+      --radius-card: 16px;
+      --radius-panel: 20px;
+      --radius-pill: 9999px;
+      --control-height: 32px;
+
+      /* ── added for this subpage only: the system scale stops at xl (22px),
+             which is too small for a content-page hero ── */
+      --fs-display: clamp(1.75rem, 4.5vw, 2.625rem);
+      --fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
+
+      /* ── breakpoints (the media queries below use the same values) ── */
+      --bp-mobile: 640px;
+      --bp-tablet: 960px;
+      --bp-desktop: 1280px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-bg-deep);
+      color: var(--color-text-main);
+      font-family: var(--font-family);
+      font-size: var(--fs-base);
+      line-height: 1.6;
+      /* a soft accent wash — the same device as the globe's atmosphere */
+      background-image:
+        radial-gradient(60rem 40rem at 85% -10%, rgba(211, 116, 0, 0.07), transparent 70%),
+        radial-gradient(50rem 32rem at 5% 8%, rgba(2, 132, 199, 0.06), transparent 70%);
+      background-repeat: no-repeat;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    a {
+      color: var(--color-link-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    .glass-panel {
+      background: var(--color-panel-bg);
+      border: 1px solid var(--color-line);
+      box-shadow: 0 8px 30px var(--color-shadow-panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius-panel);
+    }
+
+    .glass-panel--heavy {
+      background: var(--color-panel-bg-heavy);
+      border-color: var(--color-line-strong);
+      box-shadow: 0 16px 48px var(--color-shadow-heavy);
+    }
+
+    /* ── wrapper: one element owns the side gutters at every width ── */
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding-inline: 24px;
+      padding-block: 18px 56px;
+    }
+
+    /* ─────────── header: brand pill + back link ─────────── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-block: 10px;
+      /* a ground behind the sticky bar so content does not show through the pills */
+      background: linear-gradient(var(--color-bg-deep) 62%, transparent);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 44px;
+      padding-inline: 14px;
+      border-radius: var(--radius-pill);
+    }
+
+    .brand__logo {
+      display: block;
+      height: 17px;
+      width: calc(17px * 319 / 128);
+      flex: 0 0 auto;
+    }
+
+    .brand__divider {
+      width: 1px;
+      height: 18px;
+      background: var(--color-line-strong);
+      flex: 0 0 auto;
+    }
+
+    .brand__name {
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      color: var(--color-text-bright);
+      white-space: nowrap;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 44px;
+      padding-inline: 16px;
+      border-radius: var(--radius-pill);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      color: var(--color-text-main);
+      white-space: nowrap;
+    }
+
+    .back:hover {
+      text-decoration: none;
+      color: var(--color-text-bright);
+    }
+
+    .back__arrow {
+      color: var(--color-accent);
+      font-size: var(--fs-md);
+      line-height: 1;
+    }
+
+    /* ─────────── hero ─────────── */
+    .hero {
+      margin-top: 18px;
+      padding: clamp(28px, 5vw, 52px) clamp(20px, 5vw, 56px);
+      text-align: center;
+    }
+
+    .hero__logo {
+      display: block;
+      margin: 0 auto;
+      height: clamp(38px, 7vw, 56px);
+      width: auto;
+      aspect-ratio: 319 / 128;
+    }
+
+    .hero__title {
+      margin: clamp(18px, 3vw, 28px) 0 0;
+      font-size: var(--fs-display);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--color-text-bright);
+    }
+
+    .hero__kicker {
+      margin: 16px 0 0;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+    }
+
+    /*
+     * Room for five lines of text about the team. min-height reserves exactly five rows, so the
+     * layout will not jump if the final copy turns out shorter than the mock-up.
+     */
+    .hero__lead {
+      margin: clamp(14px, 2.5vw, 20px) auto 0;
+      max-width: 64ch;
+      min-height: calc(5 * 1.7em);
+      font-size: var(--fs-md);
+      line-height: 1.7;
+      color: var(--color-text-desc);
+    }
+
+    /* ─────────── people ─────────── */
+    .people {
+      margin-top: clamp(22px, 4vw, 40px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 3vw, 28px);
+    }
+
+    .person {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      grid-template-areas:
+        "photo body"
+        "tasks tasks";
+      gap: clamp(18px, 3vw, 32px);
+      padding: clamp(18px, 3vw, 30px);
+    }
+
+    /* person 2: photo on the right, text on the left */
+    .person--mirrored {
+      grid-template-columns: 1fr 300px;
+      grid-template-areas:
+        "body photo"
+        "tasks tasks";
+    }
+
+    .person__photo {
+      grid-area: photo;
+      position: relative;
+      aspect-ratio: 4 / 5;
+      max-width: 100%;
+      border-radius: var(--radius-card);
+      border: 1px solid var(--color-line);
+      overflow: hidden;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          var(--color-neutral-100) 0 12px,
+          var(--color-neutral-200) 12px 24px
+        );
+      display: grid;
+      place-items: center;
+    }
+
+    .person__photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* the remaining people, until their photos arrive */
+    .person__photo-hint {
+      font-size: var(--fs-xxs);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-dim);
+      background: var(--color-panel-bg-heavy);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-pill);
+      padding: 5px 12px;
+    }
+
+    .person__body {
+      grid-area: body;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      /* krotki opis nie ma wisiec przy gornej krawedzi wysokiego zdjecia */
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .person__name {
+      margin: 0;
+      font-size: var(--fs-person);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--color-text-bright);
+    }
+
+    /* pierwsza litera nazwiska w kolorze kropki z logotypu KMD (#D37400) */
+    .person__initial {
+      color: var(--color-accent);
+    }
+
+    .person__role {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding-inline: 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(211, 116, 0, 0.12);
+      border: 1px solid rgba(211, 116, 0, 0.35);
+      font-size: var(--fs-xxs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #965000;
+    }
+
+    /* ta sama pigułka co .person__role, ale czytelnie klikalna — kolor linku z systemu */
+    .person__link {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 22px;
+      padding-inline: 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(2, 132, 199, 0.1);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+      font-size: var(--fs-xxs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--color-link-color);
+      text-decoration: none;
+      transition: background 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .person__link:hover {
+      background: rgba(2, 132, 199, 0.16);
+      border-color: rgba(2, 132, 199, 0.5);
+      text-decoration: none;
+    }
+
+    .person__link svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .person__text {
+      margin: 4px 0 0;
+      max-width: 62ch;
+      font-size: var(--fs-base);
+      line-height: 1.7;
+      color: var(--color-text-desc);
+    }
+
+    /* ─────────── the row of five task buttons ─────────── */
+    .tasks {
+      grid-area: tasks;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: clamp(14px, 2vw, 18px);
+      border-top: 1px solid var(--color-line);
+    }
+
+    .tasks__label {
+      font-size: var(--fs-xxs);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-dim);
+    }
+
+    .tasks__list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .task {
+      height: var(--control-height);
+      padding-inline: 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-line);
+      background: var(--color-btn-bg);
+      color: var(--color-text-main);
+      font-family: inherit;
+      font-size: var(--fs-xs);
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .task:hover {
+      background: var(--color-btn-hover);
+      border-color: var(--color-line-strong);
+    }
+
+    /* ─────────── footer ─────────── */
+    .footer {
+      margin-top: clamp(24px, 4vw, 44px);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 6px 14px;
+      font-size: var(--fs-xxs);
+      color: var(--color-text-dim);
+      text-align: center;
+    }
+
+    /* ─────────── tablet: ≤ 960px ─────────── */
+    @media (max-width: 960px) {
+      .person,
+      .person--mirrored {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "photo"
+          "body"
+          "tasks";
+      }
+
+      .person__photo {
+        max-width: 260px;
+      }
+    }
+
+    /* ─────────── mobile: ≤ 640px ─────────── */
+    @media (max-width: 640px) {
+      .page {
+        padding-inline: 16px;
+      }
+
+      /* per AGENTS.md only the KMD logotype remains on mobile */
+      .brand__divider,
+      .brand__name {
+        display: none;
+      }
+
+      .back span:not(.back__arrow) {
+        display: none;
+      }
+
+      .back {
+        padding-inline: 14px;
+      }
+
+      .hero__lead {
+        min-height: calc(5 * 1.65em);
+        text-align: left;
+      }
+
+      .person__photo {
+        max-width: 240px;
+      }
+
+      .task {
+        flex: 1 1 auto;
+        text-align: center;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- logotyp KMD, wklejony z src/design-system/assets/logo/kmd-black-orange.svg,
+       zeby plik byl samodzielny. W aplikacji uzyj assets/design-system/logo/kmd-black-orange.svg -->
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <symbol id="kmd-logo" viewBox="0 0 319 128" fill="none">
+      <path d="M309.768 128.002C307.379 128.002 305.331 127.149 303.624 125.442C301.917 123.65 301.064 121.56 301.064 119.17C301.064 116.781 301.917 114.733 303.624 113.026C305.331 111.32 307.379 110.466 309.768 110.466C312.157 110.466 314.205 111.32 315.912 113.026C317.704 114.733 318.6 116.781 318.6 119.17C318.6 121.56 317.704 123.65 315.912 125.442C314.205 127.149 312.157 128.002 309.768 128.002Z" fill="#D37400"/>
+      <path d="M201.47 116.994C204.371 116.994 207.187 115.586 209.918 112.77C212.734 109.869 215.081 105.986 216.958 101.122C216.873 99.9277 216.83 98.733 216.83 97.5383C216.83 91.053 218.11 85.293 220.67 80.2583C223.23 75.2237 226.686 71.2557 231.038 68.3543C235.475 65.453 240.51 64.0023 246.142 64.0023C249.129 64.0023 252.073 64.5997 254.974 65.7943C257.875 66.9037 260.307 68.4397 262.27 70.4023V17.0263C263.977 16.3437 265.939 16.0023 268.158 16.0023C270.377 16.0023 272.297 16.3437 273.918 17.0263V103.81C273.918 108.504 274.515 111.874 275.71 113.922C276.99 115.97 278.995 116.994 281.726 116.994C282.665 116.994 283.689 116.781 284.798 116.354C285.907 115.928 287.059 115.288 288.254 114.434C289.705 115.117 290.899 116.312 291.838 118.018C292.777 119.64 293.203 121.261 293.118 122.882C291.753 124.418 290.003 125.656 287.87 126.594C285.737 127.533 283.433 128.002 280.958 128.002H280.83C272.723 128.002 267.262 124.674 264.446 118.018C261.971 121.176 258.985 123.65 255.486 125.442C251.987 127.149 248.105 128.002 243.838 128.002C238.889 128.002 234.494 126.936 230.654 124.802C226.899 122.584 223.827 119.554 221.438 115.714C216.147 123.906 209.193 128.002 200.574 128.002C199.465 128.002 198.569 127.49 197.886 126.466C197.203 125.442 196.862 124.12 196.862 122.498C196.862 118.829 198.398 116.994 201.47 116.994ZM228.734 97.5383C228.734 103.597 230.099 108.376 232.83 111.874C235.646 115.288 239.486 116.994 244.35 116.994C249.726 116.994 254.035 115.16 257.278 111.49C260.606 107.821 262.27 103 262.27 97.0263V82.6903C260.563 80.3863 258.387 78.5517 255.742 77.1863C253.097 75.7357 250.366 75.0103 247.55 75.0103C243.881 75.0103 240.638 75.9917 237.822 77.9543C235.006 79.917 232.787 82.605 231.166 86.0183C229.545 89.3463 228.734 93.1863 228.734 97.5383Z" fill="black"/>
+      <path d="M65.824 128.002C64.7147 128.002 63.8187 127.49 63.136 126.466C62.4533 125.442 62.112 124.12 62.112 122.498C62.112 118.829 63.648 116.994 66.72 116.994C69.4507 116.994 71.8827 115.629 74.016 112.898C76.2347 110.082 78.1547 105.432 79.776 98.9463L83.616 83.9703C87.2 70.6583 94.0267 64.0023 104.096 64.0023C107.765 64.0023 110.88 65.069 113.44 67.2023C116.085 69.2503 117.963 72.109 119.072 75.7783C121.035 72.0237 123.595 69.1223 126.752 67.0743C129.995 65.0263 133.621 64.0023 137.632 64.0023C145.995 64.0023 151.669 68.3117 154.656 76.9303C156.704 72.8343 159.477 69.677 162.976 67.4583C166.475 65.1543 170.443 64.0023 174.88 64.0023C180.939 64.0023 185.589 65.9223 188.832 69.7623C192.075 73.6023 193.696 79.021 193.696 86.0183V103.81C193.696 108.504 194.293 111.874 195.488 113.922C196.768 115.97 198.773 116.994 201.504 116.994C202.699 116.994 203.595 117.506 204.192 118.53C204.875 119.554 205.216 120.92 205.216 122.626C205.216 123.992 204.832 125.229 204.064 126.338C203.381 127.448 202.229 128.002 200.608 128.002C188.235 128.002 182.048 120.408 182.048 105.218V88.8343C182.048 84.397 181.237 80.9837 179.616 78.5943C177.995 76.205 175.691 75.0103 172.704 75.0103C168.181 75.0103 164.597 77.613 161.952 82.8183C159.392 87.9383 158.112 95.0637 158.112 104.194V126.21C157.259 126.466 156.32 126.68 155.296 126.85C154.272 127.021 153.291 127.106 152.352 127.106C150.304 127.106 148.341 126.808 146.464 126.21V90.6263C146.464 85.5917 145.568 81.7517 143.776 79.1063C142.069 76.3757 139.509 75.0103 136.096 75.0103C132.939 75.0103 130.208 76.2477 127.904 78.7223C125.6 81.1117 123.765 84.525 122.4 88.9623C121.12 93.3143 120.48 98.3917 120.48 104.194V126.21C119.627 126.466 118.688 126.68 117.664 126.85C116.64 127.021 115.659 127.106 114.72 127.106C112.587 127.106 110.667 126.808 108.96 126.21V85.3783C108.96 78.4663 106.997 75.0103 103.072 75.0103C101.28 75.0103 99.744 75.821 98.464 77.4423C97.184 79.0637 96.0747 81.6663 95.136 85.2503L90.4 103.682C88.1813 112.13 85.1093 118.317 81.184 122.242C77.2587 126.082 72.1387 128.002 65.824 128.002Z" fill="black"/>
+      <path d="M5.632 103.682C2.304 101.208 0.426667 97.7943 0 93.4423C3.92533 91.1383 7.552 88.3223 10.88 84.9943V26.4983C10.88 17.965 12.672 11.3943 16.256 6.78633C19.9253 2.17833 25.216 -0.083005 32.128 0.00232721C38.4427 0.0876594 43.3493 2.47699 46.848 7.17033C50.432 11.8637 52.224 17.965 52.224 25.4743C52.224 31.7037 51.3707 38.1037 49.664 44.6743C48.0427 51.1597 45.4827 57.6877 41.984 64.2583C43.008 64.0877 44.0747 64.0023 45.184 64.0023C50.7307 64.0023 55.168 65.6663 58.496 68.9943C61.824 72.3223 63.488 76.717 63.488 82.1783C63.488 86.6157 61.9093 90.541 58.752 93.9543C55.5947 97.3677 51.3707 99.9277 46.08 101.634C47.7867 102.829 49.3653 104.237 50.816 105.858L55.04 110.722C58.7093 114.904 62.592 116.994 66.688 116.994C67.7973 116.994 68.6933 117.506 69.376 118.53C70.0587 119.554 70.4 120.92 70.4 122.626C70.4 126.21 68.8213 128.002 65.664 128.002C62.848 128.002 60.032 127.277 57.216 125.826C54.4853 124.29 51.84 122.2 49.28 119.554L43.904 113.794C41.856 111.576 39.936 109.869 38.144 108.674C36.352 107.394 34.2613 106.541 31.872 106.114C29.568 105.602 26.5387 105.346 22.784 105.346C22.6987 106.712 22.656 108.077 22.656 109.442V126.21C21.8027 126.466 20.864 126.68 19.84 126.85C18.816 127.021 17.8347 127.106 16.896 127.106C14.9333 127.106 12.928 126.808 10.88 126.21V100.098C8.832 101.72 7.08267 102.914 5.632 103.682ZM22.272 26.3703V76.1623C28.3307 67.2877 32.9387 58.541 36.096 49.9223C39.2533 41.2183 40.832 33.0263 40.832 25.3463C40.832 20.5677 40.0213 16.941 38.4 14.4663C36.864 11.9063 34.6027 10.6263 31.616 10.6263C25.3867 10.6263 22.272 15.8743 22.272 26.3703ZM43.136 74.1143C38.6133 74.1143 34.6453 76.1197 31.232 80.1303C27.904 84.141 25.5147 89.4317 24.064 96.0023C25.5147 96.173 27.1787 96.2583 29.056 96.2583C33.4933 96.2583 37.4613 95.661 40.96 94.4663C44.4587 93.2717 47.1893 91.6503 49.152 89.6023C51.2 87.5543 52.224 85.2503 52.224 82.6903C52.224 80.1303 51.3707 78.0823 49.664 76.5463C48.0427 74.925 45.8667 74.1143 43.136 74.1143Z" fill="black"/>
+    </symbol>
+  </svg>
+
+  <div class="page">
+    <header class="header">
+      <div class="brand glass-panel">
+        <svg class="brand__logo" role="img" aria-label="KMD" viewBox="0 0 319 128">
+          <use href="#kmd-logo"></use>
+        </svg>
+        <span class="brand__divider" aria-hidden="true"></span>
+        <span class="brand__name">About us</span>
+      </div>
+
+      <a class="back glass-panel" href="index.html">
+        <span class="back__arrow" aria-hidden="true">←</span>
+        <span>Back to the globe</span>
+      </a>
+    </header>
+
+    <main>
+      <!-- ─── hero: logotype + room for five lines about the team ─── -->
+      <section class="hero glass-panel glass-panel--heavy" aria-labelledby="hero-title">
+        <svg class="hero__logo" role="img" aria-label="KMD" viewBox="0 0 319 128">
+          <use href="#kmd-logo"></use>
+        </svg>
+        <p class="hero__kicker">Lorem ipsum dolor</p>
+        <h1 class="hero__title" id="hero-title">About us</h1>
+        <p class="hero__lead">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur.
+        </p>
+      </section>
+
+      <!-- ─── people ─── -->
+      <div class="people">
+        <!-- person 1: photo left, copy right -->
+        <section class="person glass-panel" aria-labelledby="person-1">
+          <div class="person__photo">
+            <!-- swap for: <img src="assets/team/adrian-kulik.jpg" alt="Adrian Kulik"> -->
+            <span class="person__photo-hint">Photo</span>
+          </div>
+
+          <div class="person__body">
+            <h2 class="person__name" id="person-1">Adrian <span class="person__initial">K</span>ulik</h2>
+            <span class="person__role">Lorem dolor</span>
+            <p class="person__text">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.
+            </p>
+          </div>
+
+          <div class="tasks">
+            <span class="tasks__label">Responsibilities</span>
+            <div class="tasks__list">
+              <button class="task" type="button">Lorem ipsum</button>
+              <button class="task" type="button">Dolor sit</button>
+              <button class="task" type="button">Amet consectetur</button>
+              <button class="task" type="button">Adipiscing</button>
+              <button class="task" type="button">Sed eiusmod</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- person 2: photo right, copy left -->
+        <section class="person person--mirrored glass-panel" aria-labelledby="person-2">
+          <div class="person__photo">
+            <!-- swap for: <img src="assets/team/leszek-michalak.jpg" alt="Leszek Michalak"> -->
+            <span class="person__photo-hint">Photo</span>
+          </div>
+
+          <div class="person__body">
+            <h2 class="person__name" id="person-2">Leszek <span class="person__initial">M</span>ichalak</h2>
+            <span class="person__role">Ipsum elit</span>
+            <p class="person__text">
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+              laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
+              architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem.
+            </p>
+          </div>
+
+          <div class="tasks">
+            <span class="tasks__label">Responsibilities</span>
+            <div class="tasks__list">
+              <button class="task" type="button">Perspiciatis</button>
+              <button class="task" type="button">Unde omnis</button>
+              <button class="task" type="button">Iste natus</button>
+              <button class="task" type="button">Voluptatem</button>
+              <button class="task" type="button">Architecto</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- person 3: same arrangement as person 1 -->
+        <section class="person glass-panel" aria-labelledby="person-3">
+          <div class="person__photo">
+            <!-- once ported into the app the path becomes assets/team/marcin-derewonko.jpg -->
+            <img
+              src="src/assets/team/marcin-derewonko.jpg"
+              alt="Marcin Derewońko"
+              width="800"
+              height="1000"
+              loading="lazy">
+          </div>
+
+          <div class="person__body">
+            <h2 class="person__name" id="person-3">Marcin <span class="person__initial">D</span>erewońko</h2>
+            <a
+              class="person__link"
+              href="https://linkedin.com/in/mmder"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="linkedin.com/in/mmder"
+              aria-label="LinkedIn profile — Marcin Derewońko">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
+              </svg>
+              <span>LinkedIn</span>
+            </a>
+            <p class="person__text">
+              A graduate of Marine Geography at the Faculty of Earth Sciences, University of
+              Szczecin, and of Geoinformation at the Faculty of Geographical and Geological
+              Sciences, Adam Mickiewicz University in Poznań. I specialize in multimedia
+              cartography and geovisualization. On the Viadrus AI project I was responsible for
+              geoinformatics, processing and analysis of source data, and algorithms. I currently
+              work as a Product Manager at a financial institution, where I work on projects in
+              the area of ERP systems.
+            </p>
+          </div>
+
+          <div class="tasks">
+            <span class="tasks__label">Responsibilities</span>
+            <div class="tasks__list">
+              <button class="task" type="button">Geoinformatics</button>
+              <button class="task" type="button">Data processing</button>
+              <button class="task" type="button">Source-data analysis</button>
+              <button class="task" type="button">Algorithms</button>
+              <button class="task" type="button">Geovisualization</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>KMD · lorem ipsum dolor sit amet</span>
+      <a href="about.html" hreflang="pl">Wersja polska</a>
+    </footer>
+  </div>
+</body>
+</html>
