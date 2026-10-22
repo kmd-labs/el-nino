@@ -2,9 +2,6 @@
 @use "base";
 
 :root {
-  // Yellows for the water-temperature scale (the design-system palette has no pure yellow)
-  --color-sst-yellow-light: #fde68a;
-  --color-sst-yellow: #facc15;
   --color-globe-wind: #{palette("neutral-600")};
   --color-globe-wave-warm: #{palette("neutral-0")};
   --color-globe-wave-cold: #{palette("neutral-0")};

@@ -18,26 +18,37 @@ export const KIND_COLOR_TOKENS: Record<ImpactKind, string> = {
 
 /** Thermal (Sea Surface Temperature, °C) scale stops mapped to SCSS design tokens */
 /**
- * Water temperature palette (issue #33): violet for the coldest water → blues → yellow → orange → red,
- * with no green (yellow takes its place). The warm half sits +4 °C higher than the previous scale
- * (yellow from ~25 °C, orange ~31.5 °C, red only above ~33 °C), so ordinary tropical water no longer
- * reads as hot. A near-white stop between the blues and yellow keeps that blend from turning green.
- * Palette tokens come from the design system; the two yellows are app-level tokens (src/styles.scss).
+ * Water temperature scale (issue #33), after windy.com's default `sst` / `temp` gradient
+ * (stops in Kelvin as defined in Windy's client code, www.windy.com v51.3).
+ * See EnsoMathService.getThermalStops for the shift and desaturation applied on top.
  */
-export const TEMP_COLOR_TOKENS: [number, string][] = [
-  [-2, 'purple-500'],
-  [3, 'purple-600'],
-  [8, 'primary-700'],
-  [13, 'primary-500'],
-  [18, 'info-400'],
-  [23, 'neutral-100'],
-  [25, 'sst-yellow-light'],
-  [27, 'sst-yellow'],
-  [29.5, 'warning-300'],
-  [31.5, 'warning-400'],
-  [33.2, 'danger-500'],
-  [35, 'danger-700']
+export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
+  [203, [115, 70, 105]],
+  [218, [202, 172, 195]],
+  [233, [162, 70, 145]],
+  [248, [143, 89, 169]],
+  [258, [157, 219, 217]],
+  [265, [106, 191, 181]],
+  [269, [100, 166, 189]],
+  [273.15, [93, 133, 198]],
+  [274, [68, 125, 99]],
+  [283, [128, 147, 24]],
+  [294, [243, 183, 4]],
+  [303, [232, 83, 25]],
+  [320, [71, 14, 0]]
 ];
+
+/** The scale's red stop (Kelvin): colours cooler than this are progressively desaturated. */
+export const WINDY_SST_RED_K = 303;
+
+/** Shift of the Windy scale in °C: every colour marks a temperature this much warmer. */
+export const SST_PALETTE_SHIFT = 3;
+
+/** Shown range of the water temperature scale (°C). */
+export const SST_SCALE_RANGE: [number, number] = [-2, 35];
+
+/** Saturation kept at the cold end of the scale (1 at the red stop and above). */
+export const SST_MIN_SATURATION = 0.35;
 
 /** Temperature Anomaly (°C vs normal) scale stops mapped to SCSS design tokens */
 export const ANOM_COLOR_TOKENS: [number, string][] = [
