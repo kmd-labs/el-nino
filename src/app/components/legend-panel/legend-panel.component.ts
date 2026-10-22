@@ -45,6 +45,16 @@ export class LegendPanelComponent {
 
   readonly scaleMode = computed<DisplayMode>(() => 'sst');
 
+  /** Ends and middle of the temperature scale, formatted for the UI language (e.g. "16,5 °C"). */
+  readonly scaleTicks = computed(() => {
+    const st = this.math.getThermalStops();
+    const lo = st[0][0];
+    const hi = st[st.length - 1][0];
+    const fmt = (v: number) =>
+      `${v < 0 ? '−' : ''}${Math.abs(v).toLocaleString(this.i18n.t().htmlLang, { maximumFractionDigits: 1 })} °C`;
+    return [fmt(lo), fmt((lo + hi) / 2), fmt(hi)];
+  });
+
   readonly rainTitle = computed(() => {
     const s = this.state.sCur();
     const t = this.i18n.t();

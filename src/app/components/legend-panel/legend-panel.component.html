@@ -18,9 +18,9 @@
         </div>
         <canvas #scaleCanvas class="legend-panel__bar" width="260" height="6"></canvas>
         <div class="legend-panel__ticks">
-          <span>−2 °C</span>
-          <span>15 °C</span>
-          <span>31 °C</span>
+          @for (v of scaleTicks(); track $index) {
+            <span>{{ v }}</span>
+          }
         </div>
       </div>
 

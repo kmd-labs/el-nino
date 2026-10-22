@@ -17,18 +17,26 @@ export const KIND_COLOR_TOKENS: Record<ImpactKind, string> = {
 };
 
 /** Thermal (Sea Surface Temperature, °C) scale stops mapped to SCSS design tokens */
+/**
+ * Water temperature palette (issue #33): violet for the coldest water → blues → yellow → orange → red,
+ * with no green (yellow takes its place). The warm half sits +4 °C higher than the previous scale
+ * (yellow from ~25 °C, orange ~31.5 °C, red only above ~33 °C), so ordinary tropical water no longer
+ * reads as hot. A near-white stop between the blues and yellow keeps that blend from turning green.
+ * Palette tokens come from the design system; the two yellows are app-level tokens (src/styles.scss).
+ */
 export const TEMP_COLOR_TOKENS: [number, string][] = [
-  [-2, 'sst-m2'],
-  [0, 'sst-0'],
-  [5, 'sst-5'],
-  [10, 'sst-10'],
-  [15, 'sst-15'],
-  [20, 'sst-20'],
-  [23, 'sst-23'],
-  [25.5, 'sst-25-5'],
-  [27.5, 'sst-27-5'],
-  [29.2, 'sst-29-2'],
-  [31, 'sst-31']
+  [-2, 'purple-500'],
+  [3, 'purple-600'],
+  [8, 'primary-700'],
+  [13, 'primary-500'],
+  [18, 'info-400'],
+  [23, 'neutral-100'],
+  [25, 'sst-yellow-light'],
+  [27, 'sst-yellow'],
+  [29.5, 'warning-300'],
+  [31.5, 'warning-400'],
+  [33.2, 'danger-500'],
+  [35, 'danger-700']
 ];
 
 /** Temperature Anomaly (°C vs normal) scale stops mapped to SCSS design tokens */

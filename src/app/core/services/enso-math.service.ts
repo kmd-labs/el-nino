@@ -34,7 +34,8 @@ export class EnsoMathService {
 
   /** Rebuilds the thermal and anomaly LUTs directly from `:root` SCSS design token CSS variables. */
   refreshLutsFromTokens() {
-    this.lutSst = this.buildLUT(this.getThermalStops());
+    // exact token colours (sRGB), so the globe and cross-sections match the legend's colour bar
+    this.lutSst = this.buildLUT(this.getThermalStops(), true);
     this.lutAnom = this.buildLUT(this.getAnomalyStops());
   }
 
