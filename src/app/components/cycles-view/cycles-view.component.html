@@ -1,0 +1,101 @@
+@let t = i18n.t();
+@let data = history.data();
+@let forecast = history.forecast();
+@let range = peakRange();
+@let prov = history.provisional();
+
+<section class="cycles" [attr.aria-label]="t.cyclesAria">
+  <div class="cycles__head glass-panel">
+    <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
+    <span class="cycles__title">{{ t.cyclesTitle }}</span>
+    @if (data) {
+      <span class="cycles__meta">{{ t.cyclesRecordNote(data.index.firstMonth, data.index.lastMonth) }}</span>
+    }
+    @if (prov) {
+      <span class="cycles__meta cycles__meta--prov">
+        {{ monthLabel(prov.month) }} {{ formatOni(prov.oni, 1) }} °C ·
+        {{ t.cyclesProvisional(dayLabel(prov.lastWeek)) }}
+      </span>
+    }
+  </div>
+
+  <div class="cycles__body">
+    <div #box class="cycles__box">
+      <canvas #cv></canvas>
+      @if (history.status() === 'loading' || history.status() === 'idle') {
+        <p class="cycles__state">{{ t.cyclesLoading }}</p>
+      }
+      @if (history.status() === 'error') {
+        <p class="cycles__state">{{ t.cyclesError }}</p>
+      }
+    </div>
+
+    <aside class="cycles__side">
+      <div class="cycles__panel glass-panel">
+        <h3>{{ t.cyclesCatalogue }}</h3>
+        <table class="cycles__table">
+          <thead>
+            <tr>
+              <th>{{ t.cyclesColSeason }}</th>
+              <th>{{ t.cyclesColPeak }}</th>
+              <th>{{ t.cyclesColTier }}</th>
+              <th>{{ t.cyclesColLength }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of catalogue(); track e.season) {
+              <tr [class.is-current]="e.ongoing" [class.is-analog]="history.analogSeasons().has(e.season)">
+                <td>{{ e.season }}</td>
+                <td class="num">{{ formatOni(e.peakOni) }}</td>
+                <td>{{ tierLabel(e.tier) }}</td>
+                <td class="num">
+                  {{ e.ongoing ? t.cyclesOngoing : t.cyclesMonthsShort(e.durationMonths) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (forecast) {
+        <div class="cycles__panel glass-panel">
+          <h3>{{ t.cyclesAnalogTitle }}</h3>
+          <p class="cycles__sub">{{ t.cyclesAnalogNote(forecast.windowMonths, forecast.analogs.length) }}</p>
+          <ul class="cycles__analogs">
+            @for (a of forecast.analogs; track a.season) {
+              <li>
+                <span class="cycles__season">{{ a.season }}</span>
+                <span class="cycles__bar" [style.width.%]="a.weight * 100 / forecast.analogs[0].weight"></span>
+                <span class="cycles__num">{{ t.cyclesAnalogMatch }} {{ a.rmse.toFixed(2) }}</span>
+              </li>
+            }
+          </ul>
+          @if (range) {
+            <p class="cycles__peak">{{ t.cyclesForecastPeak(range.lo, range.hi, range.window) }}</p>
+          }
+        </div>
+      }
+    </aside>
+  </div>
+
+  <div class="cycles__foot">
+    <div class="cycles__legend">
+      <span class="cycles__key cycles__key--past">{{ t.cyclesLegendPast }}</span>
+      <span class="cycles__key cycles__key--analog">{{ t.cyclesLegendAnalog }}</span>
+      <span class="cycles__key cycles__key--current">{{ t.cyclesLegendCurrent }}</span>
+      <span class="cycles__key cycles__key--forecast">{{ t.cyclesLegendForecast }}</span>
+    </div>
+    <p class="cycles__note">{{ t.cyclesNote }}</p>
+    <p class="cycles__note cycles__note--warn">{{ t.cyclesBarrier }}</p>
+    @if (data) {
+      <p class="cycles__sources">
+        @for (s of data.sources; track s.id) {
+          <a [href]="s.url" [title]="s.title" target="_blank" rel="noopener noreferrer">
+            <span>{{ s.id }}</span>
+            <lucide-icon [img]="externalLinkIcon" [size]="11"></lucide-icon>
+          </a>
+        }
+      </p>
+    }
+  </div>
+</section>
