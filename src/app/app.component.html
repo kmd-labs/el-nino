@@ -7,6 +7,9 @@
   @if (state.view() === 'thermocline') {
     <app-thermocline-view></app-thermocline-view>
   }
+  @if (state.view() === 'cycles') {
+    <app-cycles-view></app-cycles-view>
+  }
   <app-map-dock></app-map-dock>
   <app-popup [closeAriaLabel]="i18n.t().close"></app-popup>
   <app-tooltip></app-tooltip>

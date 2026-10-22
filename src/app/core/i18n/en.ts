@@ -22,7 +22,8 @@ export const EN: Dict = {
   ensoLabel: 'ENSO phase',
   strengthAria: 'ENSO strength',
   probText: '2026 peak likelihood:',
-  probTitle: 'Approximate estimate for the season peak (Oct–Dec 2026) based on the NOAA CPC forecast of 8 Oct 2026',
+  probTitle: 'Share of the analog ensemble whose Oct–Dec peak reaches the value shown — five past seasons matched against '
+    + 'the current trajectory of the NOAA CPC Niño 3.4 record (1950–present). A coarse estimate, not a dynamical forecast.',
   probSource: 'NOAA CPC',
   playStart: '4-yr cycle',
   playStop: 'Stop',
@@ -146,6 +147,44 @@ export const EN: Dict = {
     westerly: 'westerly wind →',
     warmPool: 'warm pool',
     coldTongue: 'cold tongue'
+  },
+
+  viewCycles: 'Previous cycles',
+  cyclesAria: 'Previous ENSO cycles and the analog forecast',
+  cyclesTitle: 'Every ENSO event since 1950',
+  cyclesNote: 'Each line is one event: the Niño 3.4 index (ONI, a 3-month running mean) across two calendar years. '
+    + 'The seasons the forecast leans on are highlighted; the current event is the thick line.',
+  cyclesBarrier: 'An analog forecast is a statistical baseline, not a dynamical model. Five members drawn from a record of '
+    + 'ten comparable events carry real uncertainty, and skill drops sharply once a horizon crosses the spring predictability barrier.',
+  cyclesLegendPast: 'Past events',
+  cyclesLegendAnalog: 'Analogs used',
+  cyclesLegendCurrent: 'Current event',
+  cyclesLegendForecast: 'Forecast (p10–p90)',
+  cyclesAxisOni: 'ONI (°C)',
+  cyclesYearN: n => `year ${n}`,
+  cyclesCatalogue: 'Strongest El Niño events',
+  cyclesColSeason: 'Season',
+  cyclesColPeak: 'Peak',
+  cyclesColTier: 'Class',
+  cyclesColLength: 'Length',
+  cyclesMonthsShort: n => `${n} mo`,
+  cyclesOngoing: 'in progress',
+  cyclesProvisional: date => `provisional · week to ${date}`,
+  cyclesAnalogTitle: 'Closest analogs',
+  cyclesAnalogNote: (window, members) =>
+    `Matched on the last ${window} months of the index; the ${members} best seasons, each shifted to continue from today's level.`,
+  cyclesAnalogMatch: 'match',
+  cyclesAnalogWeight: 'weight',
+  cyclesForecastPeak: (lo, hi, window) =>
+    `Projected ${window} peak: ${lo >= 0 ? '+' : '−'}${Math.abs(lo).toFixed(1)} to ${hi >= 0 ? '+' : '−'}${Math.abs(hi).toFixed(1)} °C`,
+  cyclesRecordNote: (first, last) => `NOAA CPC monthly Niño 3.4, ${first} – ${last}`,
+  cyclesLoading: 'Loading the historical record…',
+  cyclesError: 'The historical record is unavailable.',
+  tier: {
+    super: 'Super',
+    strong: 'Strong',
+    moderate: 'Moderate',
+    weak: 'Weak'
   },
 
   glTitle: 'Glossary & Key Terms',

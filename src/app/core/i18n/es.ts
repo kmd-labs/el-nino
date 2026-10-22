@@ -22,7 +22,8 @@ export const ES: Dict = {
   ensoLabel: 'Fase ENSO',
   strengthAria: 'Intensidad de ENSO',
   probText: 'Probabilidad pico 2026:',
-  probTitle: 'Estimación muy aproximada para el pico de la temporada (oct–dic 2026) según el pronóstico de NOAA CPC del 8.10.2026',
+  probTitle: 'Proporción del conjunto de analogías cuyo pico oct–dic alcanza el valor mostrado — cinco temporadas pasadas '
+    + 'ajustadas a la trayectoria actual del registro NOAA CPC Niño 3.4 (1950–hoy). Una estimación aproximada, no un modelo dinámico.',
   probSource: 'NOAA CPC',
   playStart: 'Ciclo 4 años',
   playStop: 'Detener',
@@ -146,6 +147,45 @@ export const ES: Dict = {
     westerly: 'viento del oeste →',
     warmPool: 'piscina cálida',
     coldTongue: 'lengua fría'
+  },
+
+  viewCycles: 'Ciclos anteriores',
+  cyclesAria: 'Ciclos ENSO anteriores y el pronóstico por analogías',
+  cyclesTitle: 'Todos los eventos ENSO desde 1950',
+  cyclesNote: 'Cada línea es un evento: el índice Niño 3.4 (ONI, media móvil de 3 meses) a lo largo de dos años '
+    + 'calendario. Las temporadas en que se basa el pronóstico están resaltadas; el evento actual es la línea gruesa.',
+  cyclesBarrier: 'Un pronóstico por analogías es una base estadística, no un modelo dinámico. Cinco miembros extraídos de un '
+    + 'registro de diez eventos comparables conllevan una incertidumbre real, y la destreza cae bruscamente cuando el horizonte '
+    + 'cruza la barrera de predictibilidad de primavera.',
+  cyclesLegendPast: 'Eventos pasados',
+  cyclesLegendAnalog: 'Analogías usadas',
+  cyclesLegendCurrent: 'Evento actual',
+  cyclesLegendForecast: 'Pronóstico (p10–p90)',
+  cyclesAxisOni: 'ONI (°C)',
+  cyclesYearN: n => `año ${n}`,
+  cyclesCatalogue: 'Eventos El Niño más fuertes',
+  cyclesColSeason: 'Temporada',
+  cyclesColPeak: 'Pico',
+  cyclesColTier: 'Clase',
+  cyclesColLength: 'Duración',
+  cyclesMonthsShort: n => `${n} meses`,
+  cyclesOngoing: 'en curso',
+  cyclesProvisional: date => `provisional · semana hasta ${date}`,
+  cyclesAnalogTitle: 'Analogías más cercanas',
+  cyclesAnalogNote: (window, members) =>
+    `Ajuste según los últimos ${window} meses del índice; las ${members} mejores temporadas, cada una desplazada para continuar desde el nivel actual.`,
+  cyclesAnalogMatch: 'ajuste',
+  cyclesAnalogWeight: 'peso',
+  cyclesForecastPeak: (lo, hi, window) =>
+    `Pico previsto ${window}: ${lo >= 0 ? '+' : '−'}${Math.abs(lo).toFixed(1)} a ${hi >= 0 ? '+' : '−'}${Math.abs(hi).toFixed(1)} °C`,
+  cyclesRecordNote: (first, last) => `NOAA CPC, Niño 3.4 mensual, ${first} – ${last}`,
+  cyclesLoading: 'Cargando el registro histórico…',
+  cyclesError: 'El registro histórico no está disponible.',
+  tier: {
+    super: 'Super',
+    strong: 'Fuerte',
+    moderate: 'Moderado',
+    weak: 'Débil'
   },
 
   glTitle: 'Glosario de términos clave',

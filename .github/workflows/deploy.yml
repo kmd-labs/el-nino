@@ -45,6 +45,10 @@ jobs:
       - name: Fetch current wind & waves (Open-Meteo) and sea surface temperature (NOAA OISST)
         run: npm run fetch:weather
 
+      # Never fails the build: on an API error the committed record is kept
+      - name: Fetch ENSO history and analog forecast (NOAA CPC)
+        run: npm run fetch:history
+
       - name: Build Angular application for GitHub Pages
         run: npm run build:gh-pages
 
