@@ -42,7 +42,7 @@ export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
 export const WINDY_SST_RED_K = 303;
 
 /** Shift of the Windy scale in °C: every colour marks a temperature this much warmer (0 = as on windy.com). */
-export const SST_PALETTE_SHIFT = 0;
+export const SST_PALETTE_SHIFT = 4;
 
 /** Shown range of the water temperature scale (°C). */
 export const SST_SCALE_RANGE: [number, number] = [-2, 35];
