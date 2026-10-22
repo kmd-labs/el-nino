@@ -18,8 +18,12 @@ export const KIND_COLOR_TOKENS: Record<ImpactKind, string> = {
 
 /** Thermal (Sea Surface Temperature, °C) scale stops mapped to SCSS design tokens */
 /**
- * Water temperature scale (issue #33), after windy.com's default `sst` / `temp` gradient
- * (stops in Kelvin as defined in Windy's client code, www.windy.com v51.3).
+ * Water temperature scale (issue #33), based on windy.com's default `sst` / `temp` gradient
+ * (stops in Kelvin as defined in Windy's client code, www.windy.com v51.3), with changes:
+ *  - no olive green: above 0 °C the blues lighten through a pale stop straight into yellow
+ *    (a direct blue→yellow blend would turn khaki),
+ *  - yellow starts later (297 K instead of 294 K),
+ *  - a deeper, blood red at the warm end instead of Windy's orange-red.
  * See EnsoMathService.getThermalStops for the shift and desaturation applied on top.
  */
 export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
@@ -31,11 +35,13 @@ export const WINDY_SST_SCALE: [number, [number, number, number]][] = [
   [265, [106, 191, 181]],
   [269, [100, 166, 189]],
   [273.15, [93, 133, 198]],
-  [274, [68, 125, 99]],
-  [283, [128, 147, 24]],
-  [294, [243, 183, 4]],
-  [303, [232, 83, 25]],
-  [320, [71, 14, 0]]
+  [283, [120, 170, 218]],
+  [290, [198, 215, 228]],
+  [294, [244, 228, 160]],
+  [297, [243, 183, 4]],
+  [300.5, [226, 96, 26]],
+  [303, [178, 16, 28]],
+  [320, [92, 0, 12]]
 ];
 
 /** The scale's red stop (Kelvin): colours cooler than this are progressively desaturated. */
