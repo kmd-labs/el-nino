@@ -7,7 +7,8 @@
     direction="up"
     align="right"
     class="legend-panel__legend"
-    [icon]="bp.mobile() ? null : layersIcon"
+    [icon]="layersIcon"
+    [iconOnly]="bp.mobile()"
     [label]="t.impactsTab"
     [ariaLabel]="t.impactsTab">
     <div class="legend-panel__dropdown-content">
