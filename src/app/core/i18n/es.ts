@@ -3,6 +3,7 @@ import { Dict } from './i18n.types';
 export const ES: Dict = {
   htmlLang: 'es',
   docTitle: 'El Niño 2026 en 3D - Globo ENSO interactivo | KMD Labs',
+  metaDescription: 'Explora El Niño y La Niña en un globo 3D interactivo: temperaturas reales del mar (NOAA), vientos, la circulación de Walker e impactos globales.',
   langName: 'Español',
 
   phase: { super: 'Súper El Niño', nino: 'El Niño', nina: 'La Niña', neu: 'Neutral' },

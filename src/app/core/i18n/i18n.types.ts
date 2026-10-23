@@ -49,6 +49,8 @@ export interface WalkerCanvasText {
 export interface Dict {
   htmlLang: string;
   docTitle: string;
+  /** page <meta name="description">; the English one is also the static default in index.html */
+  metaDescription: string;
   langName: string;
 
   phase: Record<EnsoPhase, string>;
