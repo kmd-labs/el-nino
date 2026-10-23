@@ -49,7 +49,6 @@ export interface WalkerCanvasText {
 export interface Dict {
   htmlLang: string;
   docTitle: string;
-  /** page <meta name="description">; the English one is also the static default in index.html */
   metaDescription: string;
   langName: string;
 
@@ -96,13 +95,10 @@ export interface Dict {
   viewCurrent: string;
   /** Active timeline date: mean SST inside the Niño 3.4 box. */
   sstOnDateTitle: string;
-  /** Live Open-Meteo conditions shown in the dock. */
-  liveConditionsLabel: string;
-  /** Compact labels in the top data lozenge. */
+  dailyConditionsLabel: string;
   waterTempLabel: string;
   airTempLabel: string;
   windSpeedLabel: string;
-  /** Per-parameter tooltips; air and wind are live snapshots, water follows the timeline. */
   airTempTitle: string;
   windSpeedTitle: string;
   timelineNow: string;

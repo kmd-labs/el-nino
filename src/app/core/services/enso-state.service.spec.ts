@@ -57,4 +57,24 @@ describe('EnsoStateService', () => {
     expect(service.isPlaying()).toBe(true);
     expect(service.sTarget()).toBe(-1.8);
   });
+
+  it('should speed-ramp playback: slow at the start, fast in the middle, slow at the end', () => {
+    service.beginExperience();
+    const dt = 0.05;
+    const baseStep = (3.2 / 12) * dt;
+
+    service.updateCycle(dt);
+    const firstStep = service.sTarget() - (-1.8);
+    expect(firstStep).toBeLessThan(baseStep * 0.5);
+
+    let elapsed = dt;
+    while (service.isPlaying() && elapsed < 20) {
+      service.updateCycle(dt);
+      elapsed += dt;
+    }
+
+    expect(elapsed).toBeGreaterThan(11.5);
+    expect(elapsed).toBeLessThan(12.5);
+    expect(service.sTarget()).toBe(1.4);
+  });
 });

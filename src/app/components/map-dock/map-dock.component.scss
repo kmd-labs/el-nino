@@ -45,10 +45,13 @@
 
 .date-pill {
   color: color("text-main");
+  font-family: var(--font-family-mono);
   font-weight: font-weight("semibold");
 
-  &__icon {
-    color: color("text-dim");
+  &__value {
+    display: inline-block;
+    min-width: 12ch;
+    text-align: center;
   }
 }
 
@@ -73,8 +76,12 @@
   }
 
   &__val {
+    display: inline-block;
+    min-width: 8ch;
     color: color("text-bright");
+    font-family: var(--font-family-mono);
     font-weight: font-weight("semibold");
+    text-align: right;
   }
 
   &__sep {
@@ -282,6 +289,10 @@
   .data-pill {
     &__item {
       gap: 4px;
+    }
+
+    &__key {
+      display: none;
     }
 
     &__sep {

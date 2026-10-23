@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Fetches weekly NOAA OISST v2.1 sea surface temperature anomaly files from late 2024 to present,
- * extracts a detailed 0.5° grid (720 × 360 = 259,200 points per frame),
- * and writes:
- *   1. src/assets/data/timeline-meta.json (~6 KB metadata, dates & s-curve mapping)
- *   2. src/assets/data/timeline-sst.bin.gz (~1.7 MB gzipped Int8 binary for all ~100 weekly frames)
- *
- * Runs with concurrency and local disk caching so re-running only downloads new/missing files.
- */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -35,10 +26,27 @@ const OM_CHUNK = 120;
 const OM_WIND_URL = 'https://api.open-meteo.com/v1/forecast';
 const OM_WAVE_URL = 'https://marine-api.open-meteo.com/v1/marine';
 
+const DAILY_START = '2024-11-06';
+const DAILY_LAT0 = -30;
+const DAILY_LAT1 = 30;
+const DAILY_LAT_STEP = 10;
+const DAILY_LON0 = -180;
+const DAILY_LON1 = 150;
+const DAILY_LON_STEP = 30;
+const OM_ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive';
+const POWER_URL = 'https://power.larc.nasa.gov/api/temporal/daily/point';
+
 const omPoints = [];
 for (let r = 0; r < OM_N_LAT; r++) {
   for (let c = 0; c < OM_N_LON; c++) {
     omPoints.push({ lat: OM_LAT0 + r * OM_STEP, lon: OM_LON0 + c * OM_STEP });
+  }
+}
+
+const dailyPoints = [];
+for (let lat = DAILY_LAT0; lat <= DAILY_LAT1; lat += DAILY_LAT_STEP) {
+  for (let lon = DAILY_LON0; lon <= DAILY_LON1; lon += DAILY_LON_STEP) {
+    dailyPoints.push({ lat, lon });
   }
 }
 
@@ -82,6 +90,113 @@ async function fetchLiveWindAndWaves() {
   } catch (err) {
     console.warn('Open-Meteo fetch failed, keeping previous values:', err.message);
     return null;
+  }
+}
+
+async function fetchOpenMeteoDaily() {
+  const end = new Date().toISOString().slice(0, 10);
+  const url = `${OM_ARCHIVE_URL}?latitude=${dailyPoints.map(p => p.lat).join(',')}`
+    + `&longitude=${dailyPoints.map(p => p.lon).join(',')}`
+    + `&start_date=${DAILY_START}&end_date=${end}`
+    + '&daily=temperature_2m_mean,wind_speed_10m_mean'
+    + '&wind_speed_unit=ms&timezone=UTC';
+  const res = await fetch(url, { signal: AbortSignal.timeout(120000) });
+  if (!res.ok) throw new Error(`Open-Meteo daily: HTTP ${res.status}`);
+  const body = await res.json();
+  const list = Array.isArray(body) ? body : [body];
+  const dates = list[0]?.daily?.time ?? [];
+  if (!dates.length) throw new Error('Open-Meteo daily: empty response');
+
+  const atSum = new Float64Array(dates.length);
+  const atWeight = new Float64Array(dates.length);
+  const wsSum = new Float64Array(dates.length);
+  const wsWeight = new Float64Array(dates.length);
+
+  for (const loc of list) {
+    const at = loc.daily?.temperature_2m_mean ?? [];
+    const ws = loc.daily?.wind_speed_10m_mean ?? [];
+    const weight = Math.max(0.01, Math.cos((loc.latitude ?? 0) * Math.PI / 180));
+    for (let d = 0; d < dates.length; d++) {
+      const a = at[d];
+      if (Number.isFinite(a)) { atSum[d] += a * weight; atWeight[d] += weight; }
+      const w = ws[d];
+      if (Number.isFinite(w)) { wsSum[d] += w * weight; wsWeight[d] += weight; }
+    }
+  }
+
+  return {
+    source: 'Open-Meteo.com (CC BY 4.0)',
+    sourceUrl: 'https://open-meteo.com/',
+    fetchedAt: new Date().toISOString(),
+    start: dates[0],
+    end: dates[dates.length - 1],
+    airTemp: dates.map((_, d) => atWeight[d] > 0 ? round1(atSum[d] / atWeight[d]) : null),
+    windSpeed: dates.map((_, d) => wsWeight[d] > 0 ? round1(wsSum[d] / wsWeight[d]) : null)
+  };
+}
+
+async function fetchPowerDaily() {
+  const start = DAILY_START.replaceAll('-', '');
+  const end = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  const series = [];
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < dailyPoints.length) {
+      const p = dailyPoints[cursor++];
+      const url = `${POWER_URL}?parameters=T2M,WS10M&community=RE`
+        + `&longitude=${p.lon}&latitude=${p.lat}&start=${start}&end=${end}&format=JSON`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(120000) });
+      if (!res.ok) throw new Error(`NASA POWER: HTTP ${res.status}`);
+      const body = await res.json();
+      const param = body.properties?.parameter ?? {};
+      series.push({ lat: p.lat, air: param.T2M ?? {}, wind: param.WS10M ?? {} });
+    }
+  }
+
+  await Promise.all(Array.from({ length: 4 }, worker));
+  if (!series.length) throw new Error('NASA POWER: empty response');
+
+  const dates = Object.keys(series[0].air).sort();
+  const atSum = new Float64Array(dates.length);
+  const atWeight = new Float64Array(dates.length);
+  const wsSum = new Float64Array(dates.length);
+  const wsWeight = new Float64Array(dates.length);
+
+  for (const point of series) {
+    const weight = Math.max(0.01, Math.cos(point.lat * Math.PI / 180));
+    for (let d = 0; d < dates.length; d++) {
+      const a = point.air[dates[d]];
+      if (Number.isFinite(a) && a !== -999) { atSum[d] += a * weight; atWeight[d] += weight; }
+      const w = point.wind[dates[d]];
+      if (Number.isFinite(w) && w !== -999) { wsSum[d] += w * weight; wsWeight[d] += weight; }
+    }
+  }
+
+  let first = 0;
+  while (first < dates.length && (atWeight[first] === 0 || wsWeight[first] === 0)) first++;
+  let last = dates.length - 1;
+  while (last >= first && (atWeight[last] === 0 || wsWeight[last] === 0)) last--;
+  if (first > last) throw new Error('NASA POWER: no complete days');
+
+  const range = dates.slice(first, last + 1).map(key => `${key.slice(0, 4)}-${key.slice(4, 6)}-${key.slice(6, 8)}`);
+  return {
+    source: 'NASA POWER (MERRA-2)',
+    sourceUrl: 'https://power.larc.nasa.gov/',
+    fetchedAt: new Date().toISOString(),
+    start: range[0],
+    end: range[range.length - 1],
+    airTemp: range.map((_, d) => round1(atSum[first + d] / atWeight[first + d])),
+    windSpeed: range.map((_, d) => round1(wsSum[first + d] / wsWeight[first + d]))
+  };
+}
+
+async function fetchDailyWeather() {
+  try {
+    return await fetchOpenMeteoDaily();
+  } catch (err) {
+    console.warn('Open-Meteo daily unavailable, using NASA POWER:', err.message);
+    return await fetchPowerDaily();
   }
 }
 
@@ -305,6 +420,12 @@ async function main() {
     existingBin = gunzipSync(compressed);
   } catch {}
 
+  console.log('Fetching daily tropical weather from Open-Meteo...');
+  const dailyWeather = await fetchDailyWeather().catch(err => {
+    console.warn('Open-Meteo daily fetch failed, keeping previous values:', err.message);
+    return null;
+  });
+
   const weeklyDates = generateWeeklyDates();
   console.log(`Targeting ${weeklyDates.length} weekly dates up to present...`);
 
@@ -428,7 +549,8 @@ async function main() {
     totalFrames,
     binFile: 'assets/data/timeline-sst.bin.gz',
     keyframes: keyframesMeta,
-    openMeteo: liveOpenMeteo || existingMeta?.openMeteo || undefined
+    openMeteo: liveOpenMeteo || existingMeta?.openMeteo || undefined,
+    dailyWeather: dailyWeather || existingMeta?.dailyWeather || undefined
   };
 
   await writeFile(OUT_META, JSON.stringify(meta, null, 2) + '\n');

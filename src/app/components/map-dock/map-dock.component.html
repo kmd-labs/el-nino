@@ -1,36 +1,50 @@
 @let t = i18n.t();
 
 <div #wrap class="dock-wrap">
-  <!-- Timeline date on its own; water, air and wind in one greyscale data lozenge -->
   <div class="dock-topline">
     <div class="date-pill glass-panel" role="status">
-      <lucide-icon class="date-pill__icon" [img]="calendarIcon" [size]="13"></lucide-icon>
-      <span>{{ activeDateLabel() || '2026' }}</span>
+      <span class="date-pill__value">{{ activeDateLabel() || '2026' }}</span>
     </div>
 
-    <div class="data-pill glass-panel" role="status" [attr.aria-label]="t.liveConditionsLabel">
-      <span class="data-pill__item" [appTooltip]="t.sstOnDateTitle" tooltipPlacement="top">
-        <lucide-icon class="data-pill__icon" [img]="waterIcon" [size]="13"></lucide-icon>
-        <span class="data-pill__key">{{ t.waterTempLabel }}</span>
-        <span class="data-pill__val">{{ activeSstLabel() || '—' }}</span>
-      </span>
+    @if (dataReady()) {
+      <div class="data-pill glass-panel" role="status" [attr.aria-label]="isForecast() ? t.sstOnDateTitle : t.dailyConditionsLabel">
+        <span
+          class="data-pill__item"
+          [appTooltip]="t.sstOnDateTitle"
+          tooltipPlacement="top"
+          [attr.aria-label]="t.waterTempLabel + ': ' + (activeSst() | weatherValue: '°C' : t.htmlLang)">
+          <lucide-icon class="data-pill__icon" [img]="waterIcon" [size]="13"></lucide-icon>
+          <span class="data-pill__key">{{ t.waterTempLabel }}</span>
+          <span class="data-pill__val">{{ activeSst() | weatherValue: '°C' : t.htmlLang }}</span>
+        </span>
 
-      <span class="data-pill__sep" aria-hidden="true"></span>
+        @if (!isForecast()) {
+          <span class="data-pill__sep" aria-hidden="true"></span>
 
-      <span class="data-pill__item" [appTooltip]="t.airTempTitle" tooltipPlacement="top">
-        <lucide-icon class="data-pill__icon" [img]="airIcon" [size]="13"></lucide-icon>
-        <span class="data-pill__key">{{ t.airTempLabel }}</span>
-        <span class="data-pill__val">{{ liveAirTempLabel() }}</span>
-      </span>
+          <span
+            class="data-pill__item"
+            [appTooltip]="t.airTempTitle"
+            tooltipPlacement="top"
+            [attr.aria-label]="t.airTempLabel + ': ' + (daily()?.airTemp | weatherValue: '°C' : t.htmlLang)">
+            <lucide-icon class="data-pill__icon" [img]="airIcon" [size]="13"></lucide-icon>
+            <span class="data-pill__key">{{ t.airTempLabel }}</span>
+            <span class="data-pill__val">{{ daily()?.airTemp | weatherValue: '°C' : t.htmlLang }}</span>
+          </span>
 
-      <span class="data-pill__sep" aria-hidden="true"></span>
+          <span class="data-pill__sep" aria-hidden="true"></span>
 
-      <span class="data-pill__item" [appTooltip]="t.windSpeedTitle" tooltipPlacement="top">
-        <lucide-icon class="data-pill__icon" [img]="windIcon" [size]="13"></lucide-icon>
-        <span class="data-pill__key">{{ t.windSpeedLabel }}</span>
-        <span class="data-pill__val">{{ liveWindLabel() }}</span>
-      </span>
-    </div>
+          <span
+            class="data-pill__item"
+            [appTooltip]="t.windSpeedTitle"
+            tooltipPlacement="top"
+            [attr.aria-label]="t.windSpeedLabel + ': ' + (daily()?.windSpeed | weatherValue: 'm/s' : t.htmlLang)">
+            <lucide-icon class="data-pill__icon" [img]="windIcon" [size]="13"></lucide-icon>
+            <span class="data-pill__key">{{ t.windSpeedLabel }}</span>
+            <span class="data-pill__val">{{ daily()?.windSpeed | weatherValue: 'm/s' : t.htmlLang }}</span>
+          </span>
+        }
+      </div>
+    }
   </div>
 
   <div class="dock glass-panel">

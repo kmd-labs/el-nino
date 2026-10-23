@@ -4,9 +4,9 @@ import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../
 import { EnsoMathService } from './enso-math.service';
 import { I18nService } from '../i18n/i18n.service';
 
-/** First weekly NOAA frame (6 Nov 2024); the animation starts exactly here. */
 const EARLIEST_STRENGTH = -1.8;
 const NOW_STRENGTH = 1.4;
+const PLAY_DURATION_S = 12;
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +14,8 @@ const NOW_STRENGTH = 1.4;
 export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
+  private playElapsed = 0;
 
-  // Start at the first observed keyframe (6 Nov 2024), animating towards NOW
   readonly sTarget = signal<number>(EARLIEST_STRENGTH);
   readonly sCur = signal<number>(EARLIEST_STRENGTH);
   readonly displayMode = signal<DisplayMode>('sst');
@@ -28,7 +28,6 @@ export class EnsoStateService {
   readonly isPlaying = signal<boolean>(true);
   /** False while the splash loader is visible; the cycle and globe animations hold still. */
   readonly experienceReady = signal<boolean>(false);
-  /** True after the first fully rendered interactive globe frame (labels included). */
   readonly sceneReady = signal<boolean>(false);
   readonly cycleT = signal<number>(0);
   /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
@@ -94,19 +93,13 @@ export class EnsoStateService {
     return '<1%';
   });
 
-  /**
-   * Unlocks the globe (and its labels) without starting the clock, so the splash
-   * host can render the first frame behind the loader.
-   */
   prepareExperience() {
     if (this.experienceReady()) return;
     this.experienceReady.set(true);
     this.autoRotate.set(true);
-    // Hold the clock at the first keyframe until the splash actually fades.
     this.isPlaying.set(false);
   }
 
-  /** Starts the cycle from the first keyframe once the splash begins to fade. */
   beginExperience() {
     this.prepareExperience();
     if (!this.isPlaying()) this.startPlaying();
@@ -126,8 +119,10 @@ export class EnsoStateService {
     if (this.sTarget() >= NOW_STRENGTH - 0.05) {
       this.sTarget.set(EARLIEST_STRENGTH);
       this.sCur.set(EARLIEST_STRENGTH);
+      this.playElapsed = 0;
     } else {
       this.sCur.set(this.sTarget());
+      this.playElapsed = this.timeForStrength(this.sTarget());
     }
     this.isPlaying.set(true);
   }
@@ -188,15 +183,35 @@ export class EnsoStateService {
 
   updateCycle(dt: number) {
     if (!this.experienceReady() || !this.isPlaying()) return;
-    const speed = (NOW_STRENGTH - EARLIEST_STRENGTH) / 12; // 12 seconds from Nov 2024 to Oct 2026
-    const nextS = this.sTarget() + dt * speed;
-    if (nextS >= NOW_STRENGTH) {
+    this.playElapsed += dt;
+    const t = Math.min(1, this.playElapsed / PLAY_DURATION_S);
+    const nextS = EARLIEST_STRENGTH + (NOW_STRENGTH - EARLIEST_STRENGTH) * this.ease(t);
+    if (t >= 1) {
       this.sTarget.set(NOW_STRENGTH);
       this.sCur.set(NOW_STRENGTH);
       this.stopPlaying();
     } else {
       this.sTarget.set(nextS);
     }
+  }
+
+  private ease(t: number): number {
+    const smooth = t * t * (3 - 2 * t);
+    return 0.15 * t + 0.85 * smooth;
+  }
+
+  private timeForStrength(s: number): number {
+    const p = Math.max(0, Math.min(1,
+      (s - EARLIEST_STRENGTH) / (NOW_STRENGTH - EARLIEST_STRENGTH)
+    ));
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (this.ease(mid) < p) lo = mid;
+      else hi = mid;
+    }
+    return ((lo + hi) / 2) * PLAY_DURATION_S;
   }
 
   updateInterpolatedStrength(dt: number) {

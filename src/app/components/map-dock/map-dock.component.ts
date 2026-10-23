@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  CalendarDays,
   LucideAngularModule,
   Pause,
   Play,
@@ -26,6 +25,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
+import { WeatherValuePipe } from '../../core/pipes/weather-value.pipe';
 
 export interface DateMarker {
   id: string;
@@ -39,7 +39,7 @@ export interface DateMarker {
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective],
+  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective, WeatherValuePipe],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
@@ -50,7 +50,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
-  readonly calendarIcon = CalendarDays;
   readonly waterIcon = Waves;
   readonly airIcon = Thermometer;
   readonly windIcon = Wind;
@@ -69,26 +68,13 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return this.weather.interpolatedDateLabel(this.state.sCur(), t.htmlLang, t.timelineNow, t.timelineForecast);
   });
 
-  private readonly oneDecimal = computed(
-    () => new Intl.NumberFormat(this.i18n.t().htmlLang, { maximumFractionDigits: 1 })
-  );
+  readonly activeSst = computed(() => this.weather.nino34Sst(this.state.sCur()));
 
-  /** Observed sea-surface temperature in the Niño 3.4 box for the selected date. */
-  readonly activeSstLabel = computed(() => {
-    const v = this.weather.nino34Sst(this.state.sCur());
-    if (v == null) return '';
-    return `${this.oneDecimal().format(v)} °C`;
-  });
+  readonly daily = computed(() => this.weather.dailyWeatherOn(this.state.sCur()));
 
-  readonly live = this.weather.liveConditions;
+  readonly isForecast = computed(() => this.weather.isForecast(this.state.sCur()));
 
-  readonly liveAirTempLabel = computed(() => this.formatLive(this.live()?.airTemp, '°C'));
-  readonly liveWindLabel = computed(() => this.formatLive(this.live()?.windSpeed, 'm/s'));
-
-  private formatLive(value: number | null | undefined, unit: string): string {
-    if (value == null || !Number.isFinite(value)) return '—';
-    return `${this.oneDecimal().format(value)} ${unit}`;
-  }
+  readonly dataReady = computed(() => this.weather.status() === 'ready');
 
   readonly timelineMarkers = computed<TimelineMarker[]>(() => {
     const t = this.i18n.t();

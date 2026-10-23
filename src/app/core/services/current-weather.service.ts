@@ -31,6 +31,21 @@ export interface LiveConditions {
   source: string;
 }
 
+export interface DailyWeather {
+  source: string;
+  sourceUrl: string;
+  fetchedAt: string;
+  start: string;
+  end: string;
+  airTemp: (number | null)[];
+  windSpeed: (number | null)[];
+}
+
+export interface DailyConditions {
+  airTemp: number | null;
+  windSpeed: number | null;
+}
+
 export interface TimelineMeta {
   source: string;
   sourceUrl: string;
@@ -41,6 +56,7 @@ export interface TimelineMeta {
   binFile: string;
   keyframes: TimelineKeyframeMeta[];
   openMeteo?: OpenMeteoSnapshot;
+  dailyWeather?: DailyWeather;
 }
 
 export interface KeyframePair {
@@ -64,6 +80,7 @@ export interface WaveSample {
 }
 
 const DEG = Math.PI / 180;
+const DAY_MS = 86_400_000;
 
 @Injectable({ providedIn: 'root' })
 export class CurrentWeatherService {
@@ -225,8 +242,13 @@ export class CurrentWeatherService {
   }
 
   getKeyframePair(s: number): KeyframePair | null {
+    if (!this.sstBin) return null;
+    return this.getKeyframePairMeta(s);
+  }
+
+  private getKeyframePairMeta(s: number): KeyframePair | null {
     const kfs = this.meta()?.keyframes;
-    if (!kfs || kfs.length === 0 || !this.sstBin) return null;
+    if (!kfs || kfs.length === 0) return null;
     if (kfs.length === 1) return { indexA: 0, indexB: 0, t: 0, kfA: kfs[0], kfB: kfs[0] };
 
     if (s <= kfs[0].s) {
@@ -248,6 +270,52 @@ export class CurrentWeatherService {
     }
 
     return { indexA: lastIdx, indexB: lastIdx, t: 1, kfA: kfs[lastIdx], kfB: kfs[lastIdx] };
+  }
+
+  interpolatedDateMs(s: number): number | null {
+    const pair = this.getKeyframePairMeta(s);
+    if (!pair) return null;
+    const a = Date.parse(`${pair.kfA.date}T12:00:00Z`);
+    const b = Date.parse(`${pair.kfB.date}T12:00:00Z`);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+    return a + (b - a) * pair.t;
+  }
+
+  isForecast(s: number): boolean {
+    const nowKf = this.meta()?.keyframes.find(k => k.now);
+    const ms = this.interpolatedDateMs(s);
+    if (!nowKf || ms == null) return false;
+    return new Date(ms).toISOString().slice(0, 10) > nowKf.date;
+  }
+
+  dailyWeatherOn(s: number): DailyConditions | null {
+    const d = this.meta()?.dailyWeather;
+    if (!d?.airTemp?.length || !d?.windSpeed?.length) return null;
+
+    const dateMs = this.interpolatedDateMs(s);
+    if (dateMs == null) return null;
+
+    const startMs = Date.parse(`${d.start}T12:00:00Z`);
+    const endMs = Date.parse(`${d.end}T12:00:00Z`);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return null;
+    if (dateMs < startMs - DAY_MS || dateMs > endMs + 2 * DAY_MS) return null;
+
+    const pos = (Math.min(Math.max(dateMs, startMs), endMs) - startMs) / DAY_MS;
+    const i = Math.min(Math.floor(pos), d.airTemp.length - 1);
+    const t = Math.max(0, Math.min(1, pos - i));
+    return {
+      airTemp: this.interpolateDaily(d.airTemp, i, t),
+      windSpeed: this.interpolateDaily(d.windSpeed, i, t)
+    };
+  }
+
+  private interpolateDaily(values: (number | null)[], i: number, t: number): number | null {
+    const a = values[i] ?? null;
+    const b = values[Math.min(i + 1, values.length - 1)] ?? null;
+    if (a == null && b == null) return null;
+    if (a == null) return b;
+    if (b == null) return a;
+    return a + (b - a) * t;
   }
 
   /**
@@ -390,12 +458,11 @@ export class CurrentWeatherService {
     const d = new Date(ms);
     const dayMonthYear = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(d);
 
-    if (pair.kfA.now || pair.kfB.now) {
-      if ((pair.kfA.now && pair.t < 0.4) || (pair.kfB.now && pair.t > 0.6) || (pair.kfA.now && pair.kfB.now)) {
-        return `${dayMonthYear} · ${nowLabel}`;
-      }
+    const nowKf = this.meta()?.keyframes.find(k => k.now);
+    if (nowKf && d.toISOString().slice(0, 10) === nowKf.date) {
+      return `${dayMonthYear} · ${nowLabel}`;
     }
-    if (pair.kfB.forecast && pair.t > 0.5) {
+    if (pair.kfA.forecast || pair.kfB.forecast) {
       return `${dayMonthYear} · ${forecastLabel}`;
     }
     return dayMonthYear;

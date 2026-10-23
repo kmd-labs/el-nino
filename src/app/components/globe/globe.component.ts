@@ -306,7 +306,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initPins();
       this.initImpacts();
       this.applyThemeVisuals();
-      this.weather.load();
       this.handleResize();
       this.initUiResizeObserver();
       this.animate();
@@ -1565,8 +1564,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     this.renderer.render(this.scene, this.camera);
 
-    // The splash host keeps the loader up until this first interactive frame
-    // (globe, atmosphere and DOM labels) has actually been painted.
     if (!this.state.sceneReady()) {
       this.ngZone.run(() => this.state.sceneReady.set(true));
     }

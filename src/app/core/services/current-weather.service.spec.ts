@@ -78,7 +78,46 @@ describe('CurrentWeatherService', () => {
     const nowLabel = service.interpolatedDateLabel(1.4, 'en', 'Now', 'Forecast');
     expect(nowLabel).toContain('Now');
 
+    const justAfterNow = service.interpolatedDateLabel(1.45, 'en', 'Now', 'Forecast');
+    expect(justAfterNow).toContain('Forecast');
+
     const forecastLabel = service.interpolatedDateLabel(2.6, 'en', 'Now', 'Forecast');
     expect(forecastLabel).toContain('Forecast');
+  });
+
+  it('should return daily tropical weather for the selected date and none for the forecast frame', () => {
+    service['meta'].set({
+      source: 'test',
+      sourceUrl: '',
+      sstSourceUrl: '',
+      fetchedAt: '',
+      grid: { step: 0.5, nLat: 360, nLon: 720, lat0: -89.75, lon0: -179.75 },
+      totalFrames: 3,
+      binFile: '',
+      keyframes: [
+        { index: 0, id: 'w0', date: '2024-11-06', s: -1.8, nino34: 0 },
+        { index: 1, id: 'now', date: '2024-11-08', s: 1.4, nino34: 0, now: true },
+        { index: 2, id: 'forecast', date: '2025-01-03', s: 2.6, nino34: 0, forecast: true }
+      ],
+      dailyWeather: {
+        source: 'test',
+        sourceUrl: '',
+        fetchedAt: '',
+        start: '2024-11-06',
+        end: '2024-11-08',
+        airTemp: [20, 22, 24],
+        windSpeed: [1, 2, 3]
+      }
+    });
+
+    expect(service.dailyWeatherOn(-1.8)).toEqual({ airTemp: 20, windSpeed: 1 });
+    expect(service.dailyWeatherOn(-0.2)).toEqual({ airTemp: 22, windSpeed: 2 });
+    expect(service.dailyWeatherOn(1.4)).toEqual({ airTemp: 24, windSpeed: 3 });
+    expect(service.dailyWeatherOn(2.6)).toBeNull();
+
+    expect(service.isForecast(-1.8)).toBeFalse();
+    expect(service.isForecast(1.4)).toBeFalse();
+    expect(service.isForecast(1.5)).toBeTrue();
+    expect(service.isForecast(2.6)).toBeTrue();
   });
 });
