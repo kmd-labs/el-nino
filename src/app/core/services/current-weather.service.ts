@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 
 export interface TimelineKeyframeMeta {
   index: number;
@@ -20,6 +20,15 @@ export interface OpenMeteoSnapshot {
   waveHeight: (number | null)[];
   waveDir: (number | null)[];
   wavePeriod: (number | null)[];
+  /** Air temperature at 2 m in °C, same 10° grid. */
+  airTemp?: (number | null)[];
+}
+
+export interface LiveConditions {
+  airTemp: number | null;
+  windSpeed: number | null;
+  time: string | null;
+  source: string;
 }
 
 export interface TimelineMeta {
@@ -60,6 +69,40 @@ const DEG = Math.PI / 180;
 export class CurrentWeatherService {
   readonly meta = signal<TimelineMeta | null>(null);
   readonly status = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  /** Coarse loading progress (0–100) for the splash screen. */
+  readonly progress = signal(0);
+
+  /** Tropical mean of the live Open-Meteo snapshot, used by the dock readout. */
+  readonly liveConditions = computed<LiveConditions | null>(() => {
+    const m = this.meta()?.openMeteo;
+    if (!m || this.status() !== 'ready') return null;
+    const g = m.grid;
+    let tSum = 0, tN = 0, wSum = 0, wN = 0;
+    for (let r = 0; r < g.nLat; r++) {
+      const lat = g.lat0 + r * g.step;
+      if (Math.abs(lat) > 30) continue;
+      for (let c = 0; c < g.nLon; c++) {
+        const i = r * g.nLon + c;
+        const at = this.at[i];
+        if (Number.isFinite(at)) {
+          tSum += at;
+          tN++;
+        }
+        const u = this.u[i];
+        const v = this.v[i];
+        if (Number.isFinite(u) && Number.isFinite(v)) {
+          wSum += Math.hypot(u, v);
+          wN++;
+        }
+      }
+    }
+    return {
+      airTemp: tN ? tSum / tN : null,
+      windSpeed: wN ? wSum / wN : null,
+      time: m.time,
+      source: m.source
+    };
+  });
 
   // Packed 0.5° Uint8Array for all weekly frames (frameSize = 720 * 360 = 259,200 bytes)
   sstBin: Uint8Array | null = null;
@@ -67,6 +110,7 @@ export class CurrentWeatherService {
 
   private u = new Float32Array(0);
   private v = new Float32Array(0);
+  private at = new Float32Array(0);
   private wh = new Float32Array(0);
   private wp = new Float32Array(0);
   private wx = new Float32Array(0);
@@ -75,37 +119,69 @@ export class CurrentWeatherService {
   load() {
     if (this.status() !== 'idle') return;
     this.status.set('loading');
+    this.progress.set(5);
 
     Promise.all([
       fetch('assets/data/timeline-meta.json', { cache: 'no-cache' }).then(r => {
         if (!r.ok) throw new Error(`Meta HTTP ${r.status}`);
+        this.progress.update(p => Math.max(p, 25));
         return r.json() as Promise<TimelineMeta>;
       }),
-      fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' }).then(async r => {
-        if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
-        const rawBuf = await r.arrayBuffer();
-        const header = new Uint8Array(rawBuf, 0, 2);
-        // If gzip magic bytes 0x1f 0x8b, decompress with DecompressionStream
-        if (header[0] === 0x1f && header[1] === 0x8b) {
-          if (typeof DecompressionStream !== 'undefined') {
-            const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
-            const decompressedBuf = await new Response(stream).arrayBuffer();
-            return new Uint8Array(decompressedBuf);
-          }
-        }
-        return new Uint8Array(rawBuf);
-      })
+      this.fetchSstBinary()
     ])
       .then(([meta, bin]) => {
         this.sstBin = bin;
         this.prepareOpenMeteo(meta.openMeteo);
+        this.progress.set(95);
         this.meta.set(meta);
         this.status.set('ready');
+        this.progress.set(100);
       })
       .catch(err => {
         console.warn('Timeline data unavailable:', err);
         this.status.set('error');
+        this.progress.set(100);
       });
+  }
+
+  /** Streams the gzipped SST binary, updating progress from Content-Length when available. */
+  private async fetchSstBinary(): Promise<Uint8Array> {
+    const r = await fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
+
+    const total = Number(r.headers.get('content-length') ?? 0);
+    let rawBuf: ArrayBuffer;
+    if (r.body && total > 0 && typeof r.body.getReader === 'function') {
+      const reader = r.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.byteLength;
+        this.progress.set(Math.min(85, 25 + Math.round((loaded / total) * 60)));
+      }
+      const merged = new Uint8Array(loaded);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      rawBuf = merged.buffer;
+    } else {
+      rawBuf = await r.arrayBuffer();
+      this.progress.set(85);
+    }
+
+    const header = new Uint8Array(rawBuf, 0, 2);
+    // If gzip magic bytes 0x1f 0x8b, decompress with DecompressionStream
+    if (header[0] === 0x1f && header[1] === 0x8b && typeof DecompressionStream !== 'undefined') {
+      const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
+      const decompressedBuf = await new Response(stream).arrayBuffer();
+      return new Uint8Array(decompressedBuf);
+    }
+    return new Uint8Array(rawBuf);
   }
 
   private prepareOpenMeteo(d?: OpenMeteoSnapshot) {
@@ -113,6 +189,7 @@ export class CurrentWeatherService {
     const n = d.grid.nLat * d.grid.nLon;
     this.u = new Float32Array(n);
     this.v = new Float32Array(n);
+    this.at = new Float32Array(n).fill(NaN);
     this.wh = new Float32Array(n);
     this.wp = new Float32Array(n);
     this.wx = new Float32Array(n);
@@ -122,6 +199,7 @@ export class CurrentWeatherService {
       const dir = d.windDir[i];
       this.u[i] = sp == null || dir == null ? 0 : -sp * Math.sin(dir * DEG);
       this.v[i] = sp == null || dir == null ? 0 : -sp * Math.cos(dir * DEG);
+      this.at[i] = d.airTemp?.[i] ?? NaN;
 
       const h = d.waveHeight[i];
       const wd = d.waveDir[i];
@@ -170,6 +248,38 @@ export class CurrentWeatherService {
     }
 
     return { indexA: lastIdx, indexB: lastIdx, t: 1, kfA: kfs[lastIdx], kfB: kfs[lastIdx] };
+  }
+
+  /**
+   * Mean sea-surface temperature (°C) inside the Niño 3.4 box for timeline strength `s`.
+   * Reads the observed 0.5° SST frames and interpolates between the two surrounding weeks.
+   */
+  nino34Sst(s: number): number | null {
+    const pair = this.getKeyframePair(s);
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    if (!pair || !bin || !g) return null;
+
+    const offsetA = pair.indexA * this.FRAME_SIZE;
+    const offsetB = pair.indexB * this.FRAME_SIZE;
+    let sum = 0;
+    let n = 0;
+
+    for (let lat = -5; lat <= 5; lat += 1) {
+      const r = Math.round((lat - g.lat0) / g.step);
+      if (r < 0 || r >= g.nLat) continue;
+      for (let lon = 190; lon <= 240; lon += 1) {
+        const lon180 = lon > 180 ? lon - 360 : lon;
+        const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
+        const i = r * g.nLon + c;
+        const va = bin[offsetA + i];
+        const vb = bin[offsetB + i];
+        if (va === 255 || vb === 255) continue;
+        sum += (va + (vb - va) * pair.t) * 0.2 - 5.0;
+        n++;
+      }
+    }
+    return n > 0 ? sum / n : null;
   }
 
   wind(lon: number, lat: number, s: number, out: WindSample): boolean {

@@ -6,9 +6,7 @@ import {
   Activity,
   Thermometer,
   Wind,
-  CloudRain,
-  Waves,
-  Satellite
+  CloudRain
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
@@ -43,8 +41,7 @@ export class HeaderComponent {
     return [
       { value: 'globe', label: t.viewAnom, icon: Thermometer },
       { value: 'walker', label: t.viewWalker, icon: Wind },
-      { value: 'impacts', label: t.viewImpacts, icon: CloudRain },
-      { value: 'thermocline', label: t.thermoChip, icon: Waves }
+      { value: 'impacts', label: t.viewImpacts, icon: CloudRain }
     ];
   });
 

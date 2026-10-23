@@ -14,6 +14,19 @@ describe('EnsoStateService', () => {
     expect(service.sCur()).toBe(-1.6);
     expect(service.sTarget()).toBe(-1.6);
     expect(service.isPlaying()).toBe(true);
+    expect(service.experienceReady()).toBe(false);
+  });
+
+  it('should unlock the animation only when the splash begins the experience', () => {
+    service.updateInterpolatedStrength(0.1);
+    expect(service.sCur()).toBe(-1.6);
+
+    service.beginExperience();
+    expect(service.experienceReady()).toBe(true);
+
+    service.updateCycle(1);
+    service.updateInterpolatedStrength(0.1);
+    expect(service.sCur()).toBeGreaterThan(-1.6);
   });
 
   it('should allow setting target strength', () => {
