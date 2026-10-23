@@ -140,7 +140,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.hemiLight.intensity = 1.25;
     }
     if (this.globeMat && this.sstTex) {
-      // Unshaded texture so neutral water (#f5f7fb) matches the background exactly without grey Lambert darkening
       this.globeMat.color.setHex(0xffffff);
       this.globeMat.map = this.sstTex;
       this.globeMat.needsUpdate = true;
@@ -385,7 +384,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     headLight.position.set(2, 3, 5);
     this.camera.add(headLight);
 
-    // Initial camera position looking at Pacific. Issue #32: zoom out by 10%.
     const isPortrait = window.innerWidth / window.innerHeight < 0.9;
     const zoomOut = 1 / 0.9;
     this.math.pos(-165, 12, (isPortrait ? 26 : 16) * zoomOut, this.camera.position);
@@ -481,7 +479,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.texData = new Uint8Array(this.NG * 4);
     this.sstTex = new THREE.DataTexture(this.texData, this.GW, this.GH, THREE.RGBAFormat);
     this.sstTex.colorSpace = THREE.SRGBColorSpace;
-    // Linear filtering plus a cheap 3×3 Gaussian in the shader removes the 0.5° pixel blocks.
     this.sstTex.magFilter = THREE.LinearFilter;
     this.sstTex.minFilter = THREE.LinearFilter;
     this.sstTex.wrapS = THREE.RepeatWrapping;
@@ -493,9 +490,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
         `
-          // Cheap 5-tap Gaussian: centre + four axial neighbours, weighted 0.4/0.15.
-          // Linear filtering turns each tap into a bilinear 2×2 fetch, so this is
-          // enough to erase the 0.5° blocks without a separable two-pass shader.
           vec2 texel = vec2(1.0 / ${this.GW.toFixed(1)}, 1.0 / ${this.GH.toFixed(1)});
           vec4 sampledDiffuseColor = texture2D(map, vMapUv) * 0.4;
           sampledDiffuseColor += texture2D(map, vMapUv + vec2(texel.x, 0.0)) * 0.15;
@@ -885,25 +879,20 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.pinGroup = new THREE.Group();
     this.scene.add(this.pinGroup);
 
-    // Ring texture for sprite. A dark outer ring keeps pins legible on bright,
-    // colourful sea-temperature fields; the white parts are tinted per impact kind.
     const ringCanvas = document.createElement('canvas');
     ringCanvas.width = ringCanvas.height = 128;
     const rc = ringCanvas.getContext('2d')!;
     rc.translate(64, 64);
-    // soft coloured halo
     rc.strokeStyle = 'rgba(255,255,255,0.45)';
     rc.lineWidth = 6;
     rc.beginPath();
     rc.arc(0, 0, 54, 0, Math.PI * 2);
     rc.stroke();
-    // dark contrast ring
     rc.strokeStyle = 'rgba(15,23,42,0.92)';
     rc.lineWidth = 15;
     rc.beginPath();
     rc.arc(0, 0, 44, 0, Math.PI * 2);
     rc.stroke();
-    // tinted inner ring + centre
     rc.strokeStyle = '#fff';
     rc.lineWidth = 8;
     rc.beginPath();
@@ -1504,7 +1493,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     const t = this.clock.elapsedTime;
 
-    // Cycle & interpolation updates (also gated inside the service until the splash ends)
     this.state.updateCycle(dt);
     this.state.updateInterpolatedStrength(dt);
 
@@ -1523,8 +1511,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.lastMode = textureKey;
     }
 
-    // While the splash covers the viewport keep the scene static: no atmosphere
-    // particles, rotation or pin/label animation until the experience begins.
     if (!ready) {
       this.atmGroup.visible = false;
       this.currentLayer.group.visible = false;

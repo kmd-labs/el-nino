@@ -98,7 +98,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     const fcKf = kfs?.find(k => k.forecast);
     const ninaKf = kfs?.[0];
 
-    // Fallbacks stay date-driven even if the metadata request fails.
     const today = new Date();
     const fallbackNow = today.toISOString().slice(0, 10);
     const fallbackForecastDate = new Date(today);

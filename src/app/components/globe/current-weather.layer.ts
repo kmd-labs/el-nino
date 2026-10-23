@@ -226,7 +226,6 @@ export class CurrentWeatherLayer {
         const o = i * T * 3;
         this.math.pos(this.wLon[i], this.wLat[i], R, this.p);
         if (wrapped) {
-          // Issue #32: never let a trail segment bridge the antimeridian.
           for (let k = 0; k < T; k++) {
             this.wHist[o + k * 3] = this.p.x;
             this.wHist[o + k * 3 + 1] = this.p.y;
@@ -302,8 +301,6 @@ export class CurrentWeatherLayer {
       const o = i * VT * 3;
       this.math.pos(this.vLon[i], this.vLat[i], R, this.p);
       if (wrapped) {
-        // Issue #32: reset the streamline at the antimeridian instead of
-        // drawing a chord across the whole globe.
         for (let k = 0; k < VT; k++) {
           this.vHist[o + k * 3] = this.p.x;
           this.vHist[o + k * 3 + 1] = this.p.y;

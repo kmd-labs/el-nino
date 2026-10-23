@@ -26,7 +26,6 @@ export class EnsoStateService {
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
   readonly isPlaying = signal<boolean>(true);
-  /** False while the splash loader is visible; the cycle and globe animations hold still. */
   readonly experienceReady = signal<boolean>(false);
   readonly sceneReady = signal<boolean>(false);
   readonly cycleT = signal<number>(0);

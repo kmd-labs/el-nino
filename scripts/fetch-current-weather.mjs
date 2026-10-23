@@ -306,7 +306,6 @@ function downsampleSst05(raw, scale, fill) {
 }
 
 // Compute Niño 3.4 box anomaly mean (5°S–5°N, 170°W–120°W) in °C from anom dataset
-// Preserve Open-Meteo nulls (e.g. wave data over land) instead of turning them into 0.
 const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
 const round2 = (v) => Math.round(v * 100) / 100;
 const round3 = (v) => Math.round(v * 1000) / 1000;
@@ -491,7 +490,6 @@ async function main() {
     return;
   }
 
-  // Keep frames in chronological order even if an earlier week was backfilled late.
   const order = validDates.map((_, i) => i).sort((a, b) => validDates[a].iso.localeCompare(validDates[b].iso));
   grids = order.map(i => grids[i]);
   validDates = order.map(i => validDates[i]);
@@ -509,8 +507,6 @@ async function main() {
   }
   combinedBin.set(forecastGrid, grids.length * FRAME_POINTS);
 
-  // Issue #30: the seasonal forecast horizon follows the latest observation
-  // instead of a hard-coded date (8 weeks ahead ≈ the event peak).
   const forecastDateObj = new Date(`${validDates[lastObservedIdx].iso}T12:00:00Z`);
   forecastDateObj.setUTCDate(forecastDateObj.getUTCDate() + 56);
   const forecastDate = { iso: forecastDateObj.toISOString().slice(0, 10), forecast: true };

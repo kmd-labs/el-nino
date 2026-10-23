@@ -20,7 +20,6 @@ export interface OpenMeteoSnapshot {
   waveHeight: (number | null)[];
   waveDir: (number | null)[];
   wavePeriod: (number | null)[];
-  /** Air temperature at 2 m in °C, same 10° grid. */
   airTemp?: (number | null)[];
 }
 
@@ -86,10 +85,8 @@ const DAY_MS = 86_400_000;
 export class CurrentWeatherService {
   readonly meta = signal<TimelineMeta | null>(null);
   readonly status = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  /** Coarse loading progress (0–100) for the splash screen. */
   readonly progress = signal(0);
 
-  /** Tropical mean of the live Open-Meteo snapshot, used by the dock readout. */
   readonly liveConditions = computed<LiveConditions | null>(() => {
     const m = this.meta()?.openMeteo;
     if (!m || this.status() !== 'ready') return null;
@@ -161,7 +158,6 @@ export class CurrentWeatherService {
       });
   }
 
-  /** Streams the gzipped SST binary, updating progress from Content-Length when available. */
   private async fetchSstBinary(): Promise<Uint8Array> {
     const r = await fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' });
     if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
@@ -192,7 +188,6 @@ export class CurrentWeatherService {
     }
 
     const header = new Uint8Array(rawBuf, 0, 2);
-    // If gzip magic bytes 0x1f 0x8b, decompress with DecompressionStream
     if (header[0] === 0x1f && header[1] === 0x8b && typeof DecompressionStream !== 'undefined') {
       const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
       const decompressedBuf = await new Response(stream).arrayBuffer();
@@ -318,10 +313,6 @@ export class CurrentWeatherService {
     return a + (b - a) * t;
   }
 
-  /**
-   * Mean sea-surface temperature (°C) inside the Niño 3.4 box for timeline strength `s`.
-   * Reads the observed 0.5° SST frames and interpolates between the two surrounding weeks.
-   */
   nino34Sst(s: number): number | null {
     const pair = this.getKeyframePair(s);
     const bin = this.sstBin;

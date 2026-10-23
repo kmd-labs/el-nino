@@ -93,7 +93,6 @@ export interface Dict {
   viewWalker: string;
   viewImpacts: string;
   viewCurrent: string;
-  /** Active timeline date: mean SST inside the Niño 3.4 box. */
   sstOnDateTitle: string;
   dailyConditionsLabel: string;
   waterTempLabel: string;
@@ -178,7 +177,6 @@ export interface Dict {
   steps: string[];
   canvas: WalkerCanvasText;
 
-  // splash loader
   splashLoading: string;
   splashPreparing: string;
   splashError: string;
