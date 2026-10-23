@@ -20,13 +20,11 @@ export class EnsoStateService {
   readonly displayMode = signal<DisplayMode>('sst');
   readonly view = signal<ViewMode>('globe');
   /** Views that replace the globe with a flat cross-section (the globe stays hidden and paused). */
-  readonly crossSectionView = computed(() => this.view() === 'walker');
+  readonly crossSectionView = computed(() => this.view() === 'walker' || this.view() === 'thermocline');
   readonly showAtmosphere = signal<boolean>(true);
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
   readonly isPlaying = signal<boolean>(true);
-  /** False while the splash loader is visible; the cycle and globe animations hold still. */
-  readonly experienceReady = signal<boolean>(false);
   readonly cycleT = signal<number>(0);
   /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
   readonly cycleMonth = signal<number | null>(null);
@@ -91,14 +89,6 @@ export class EnsoStateService {
     return '<1%';
   });
 
-  /** Called by the splash screen once the essential data and assets are ready. */
-  beginExperience() {
-    if (this.experienceReady()) return;
-    this.experienceReady.set(true);
-    this.autoRotate.set(true);
-    this.startPlaying();
-  }
-
   setStrengthTarget(val: number) {
     this.stopPlaying();
     this.sTarget.set(val);
@@ -142,7 +132,7 @@ export class EnsoStateService {
   setView(v: ViewMode) {
     if (v === this.view()) return;
     this.view.set(v);
-    if (v === 'walker') {
+    if (v === 'walker' || v === 'thermocline') {
       this.selectedLocation.set(null);
     }
   }
@@ -174,7 +164,7 @@ export class EnsoStateService {
   }
 
   updateCycle(dt: number) {
-    if (!this.experienceReady() || !this.isPlaying()) return;
+    if (!this.isPlaying()) return;
     const speed = (NOW_STRENGTH - EARLIEST_STRENGTH) / 12; // 12 seconds from Jan 2025 to Oct 2026
     const nextS = this.sTarget() + dt * speed;
     if (nextS >= NOW_STRENGTH) {
@@ -187,7 +177,6 @@ export class EnsoStateService {
   }
 
   updateInterpolatedStrength(dt: number) {
-    if (!this.experienceReady()) return;
     if (this.isPlaying()) {
       this.sCur.set(this.sTarget());
       return;

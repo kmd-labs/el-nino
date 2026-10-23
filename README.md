@@ -21,16 +21,14 @@ An interactive 3D WebGL climatological simulation visualizing the **El Niño–S
   - Atmospheric rim glow shader with additive blending and starfield point cloud.
   - Smooth OrbitControls with momentum damping and toggleable auto-rotation.
 
-- **Walker Circulation & Thermocline (merged view)**:
+- **Walker Circulation & Atmospheric Dynamics**:
   - Dual-cell tropospheric stream particle simulation with altitude-dependent thermodynamic coloring (warm rising air vs. cool subsiding air).
   - Procedural convective storm cloud puffs clustered around the shifting Pacific warm pool.
   - Dynamic rainfall streaks beneath the convective center.
-  - Real-time equatorial ocean depth profile (0–300 m) from Indonesia (120°E) to South America (80°W), with the 20 °C isotherm / thermocline tilt coupled to trade-wind strength.
 
-- **Live data & splash experience**:
-  - Initial splash loader waits for the SST timeline, Open-Meteo snapshot and land topology, then starts the cycle.
-  - Daily GitHub Action extends the NOAA OISST backfill and refreshes air temperature, wind and waves.
-  - Dock shows the selected date's Niño 3.4 sea-surface temperature plus live tropical air temperature and wind speed.
+- **Equatorial Thermocline Vertical Cross-Section (0–300 m)**:
+  - Real-time depth profile across the equatorial Pacific from Indonesia (120°E) to South America (80°W).
+  - Interactive visualization of the 20 °C isotherm / thermocline tilt under varying trade wind strengths.
 
 - **Historical Impacts Database**:
   - 23 global pin locations with 30+ peer-documented climate events across South America, North America, Africa, Asia, and Oceania.
@@ -66,18 +64,15 @@ src/
 │   │       └── enso-state.service.ts# Centralized reactive state using Angular Signals
 │   └── components/
 │       ├── globe/                # Three.js 3D viewport, particles, labels, and raycasting
-│       ├── header/               # Brand logotype, language selector and view switcher
-│       ├── map-dock/             # Floating glassmorphic control dock, date pill and legends
-│       ├── walker-view/          # Walker circulation + thermocline cross-section
-│       ├── splash/               # Handwritten KMD loader shown until data is ready
+│       ├── header/               # Top status bar with live Niño 3.4 index readout and badge
+│       ├── control-panel/        # Floating glassmorphic control dock & thermocline canvas
 │       ├── impact-modal/         # Event detail dialog with external research links
-│       └── glossary/             # Searchable glossary popup
+│       └── ui/
+│           ├── button/           # Reusable button component with variant states
+│           └── badge/            # Status badge pill with dynamic color transitions
 └── assets/
-    ├── branding/                 # KMD monogram, handwritten loader and favicon assets
     └── data/
-        ├── land-50m.json         # Bundled Natural Earth land topology
-        ├── timeline-meta.json    # Weekly keyframes, live Open-Meteo snapshot
-        └── timeline-sst.bin.gz   # Packed 0.5° weekly SST frames
+        └── land-50m.json         # Bundled Natural Earth land topology
 ```
 
 ---
@@ -142,9 +137,7 @@ npm run build:gh-pages
 
 Deployments to GitHub Pages are automated via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
 
-1. **Trigger**: Pushes to `main`, scheduled every 3 hours, repository dispatch or manual `workflow_dispatch`.
-2. **Build Stage**: Runs on `ubuntu-latest`, refreshes the live Open-Meteo snapshot and NOAA OISST frames, compiles the application with `npm run build:gh-pages` (`--base-href /el-nino/`), and uploads static assets via `actions/upload-pages-artifact@v3`.
+1. **Trigger**: Pushes to `main` or manual `workflow_dispatch`.
+2. **Build Stage**: Runs on `ubuntu-latest`, compiles the application with `npm run build:gh-pages` (`--base-href /el-nino/`), and uploads static assets via `actions/upload-pages-artifact@v3`.
 3. **Deploy Stage**: Publishes to GitHub Pages with `actions/deploy-pages@v4`.
 4. **Clean Workspace**: The build directory (`dist/`) is gitignored, and build artifacts reside strictly in ephemeral runner environments.
-
-[`.github/workflows/update-weather.yml`](.github/workflows/update-weather.yml) runs daily at 05:17 UTC. It extends the weekly NOAA OISST backfill, refreshes the Open-Meteo air-temperature/wind/wave snapshot in `src/assets/data/`, commits the updated data to `main`, and dispatches the Pages deployment. The NOAA NetCDF downloads are cached between runs.

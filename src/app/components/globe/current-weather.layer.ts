@@ -220,24 +220,14 @@ export class CurrentWeatherLayer {
       } else {
         this.wLon[i] += this.wind.u * degPerMs * dt / Math.max(0.25, Math.cos(lat0 * this.math.DEG));
         this.wLat[i] += this.wind.v * degPerMs * dt;
-        let wrapped = false;
-        if (this.wLon[i] > 180) { this.wLon[i] -= 360; wrapped = true; }
-        if (this.wLon[i] < -180) { this.wLon[i] += 360; wrapped = true; }
+        if (this.wLon[i] > 180) this.wLon[i] -= 360;
+        if (this.wLon[i] < -180) this.wLon[i] += 360;
         const o = i * T * 3;
+        this.wHist.copyWithin(o + 3, o, o + (T - 1) * 3);
         this.math.pos(this.wLon[i], this.wLat[i], R, this.p);
-        if (wrapped) {
-          // Issue #32: never let a trail segment bridge the antimeridian.
-          for (let k = 0; k < T; k++) {
-            this.wHist[o + k * 3] = this.p.x;
-            this.wHist[o + k * 3 + 1] = this.p.y;
-            this.wHist[o + k * 3 + 2] = this.p.z;
-          }
-        } else {
-          this.wHist.copyWithin(o + 3, o, o + (T - 1) * 3);
-          this.wHist[o] = this.p.x;
-          this.wHist[o + 1] = this.p.y;
-          this.wHist[o + 2] = this.p.z;
-        }
+        this.wHist[o] = this.p.x;
+        this.wHist[o + 1] = this.p.y;
+        this.wHist[o + 2] = this.p.z;
       }
 
       const speed = Math.hypot(this.wind.u, this.wind.v);
@@ -295,26 +285,15 @@ export class CurrentWeatherLayer {
       const speed = 0.9 + 0.14 * Math.min(period, 16);
       this.vLon[i] += dx * speed * degPerMs * dt / cosLat;
       this.vLat[i] += dy * speed * degPerMs * dt;
-      let wrapped = false;
-      if (this.vLon[i] > 180) { this.vLon[i] -= 360; wrapped = true; }
-      if (this.vLon[i] < -180) { this.vLon[i] += 360; wrapped = true; }
+      if (this.vLon[i] > 180) this.vLon[i] -= 360;
+      if (this.vLon[i] < -180) this.vLon[i] += 360;
 
       const o = i * VT * 3;
+      this.vHist.copyWithin(o + 3, o, o + (VT - 1) * 3);
       this.math.pos(this.vLon[i], this.vLat[i], R, this.p);
-      if (wrapped) {
-        // Issue #32: reset the streamline at the antimeridian instead of
-        // drawing a chord across the whole globe.
-        for (let k = 0; k < VT; k++) {
-          this.vHist[o + k * 3] = this.p.x;
-          this.vHist[o + k * 3 + 1] = this.p.y;
-          this.vHist[o + k * 3 + 2] = this.p.z;
-        }
-      } else {
-        this.vHist.copyWithin(o + 3, o, o + (VT - 1) * 3);
-        this.vHist[o] = this.p.x;
-        this.vHist[o + 1] = this.p.y;
-        this.vHist[o + 2] = this.p.z;
-      }
+      this.vHist[o] = this.p.x;
+      this.vHist[o + 1] = this.p.y;
+      this.vHist[o + 2] = this.p.z;
 
       const life = this.vAge[i] / this.vLife[i];
       const a = Math.sin(Math.PI * life) * 0.38;
