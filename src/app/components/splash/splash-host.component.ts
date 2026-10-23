@@ -5,7 +5,7 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 
-/** Keep the handwritten logo animation visible long enough to finish gracefully. */
+/** Keep the splash wordmark reveal visible long enough to finish gracefully. */
 const MIN_VISIBLE_MS = 2400;
 /** Hard stop: never leave the app behind the splash if an asset request hangs. */
 const MAX_WAIT_MS = 12000;
