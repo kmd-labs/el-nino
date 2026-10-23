@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const PL: Dict = {
   htmlLang: 'pl',
-  docTitle: 'El Niño 2026 w 3D - interaktywny glob ENSO | KMD Labs',
+  docTitle: 'El Niño 2026 w 3D - interaktywna wizualizacja | KMD Labs',
   metaDescription: 'Odkryj El Niño i La Niña na interaktywnym globie 3D: prawdziwe temperatury oceanu z NOAA, wiatry, cyrkulacja Walkera i skutki na całym świecie.',
   langName: 'Polski',
 
@@ -44,11 +44,18 @@ export const PL: Dict = {
   hintPins: (count, phase) => `${count} lokalizacji z udokumentowanymi skutkami fazy ${phase}. Kliknij pinezkę na globie, aby zobaczyć dane i źródło.`,
 
   chooseView: 'Widok',
-  viewTemp: 'Temperatura',
-  viewAnom: 'Temperatura',
-  viewWalker: 'Komórka Walkera',
+  viewTemp: 'Temperatura wody',
+  viewAnom: 'Temperatura wody',
+  viewWalker: 'Komórka Walkera i termoklina',
   viewImpacts: 'Skutki',
   viewCurrent: 'Sytuacja obecnie',
+  sstOnDateTitle: 'Średnia temperatura powierzchni oceanu w prostokącie Niño 3.4 dla wybranej daty',
+  dailyConditionsLabel: 'Warunki tropikalne',
+  waterTempLabel: 'Woda',
+  airTempLabel: 'Powietrze',
+  windSpeedLabel: 'Wiatr',
+  airTempTitle: 'Średnia dobowa temperatura powietrza na 2 m dla wybranej daty, uśredniona dla tropików.',
+  windSpeedTitle: 'Średnia dobowa prędkość wiatru na 10 m dla wybranej daty, uśredniona dla tropików.',
   timelineNow: 'Teraz',
   timelineForecast: 'Prognoza',
   currentLive: 'Na żywo',
@@ -63,9 +70,9 @@ export const PL: Dict = {
   sstSourceTitle: (date, preliminary) => `NOAA OISST v2.1 – dzienna temperatura powierzchni oceanu z satelitów, statków i boi, ${date}${preliminary ? ' (dane wstępne)' : ''}; uśredniona do siatki 1°`,
   currentLoading: 'Wczytywanie aktualnych danych…',
   currentError: 'Brak aktualnych danych o wietrze i falach.',
-  scaleSst: 'Temperatura powierzchni oceanu (°C)',
-  scaleAnom: 'Anomalia temperatury względem normy (°C)',
-  scaleSstShort: 'Temperatura oceanu',
+  scaleSst: 'Temperatura powierzchni wody (°C)',
+  scaleAnom: 'Anomalia temperatury wody względem normy (°C)',
+  scaleSstShort: 'Temperatura wody',
   scaleAnomShort: 'Anomalia temperatury',
   impactsTab: 'Legenda',
   flowLegendTitle: 'Ruch wód i wiatr',
@@ -108,8 +115,8 @@ export const PL: Dict = {
   mRole: 'Rola ENSO:',
   mSource: 'Źródło:',
 
-  walkerAria: 'Cyrkulacja Walkera – przekrój wzdłuż równika',
-  walkerCaption: 'Przekrój wzdłuż równika (0°) · atmosfera 0–16 km · ocean 0–300 m (skala pionowa umowna)',
+  walkerAria: 'Cyrkulacja Walkera i termoklina – przekrój wzdłuż równika',
+  walkerCaption: 'Cyrkulacja Walkera i termoklina · przekrój wzdłuż równika (0°) · atmosfera 0–16 km · ocean 0–300 m (skala pionowa umowna)',
   walkerNow: 'teraz',
   walkerCycle: 'cykl',
   walkerCurrent: phase => `Bieżący stan: ${phase} · Użyj odtwarzania, aby uruchomić omówienie krok po kroku`,
@@ -148,6 +155,10 @@ export const PL: Dict = {
     warmPool: 'ciepły basen',
     coldTongue: 'zimny jęzor'
   },
+
+  splashLoading: 'Wczytywanie danych klimatycznych…',
+  splashPreparing: 'Przygotowywanie globu…',
+  splashError: 'Nie udało się wczytać części danych — startujemy z dostępnymi warstwami.',
 
   glTitle: 'Słownik istotnych terminów',
   glSearch: 'Szukaj terminu, np. termoklina…',

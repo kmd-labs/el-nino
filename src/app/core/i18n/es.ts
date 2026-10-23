@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const ES: Dict = {
   htmlLang: 'es',
-  docTitle: 'El Niño 2026 en 3D - Globo ENSO interactivo | KMD Labs',
+  docTitle: 'El Niño 2026 en 3D - Visualización interactiva | KMD Labs',
   metaDescription: 'Explora El Niño y La Niña en un globo 3D interactivo: temperaturas reales del mar (NOAA), vientos, la circulación de Walker e impactos globales.',
   langName: 'Español',
 
@@ -44,11 +44,18 @@ export const ES: Dict = {
   hintPins: (count, phase) => `${count} lugares con impactos documentados de ${phase}. Haz clic en un marcador para ver los datos y la fuente.`,
 
   chooseView: 'Vista',
-  viewTemp: 'Temperatura',
-  viewAnom: 'Temperatura',
-  viewWalker: 'Celda Walker',
+  viewTemp: 'Temperatura del agua',
+  viewAnom: 'Temperatura del agua',
+  viewWalker: 'Celda Walker y termoclina',
   viewImpacts: 'Impactos',
   viewCurrent: 'Situación actual',
+  sstOnDateTitle: 'Temperatura media de la superficie del mar en el recuadro Niño 3.4 para la fecha seleccionada',
+  dailyConditionsLabel: 'Condiciones tropicales',
+  waterTempLabel: 'Agua',
+  airTempLabel: 'Aire',
+  windSpeedLabel: 'Viento',
+  airTempTitle: 'Temperatura media diaria del aire a 2 m para la fecha seleccionada, promediada en los trópicos.',
+  windSpeedTitle: 'Velocidad media diaria del viento a 10 m para la fecha seleccionada, promediada en los trópicos.',
   timelineNow: 'Ahora',
   timelineForecast: 'Pronóstico',
   currentLive: 'En vivo',
@@ -63,9 +70,9 @@ export const ES: Dict = {
   sstSourceTitle: (date, preliminary) => `NOAA OISST v2.1: temperatura diaria de la superficie del mar a partir de satélites, barcos y boyas, ${date}${preliminary ? ' (datos preliminares)' : ''}; promediada a una malla de 1°`,
   currentLoading: 'Cargando datos actuales…',
   currentError: 'No hay datos actuales de viento y oleaje.',
-  scaleSst: 'Temperatura superficial del mar (°C)',
-  scaleAnom: 'Anomalía de temperatura respecto a lo normal (°C)',
-  scaleSstShort: 'Temperatura del océano',
+  scaleSst: 'Temperatura superficial del agua del mar (°C)',
+  scaleAnom: 'Anomalía de temperatura del agua respecto a lo normal (°C)',
+  scaleSstShort: 'Temperatura del agua',
   scaleAnomShort: 'Anomalía de temperatura',
   impactsTab: 'Leyenda',
   flowLegendTitle: 'Circulación oceánica y vientos',
@@ -108,8 +115,8 @@ export const ES: Dict = {
   mRole: 'Papel de ENSO:',
   mSource: 'Fuente:',
 
-  walkerAria: 'Circulación de Walker: corte a lo largo del ecuador',
-  walkerCaption: 'Corte a lo largo del ecuador (0°) · atmósfera 0–16 km · océano 0–300 m (escala vertical convencional)',
+  walkerAria: 'Circulación de Walker y termoclina: corte a lo largo del ecuador',
+  walkerCaption: 'Circulación de Walker y termoclina · corte a lo largo del ecuador (0°) · atmósfera 0–16 km · océano 0–300 m (escala vertical convencional)',
   walkerNow: 'ahora',
   walkerCycle: 'ciclo',
   walkerCurrent: phase => `Estado actual: ${phase} · Pulsa Reproducir para la explicación paso a paso`,
@@ -148,6 +155,10 @@ export const ES: Dict = {
     warmPool: 'piscina cálida',
     coldTongue: 'lengua fría'
   },
+
+  splashLoading: 'Cargando datos climáticos…',
+  splashPreparing: 'Preparando el globo…',
+  splashError: 'No se pudieron cargar algunos datos; empezamos con las capas disponibles.',
 
   glTitle: 'Glosario de términos clave',
   glSearch: 'Buscar término, p. ej. termoclina…',

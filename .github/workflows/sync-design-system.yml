@@ -45,9 +45,26 @@ jobs:
           branch: chore/sync-design-system
           delete-branch: true
 
+      - name: Verify automated PR scope
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+          PR_HEAD_SHA: ${{ steps.cpr.outputs.pull-request-head-sha }}
+        run: |
+          HEAD_REF=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)
+          AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq .author.login)
+          if [ "$HEAD_REF" != "chore/sync-design-system" ] || [ "$AUTHOR" != "app/kmd-bot" ]; then
+            echo "::error::Refusing to auto-merge PR #$PR_NUMBER ($AUTHOR:$HEAD_REF); only automated design-system sync PRs are eligible."
+            exit 1
+          fi
+          echo "Verified automated design-system sync PR #$PR_NUMBER at $PR_HEAD_SHA."
+
       - name: Auto-merge Pull Request
         if: steps.cpr.outputs.pull-request-number != ''
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --admin --squash --delete-branch
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --admin --squash --delete-branch \
+            --match-head-commit ${{ steps.cpr.outputs.pull-request-head-sha }}

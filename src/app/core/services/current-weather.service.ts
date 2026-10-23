@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 
 export interface TimelineKeyframeMeta {
   index: number;
@@ -20,6 +20,29 @@ export interface OpenMeteoSnapshot {
   waveHeight: (number | null)[];
   waveDir: (number | null)[];
   wavePeriod: (number | null)[];
+  airTemp?: (number | null)[];
+}
+
+export interface LiveConditions {
+  airTemp: number | null;
+  windSpeed: number | null;
+  time: string | null;
+  source: string;
+}
+
+export interface DailyWeather {
+  source: string;
+  sourceUrl: string;
+  fetchedAt: string;
+  start: string;
+  end: string;
+  airTemp: (number | null)[];
+  windSpeed: (number | null)[];
+}
+
+export interface DailyConditions {
+  airTemp: number | null;
+  windSpeed: number | null;
 }
 
 export interface TimelineMeta {
@@ -32,6 +55,7 @@ export interface TimelineMeta {
   binFile: string;
   keyframes: TimelineKeyframeMeta[];
   openMeteo?: OpenMeteoSnapshot;
+  dailyWeather?: DailyWeather;
 }
 
 export interface KeyframePair {
@@ -55,11 +79,44 @@ export interface WaveSample {
 }
 
 const DEG = Math.PI / 180;
+const DAY_MS = 86_400_000;
 
 @Injectable({ providedIn: 'root' })
 export class CurrentWeatherService {
   readonly meta = signal<TimelineMeta | null>(null);
   readonly status = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  readonly progress = signal(0);
+
+  readonly liveConditions = computed<LiveConditions | null>(() => {
+    const m = this.meta()?.openMeteo;
+    if (!m || this.status() !== 'ready') return null;
+    const g = m.grid;
+    let tSum = 0, tN = 0, wSum = 0, wN = 0;
+    for (let r = 0; r < g.nLat; r++) {
+      const lat = g.lat0 + r * g.step;
+      if (Math.abs(lat) > 30) continue;
+      for (let c = 0; c < g.nLon; c++) {
+        const i = r * g.nLon + c;
+        const at = this.at[i];
+        if (Number.isFinite(at)) {
+          tSum += at;
+          tN++;
+        }
+        const u = this.u[i];
+        const v = this.v[i];
+        if (Number.isFinite(u) && Number.isFinite(v)) {
+          wSum += Math.hypot(u, v);
+          wN++;
+        }
+      }
+    }
+    return {
+      airTemp: tN ? tSum / tN : null,
+      windSpeed: wN ? wSum / wN : null,
+      time: m.time,
+      source: m.source
+    };
+  });
 
   // Packed 0.5° Uint8Array for all weekly frames (frameSize = 720 * 360 = 259,200 bytes)
   sstBin: Uint8Array | null = null;
@@ -67,6 +124,7 @@ export class CurrentWeatherService {
 
   private u = new Float32Array(0);
   private v = new Float32Array(0);
+  private at = new Float32Array(0);
   private wh = new Float32Array(0);
   private wp = new Float32Array(0);
   private wx = new Float32Array(0);
@@ -75,37 +133,67 @@ export class CurrentWeatherService {
   load() {
     if (this.status() !== 'idle') return;
     this.status.set('loading');
+    this.progress.set(5);
 
     Promise.all([
       fetch('assets/data/timeline-meta.json', { cache: 'no-cache' }).then(r => {
         if (!r.ok) throw new Error(`Meta HTTP ${r.status}`);
+        this.progress.update(p => Math.max(p, 25));
         return r.json() as Promise<TimelineMeta>;
       }),
-      fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' }).then(async r => {
-        if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
-        const rawBuf = await r.arrayBuffer();
-        const header = new Uint8Array(rawBuf, 0, 2);
-        // If gzip magic bytes 0x1f 0x8b, decompress with DecompressionStream
-        if (header[0] === 0x1f && header[1] === 0x8b) {
-          if (typeof DecompressionStream !== 'undefined') {
-            const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
-            const decompressedBuf = await new Response(stream).arrayBuffer();
-            return new Uint8Array(decompressedBuf);
-          }
-        }
-        return new Uint8Array(rawBuf);
-      })
+      this.fetchSstBinary()
     ])
       .then(([meta, bin]) => {
         this.sstBin = bin;
         this.prepareOpenMeteo(meta.openMeteo);
+        this.progress.set(95);
         this.meta.set(meta);
         this.status.set('ready');
+        this.progress.set(100);
       })
       .catch(err => {
         console.warn('Timeline data unavailable:', err);
         this.status.set('error');
+        this.progress.set(100);
       });
+  }
+
+  private async fetchSstBinary(): Promise<Uint8Array> {
+    const r = await fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
+
+    const total = Number(r.headers.get('content-length') ?? 0);
+    let rawBuf: ArrayBuffer;
+    if (r.body && total > 0 && typeof r.body.getReader === 'function') {
+      const reader = r.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.byteLength;
+        this.progress.set(Math.min(85, 25 + Math.round((loaded / total) * 60)));
+      }
+      const merged = new Uint8Array(loaded);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      rawBuf = merged.buffer;
+    } else {
+      rawBuf = await r.arrayBuffer();
+      this.progress.set(85);
+    }
+
+    const header = new Uint8Array(rawBuf, 0, 2);
+    if (header[0] === 0x1f && header[1] === 0x8b && typeof DecompressionStream !== 'undefined') {
+      const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
+      const decompressedBuf = await new Response(stream).arrayBuffer();
+      return new Uint8Array(decompressedBuf);
+    }
+    return new Uint8Array(rawBuf);
   }
 
   private prepareOpenMeteo(d?: OpenMeteoSnapshot) {
@@ -113,6 +201,7 @@ export class CurrentWeatherService {
     const n = d.grid.nLat * d.grid.nLon;
     this.u = new Float32Array(n);
     this.v = new Float32Array(n);
+    this.at = new Float32Array(n).fill(NaN);
     this.wh = new Float32Array(n);
     this.wp = new Float32Array(n);
     this.wx = new Float32Array(n);
@@ -122,6 +211,7 @@ export class CurrentWeatherService {
       const dir = d.windDir[i];
       this.u[i] = sp == null || dir == null ? 0 : -sp * Math.sin(dir * DEG);
       this.v[i] = sp == null || dir == null ? 0 : -sp * Math.cos(dir * DEG);
+      this.at[i] = d.airTemp?.[i] ?? NaN;
 
       const h = d.waveHeight[i];
       const wd = d.waveDir[i];
@@ -147,8 +237,13 @@ export class CurrentWeatherService {
   }
 
   getKeyframePair(s: number): KeyframePair | null {
+    if (!this.sstBin) return null;
+    return this.getKeyframePairMeta(s);
+  }
+
+  private getKeyframePairMeta(s: number): KeyframePair | null {
     const kfs = this.meta()?.keyframes;
-    if (!kfs || kfs.length === 0 || !this.sstBin) return null;
+    if (!kfs || kfs.length === 0) return null;
     if (kfs.length === 1) return { indexA: 0, indexB: 0, t: 0, kfA: kfs[0], kfB: kfs[0] };
 
     if (s <= kfs[0].s) {
@@ -170,6 +265,80 @@ export class CurrentWeatherService {
     }
 
     return { indexA: lastIdx, indexB: lastIdx, t: 1, kfA: kfs[lastIdx], kfB: kfs[lastIdx] };
+  }
+
+  interpolatedDateMs(s: number): number | null {
+    const pair = this.getKeyframePairMeta(s);
+    if (!pair) return null;
+    const a = Date.parse(`${pair.kfA.date}T12:00:00Z`);
+    const b = Date.parse(`${pair.kfB.date}T12:00:00Z`);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+    return a + (b - a) * pair.t;
+  }
+
+  isForecast(s: number): boolean {
+    const nowKf = this.meta()?.keyframes.find(k => k.now);
+    const ms = this.interpolatedDateMs(s);
+    if (!nowKf || ms == null) return false;
+    return new Date(ms).toISOString().slice(0, 10) > nowKf.date;
+  }
+
+  dailyWeatherOn(s: number): DailyConditions | null {
+    const d = this.meta()?.dailyWeather;
+    if (!d?.airTemp?.length || !d?.windSpeed?.length) return null;
+
+    const dateMs = this.interpolatedDateMs(s);
+    if (dateMs == null) return null;
+
+    const startMs = Date.parse(`${d.start}T12:00:00Z`);
+    const endMs = Date.parse(`${d.end}T12:00:00Z`);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return null;
+    if (dateMs < startMs - DAY_MS || dateMs > endMs + 2 * DAY_MS) return null;
+
+    const pos = (Math.min(Math.max(dateMs, startMs), endMs) - startMs) / DAY_MS;
+    const i = Math.min(Math.floor(pos), d.airTemp.length - 1);
+    const t = Math.max(0, Math.min(1, pos - i));
+    return {
+      airTemp: this.interpolateDaily(d.airTemp, i, t),
+      windSpeed: this.interpolateDaily(d.windSpeed, i, t)
+    };
+  }
+
+  private interpolateDaily(values: (number | null)[], i: number, t: number): number | null {
+    const a = values[i] ?? null;
+    const b = values[Math.min(i + 1, values.length - 1)] ?? null;
+    if (a == null && b == null) return null;
+    if (a == null) return b;
+    if (b == null) return a;
+    return a + (b - a) * t;
+  }
+
+  nino34Sst(s: number): number | null {
+    const pair = this.getKeyframePair(s);
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    if (!pair || !bin || !g) return null;
+
+    const offsetA = pair.indexA * this.FRAME_SIZE;
+    const offsetB = pair.indexB * this.FRAME_SIZE;
+    let sum = 0;
+    let n = 0;
+
+    for (let lat = -5; lat <= 5; lat += 1) {
+      const r = Math.round((lat - g.lat0) / g.step);
+      if (r < 0 || r >= g.nLat) continue;
+      for (let lon = 190; lon <= 240; lon += 1) {
+        const lon180 = lon > 180 ? lon - 360 : lon;
+        const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
+        const i = r * g.nLon + c;
+        const va = bin[offsetA + i];
+        const vb = bin[offsetB + i];
+        if (va === 255 || vb === 255) continue;
+        sum += (va + (vb - va) * pair.t) * 0.2 - 5.0;
+        n++;
+      }
+    }
+    return n > 0 ? sum / n : null;
   }
 
   wind(lon: number, lat: number, s: number, out: WindSample): boolean {
@@ -280,12 +449,11 @@ export class CurrentWeatherService {
     const d = new Date(ms);
     const dayMonthYear = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(d);
 
-    if (pair.kfA.now || pair.kfB.now) {
-      if ((pair.kfA.now && pair.t < 0.4) || (pair.kfB.now && pair.t > 0.6) || (pair.kfA.now && pair.kfB.now)) {
-        return `${dayMonthYear} · ${nowLabel}`;
-      }
+    const nowKf = this.meta()?.keyframes.find(k => k.now);
+    if (nowKf && d.toISOString().slice(0, 10) === nowKf.date) {
+      return `${dayMonthYear} · ${nowLabel}`;
     }
-    if (pair.kfB.forecast && pair.t > 0.5) {
+    if (pair.kfA.forecast || pair.kfB.forecast) {
       return `${dayMonthYear} · ${forecastLabel}`;
     }
     return dayMonthYear;

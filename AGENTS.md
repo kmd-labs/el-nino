@@ -12,6 +12,7 @@ This document defines the mandatory UI, architectural, and engineering conventio
   - Do **not** implement dark mode, light/dark toggle buttons, or theme persistence in `localStorage`.
   - Canvas/WebGL renderers read design tokens at runtime via `ThemeService.getTokenColor(token)` from `:root` CSS custom properties (`--color-*`).
 - **Unified Typography (`Inter`):** All UI elements and `<canvas>` 2D/3D text labels use a single font family (`$font-family: "Inter", sans-serif;` emitted as `--font-family` on `:root`). Canvas renderers must use `ThemeService.getFontFamily()` instead of hardcoding system font stacks like `"Segoe UI"`.
+  - Numeric readouts in the top date and data lozenges use the monospaced face (`$font-family-mono`, emitted as `--font-family-mono`); all other text remains Inter.
 
 ---
 

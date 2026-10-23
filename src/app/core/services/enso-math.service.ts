@@ -6,11 +6,8 @@ import {
   KEY,
   KIND_COLOR_TOKENS,
   PHASE_COLOR_TOKENS,
-  SST_MIN_SATURATION,
-  SST_PALETTE_SHIFT,
   SST_SCALE_RANGE,
-  WINDY_SST_RED_K,
-  WINDY_SST_SCALE
+  THERMAL_COLOR_TOKENS
 } from '../constants/enso-data';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 
@@ -43,38 +40,37 @@ export class EnsoMathService {
     this.lutAnom = this.buildLUT(this.getAnomalyStops());
   }
 
-  /**
-   * Water temperature stops `[°C, hexColor][]`, one per °C over SST_SCALE_RANGE: windy.com's
-   * `sst` gradient shifted by SST_PALETTE_SHIFT, with colours below the red stop losing
-   * saturation the further they are from it (down to SST_MIN_SATURATION at the cold end).
-   */
   getThermalStops(): [number, string][] {
     const [lo, hi] = SST_SCALE_RANGE;
-    const stops = WINDY_SST_SCALE.map(([k, rgb]) => [k - 273.15 + SST_PALETTE_SHIFT, rgb] as const);
-    const tRed = WINDY_SST_RED_K - 273.15 + SST_PALETTE_SHIFT;
-    const color = new THREE.Color();
-    const hsl = { h: 0, s: 0, l: 0 };
+    const stops = THERMAL_COLOR_TOKENS.map(([v, token]) => [
+      v,
+      this.themeService.getTokenColor(token, '#829c9e')
+    ] as const);
     const out: [number, string][] = [];
     for (let t = lo; t <= hi + 1e-9; t += 1) {
-      // linear interpolation between the Windy stops
       let i = 1;
       while (i < stops.length - 1 && t > stops[i][0]) i++;
       const [ta, ca] = stops[i - 1];
       const [tb, cb] = stops[i];
       const f = this.clamp((t - ta) / (tb - ta), 0, 1);
-      color.setRGB(
-        (ca[0] + (cb[0] - ca[0]) * f) / 255,
-        (ca[1] + (cb[1] - ca[1]) * f) / 255,
-        (ca[2] + (cb[2] - ca[2]) * f) / 255,
-        THREE.SRGBColorSpace
-      );
-      // fade saturation with the distance below the red stop
-      const d = this.clamp((tRed - t) / (tRed - lo), 0, 1);
-      color.getHSL(hsl, THREE.SRGBColorSpace);
-      color.setHSL(hsl.h, hsl.s * (1 - (1 - SST_MIN_SATURATION) * d), hsl.l, THREE.SRGBColorSpace);
-      out.push([t, `#${color.getHexString(THREE.SRGBColorSpace)}`]);
+      out.push([t, this.mixHex(ca, cb, f)]);
     }
     return out;
+  }
+
+  private mixHex(a: string, b: string, t: number): string {
+    const pa = parseInt(a.replace('#', ''), 16);
+    const pb = parseInt(b.replace('#', ''), 16);
+    const ar = (pa >> 16) & 255;
+    const ag = (pa >> 8) & 255;
+    const ab = pa & 255;
+    const br = (pb >> 16) & 255;
+    const bg = (pb >> 8) & 255;
+    const bb = pb & 255;
+    const r = Math.round(ar + (br - ar) * t);
+    const g = Math.round(ag + (bg - ag) * t);
+    const bl = Math.round(ab + (bb - ab) * t);
+    return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, '0')}`;
   }
 
   /** Returns anomaly stops `[anom, hexColor][]` derived from SCSS design tokens. */

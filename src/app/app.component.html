@@ -1,11 +1,10 @@
+<app-splash-host></app-splash-host>
+
 <main class="app-main">
   <app-globe></app-globe>
   <app-header></app-header>
   @if (state.view() === 'walker') {
     <app-walker-view></app-walker-view>
-  }
-  @if (state.view() === 'thermocline') {
-    <app-thermocline-view></app-thermocline-view>
   }
   <app-map-dock></app-map-dock>
   <app-popup [closeAriaLabel]="i18n.t().close"></app-popup>

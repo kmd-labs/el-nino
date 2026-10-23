@@ -49,7 +49,6 @@ export interface WalkerCanvasText {
 export interface Dict {
   htmlLang: string;
   docTitle: string;
-  /** page <meta name="description">; the English one is also the static default in index.html */
   metaDescription: string;
   langName: string;
 
@@ -94,6 +93,13 @@ export interface Dict {
   viewWalker: string;
   viewImpacts: string;
   viewCurrent: string;
+  sstOnDateTitle: string;
+  dailyConditionsLabel: string;
+  waterTempLabel: string;
+  airTempLabel: string;
+  windSpeedLabel: string;
+  airTempTitle: string;
+  windSpeedTitle: string;
   timelineNow: string;
   timelineForecast: string;
   /** current-situation view: live-data badge */
@@ -170,6 +176,10 @@ export interface Dict {
   walkerStep: (i: number, title: string) => string;
   steps: string[];
   canvas: WalkerCanvasText;
+
+  splashLoading: string;
+  splashPreparing: string;
+  splashError: string;
 
   // glossary
   glTitle: string;
