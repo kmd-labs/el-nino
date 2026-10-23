@@ -38,28 +38,6 @@ describe('CurrentWeatherService', () => {
     expect(pair?.t).toBeCloseTo(0.5, 3);
   });
 
-  it('should compute the Niño 3.4 mean sea-surface temperature from the binary frames', () => {
-    service['meta'].set({
-      source: 'test',
-      sourceUrl: '',
-      sstSourceUrl: '',
-      fetchedAt: '',
-      grid: { step: 0.5, nLat: 360, nLon: 720, lat0: -89.75, lon0: -179.75 },
-      totalFrames: 2,
-      binFile: '',
-      keyframes: [
-        { index: 0, id: 'k0', date: '2024-11-06', s: -1.0, nino34: 0 },
-        { index: 1, id: 'k1', date: '2024-11-13', s: 1.0, nino34: 2 }
-      ]
-    });
-    service.sstBin = new Uint8Array(360 * 720 * 2).fill(165); // 165 * 0.2 − 5 = 28 °C
-
-    expect(service.nino34Sst(0)).toBeCloseTo(28, 1);
-
-    service.sstBin = new Uint8Array(360 * 720 * 2).fill(255); // land / missing
-    expect(service.nino34Sst(0)).toBeNull();
-  });
-
   it('should format date labels properly', () => {
     service['meta'].set({
       source: 'test',

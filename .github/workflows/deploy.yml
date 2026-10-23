@@ -38,14 +38,6 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Restore NOAA download cache
-        uses: actions/cache@v4
-        with:
-          path: scripts/.cache
-          key: noaa-oisst-${{ runner.os }}-${{ hashFiles('scripts/fetch-current-weather.mjs') }}
-          restore-keys: |
-            noaa-oisst-${{ runner.os }}-
-
       - name: Install dependencies
         run: npm ci
 

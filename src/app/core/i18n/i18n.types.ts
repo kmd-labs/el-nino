@@ -92,13 +92,6 @@ export interface Dict {
   viewWalker: string;
   viewImpacts: string;
   viewCurrent: string;
-  /** Active timeline date: mean SST inside the Niño 3.4 box. */
-  sstOnDateTitle: string;
-  /** Live Open-Meteo conditions shown in the dock. */
-  liveConditionsLabel: string;
-  liveConditionsTitle: string;
-  airTempLabel: string;
-  windSpeedLabel: string;
   timelineNow: string;
   timelineForecast: string;
   /** current-situation view: live-data badge */
@@ -175,11 +168,6 @@ export interface Dict {
   walkerStep: (i: number, title: string) => string;
   steps: string[];
   canvas: WalkerCanvasText;
-
-  // splash loader
-  splashLoading: string;
-  splashPreparing: string;
-  splashError: string;
 
   // glossary
   glTitle: string;

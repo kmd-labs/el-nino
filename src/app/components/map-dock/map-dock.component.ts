@@ -60,27 +60,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return this.weather.interpolatedDateLabel(this.state.sCur(), t.htmlLang, t.timelineNow, t.timelineForecast);
   });
 
-  private readonly oneDecimal = computed(
-    () => new Intl.NumberFormat(this.i18n.t().htmlLang, { maximumFractionDigits: 1 })
-  );
-
-  /** Observed sea-surface temperature in the Niño 3.4 box for the selected date. */
-  readonly activeSstLabel = computed(() => {
-    const v = this.weather.nino34Sst(this.state.sCur());
-    if (v == null) return '';
-    return `${this.oneDecimal().format(v)} °C`;
-  });
-
-  readonly live = this.weather.liveConditions;
-
-  readonly liveAirTempLabel = computed(() => this.formatLive(this.live()?.airTemp, '°C'));
-  readonly liveWindLabel = computed(() => this.formatLive(this.live()?.windSpeed, 'm/s'));
-
-  private formatLive(value: number | null | undefined, unit: string): string {
-    if (value == null || !Number.isFinite(value)) return '—';
-    return `${this.oneDecimal().format(value)} ${unit}`;
-  }
-
   readonly timelineMarkers = computed<TimelineMarker[]>(() => {
     const t = this.i18n.t();
     const curPhase = this.state.phase();
@@ -103,18 +82,11 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     const fcKf = kfs?.find(k => k.forecast);
     const ninaKf = kfs?.[0];
 
-    // Fallbacks stay date-driven even if the metadata request fails.
-    const today = new Date();
-    const fallbackNow = today.toISOString().slice(0, 10);
-    const fallbackForecastDate = new Date(today);
-    fallbackForecastDate.setUTCDate(fallbackForecastDate.getUTCDate() + 56);
-    const fallbackForecast = fallbackForecastDate.toISOString().slice(0, 10);
-
     const milestones = [
       { id: 'm-nina', value: -1.6, dateIso: ninaKf?.date ?? '2025-01-15', now: false, forecast: false, hot: false },
       { id: 'm-neu', value: 0.0, dateIso: '2025-07-15', now: false, forecast: false, hot: false },
-      { id: 'm-now', value: 1.4, dateIso: nowKf?.date ?? fallbackNow, now: true, forecast: false, hot: false },
-      { id: 'm-fc', value: 2.6, dateIso: fcKf?.date ?? fallbackForecast, now: false, forecast: true, hot: true }
+      { id: 'm-now', value: 1.4, dateIso: nowKf?.date ?? '2026-10-21', now: true, forecast: false, hot: false },
+      { id: 'm-fc', value: 2.6, dateIso: fcKf?.date ?? '2026-12-16', now: false, forecast: true, hot: true }
     ];
 
     return milestones.map(p => {

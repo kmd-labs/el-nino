@@ -1,6 +1,6 @@
 export type EnsoPhase = 'nina' | 'neu' | 'nino' | 'super';
 export type DisplayMode = 'sst' | 'anom';
-export type ViewMode = 'globe' | 'walker' | 'impacts';
+export type ViewMode = 'globe' | 'walker' | 'thermocline' | 'impacts';
 export type ImpactKind = 'dry' | 'fire' | 'wet' | 'other';
 
 export interface EnsoSource {

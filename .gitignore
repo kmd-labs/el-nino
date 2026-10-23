@@ -17,7 +17,3 @@
 # Ephemeral build artifacts
 /build/
 scripts/.cache/
-
-# Docker and Dev Containers (local only)
-/docker/
-/.devcontainer/
