@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const PL: Dict = {
   htmlLang: 'pl',
-  docTitle: 'KMD · El Niño — Glob 3D',
+  docTitle: 'El Niño 2026 w 3D - interaktywny glob ENSO | KMD Labs',
   langName: 'Polski',
 
   phase: { super: 'Super El Niño', nino: 'El Niño', nina: 'La Niña', neu: 'Neutralny' },
