@@ -4,7 +4,8 @@ import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../
 import { EnsoMathService } from './enso-math.service';
 import { I18nService } from '../i18n/i18n.service';
 
-const EARLIEST_STRENGTH = -1.6;
+/** First weekly NOAA frame (6 Nov 2024); the animation starts exactly here. */
+const EARLIEST_STRENGTH = -1.8;
 const NOW_STRENGTH = 1.4;
 
 @Injectable({
@@ -14,7 +15,7 @@ export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
 
-  // Start at the earliest keyframe (Jan 2025), animating towards NOW
+  // Start at the first observed keyframe (6 Nov 2024), animating towards NOW
   readonly sTarget = signal<number>(EARLIEST_STRENGTH);
   readonly sCur = signal<number>(EARLIEST_STRENGTH);
   readonly displayMode = signal<DisplayMode>('sst');
@@ -27,6 +28,8 @@ export class EnsoStateService {
   readonly isPlaying = signal<boolean>(true);
   /** False while the splash loader is visible; the cycle and globe animations hold still. */
   readonly experienceReady = signal<boolean>(false);
+  /** True after the first fully rendered interactive globe frame (labels included). */
+  readonly sceneReady = signal<boolean>(false);
   readonly cycleT = signal<number>(0);
   /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
   readonly cycleMonth = signal<number | null>(null);
@@ -91,12 +94,22 @@ export class EnsoStateService {
     return '<1%';
   });
 
-  /** Called by the splash screen once the essential data and assets are ready. */
-  beginExperience() {
+  /**
+   * Unlocks the globe (and its labels) without starting the clock, so the splash
+   * host can render the first frame behind the loader.
+   */
+  prepareExperience() {
     if (this.experienceReady()) return;
     this.experienceReady.set(true);
     this.autoRotate.set(true);
-    this.startPlaying();
+    // Hold the clock at the first keyframe until the splash actually fades.
+    this.isPlaying.set(false);
+  }
+
+  /** Starts the cycle from the first keyframe once the splash begins to fade. */
+  beginExperience() {
+    this.prepareExperience();
+    if (!this.isPlaying()) this.startPlaying();
   }
 
   setStrengthTarget(val: number) {
@@ -175,7 +188,7 @@ export class EnsoStateService {
 
   updateCycle(dt: number) {
     if (!this.experienceReady() || !this.isPlaying()) return;
-    const speed = (NOW_STRENGTH - EARLIEST_STRENGTH) / 12; // 12 seconds from Jan 2025 to Oct 2026
+    const speed = (NOW_STRENGTH - EARLIEST_STRENGTH) / 12; // 12 seconds from Nov 2024 to Oct 2026
     const nextS = this.sTarget() + dt * speed;
     if (nextS >= NOW_STRENGTH) {
       this.sTarget.set(NOW_STRENGTH);

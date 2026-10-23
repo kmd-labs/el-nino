@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const PL: Dict = {
   htmlLang: 'pl',
-  docTitle: 'El Niño 2026 w 3D - interaktywny glob ENSO | KMD Labs',
+  docTitle: 'El Niño 2026 w 3D - interaktywna wizualizacja | KMD Labs',
   metaDescription: 'Odkryj El Niño i La Niña na interaktywnym globie 3D: prawdziwe temperatury oceanu z NOAA, wiatry, cyrkulacja Walkera i skutki na całym świecie.',
   langName: 'Polski',
 
@@ -50,10 +50,12 @@ export const PL: Dict = {
   viewImpacts: 'Skutki',
   viewCurrent: 'Sytuacja obecnie',
   sstOnDateTitle: 'Średnia temperatura powierzchni oceanu w prostokącie Niño 3.4 dla wybranej daty',
-  liveConditionsLabel: 'Warunki na żywo',
-  liveConditionsTitle: 'Aktualny zrzut Open-Meteo uśredniony dla pasa tropikalnego (30°S–30°N): temperatura powietrza 2 m i prędkość wiatru 10 m',
+  liveConditionsLabel: 'Aktualne warunki tropikalne',
+  waterTempLabel: 'Woda',
   airTempLabel: 'Powietrze',
   windSpeedLabel: 'Wiatr',
+  airTempTitle: 'Aktualna temperatura powietrza na 2 m, uśredniona dla pasa tropikalnego (30°S–30°N) z najnowszego zrzutu Open-Meteo. Nie zmienia się wraz z wybraną datą osi czasu.',
+  windSpeedTitle: 'Aktualna prędkość wiatru na 10 m, uśredniona dla pasa tropikalnego (30°S–30°N) z najnowszego zrzutu Open-Meteo. Nie zmienia się wraz z wybraną datą osi czasu.',
   timelineNow: 'Teraz',
   timelineForecast: 'Prognoza',
   currentLive: 'Na żywo',

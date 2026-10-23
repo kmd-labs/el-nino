@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const ES: Dict = {
   htmlLang: 'es',
-  docTitle: 'El Niño 2026 en 3D - Globo ENSO interactivo | KMD Labs',
+  docTitle: 'El Niño 2026 en 3D - Visualización interactiva | KMD Labs',
   metaDescription: 'Explora El Niño y La Niña en un globo 3D interactivo: temperaturas reales del mar (NOAA), vientos, la circulación de Walker e impactos globales.',
   langName: 'Español',
 
@@ -50,10 +50,12 @@ export const ES: Dict = {
   viewImpacts: 'Impactos',
   viewCurrent: 'Situación actual',
   sstOnDateTitle: 'Temperatura media de la superficie del mar en el recuadro Niño 3.4 para la fecha seleccionada',
-  liveConditionsLabel: 'Condiciones en vivo',
-  liveConditionsTitle: 'Instantánea actual de Open-Meteo promediada en la franja tropical (30°S–30°N): temperatura del aire a 2 m y viento a 10 m',
+  liveConditionsLabel: 'Condiciones tropicales en vivo',
+  waterTempLabel: 'Agua',
   airTempLabel: 'Aire',
   windSpeedLabel: 'Viento',
+  airTempTitle: 'Temperatura del aire a 2 m en vivo, promediada en la franja tropical (30°S–30°N) de la última instantánea de Open-Meteo. No cambia con la fecha seleccionada en la línea de tiempo.',
+  windSpeedTitle: 'Velocidad del viento a 10 m en vivo, promediada en la franja tropical (30°S–30°N) de la última instantánea de Open-Meteo. No cambia con la fecha seleccionada en la línea de tiempo.',
   timelineNow: 'Ahora',
   timelineForecast: 'Pronóstico',
   currentLive: 'En vivo',

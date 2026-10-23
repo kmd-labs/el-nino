@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const EN: Dict = {
   htmlLang: 'en',
-  docTitle: 'El Niño 2026 in 3D - Interactive ENSO Globe | KMD Labs',
+  docTitle: 'El Niño 2026 in 3D - Interactive Visualization | KMD Labs',
   metaDescription: 'Explore El Niño and La Niña on an interactive 3D globe: real NOAA sea temperatures, winds, the Walker circulation and impacts worldwide.',
   langName: 'English',
 
@@ -50,10 +50,12 @@ export const EN: Dict = {
   viewImpacts: 'Impacts',
   viewCurrent: 'Current situation',
   sstOnDateTitle: 'Mean sea-surface temperature in the Niño 3.4 box for the selected date',
-  liveConditionsLabel: 'Live conditions',
-  liveConditionsTitle: 'Open-Meteo live snapshot, averaged over the tropical belt (30°S–30°N): 2 m air temperature and 10 m wind speed',
+  liveConditionsLabel: 'Live tropical conditions',
+  waterTempLabel: 'Water',
   airTempLabel: 'Air',
   windSpeedLabel: 'Wind',
+  airTempTitle: 'Live 2 m air temperature, averaged over the tropical belt (30°S–30°N) from the latest Open-Meteo snapshot. It does not follow the selected timeline date.',
+  windSpeedTitle: 'Live 10 m wind speed, averaged over the tropical belt (30°S–30°N) from the latest Open-Meteo snapshot. It does not follow the selected timeline date.',
   timelineNow: 'Now',
   timelineForecast: 'Forecast',
   currentLive: 'Live',

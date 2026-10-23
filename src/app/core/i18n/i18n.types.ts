@@ -98,9 +98,13 @@ export interface Dict {
   sstOnDateTitle: string;
   /** Live Open-Meteo conditions shown in the dock. */
   liveConditionsLabel: string;
-  liveConditionsTitle: string;
+  /** Compact labels in the top data lozenge. */
+  waterTempLabel: string;
   airTempLabel: string;
   windSpeedLabel: string;
+  /** Per-parameter tooltips; air and wind are live snapshots, water follows the timeline. */
+  airTempTitle: string;
+  windSpeedTitle: string;
   timelineNow: string;
   timelineForecast: string;
   /** current-situation view: live-data badge */

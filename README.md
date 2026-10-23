@@ -69,11 +69,10 @@ src/
 │       ├── header/               # Brand logotype, language selector and view switcher
 │       ├── map-dock/             # Floating glassmorphic control dock, date pill and legends
 │       ├── walker-view/          # Walker circulation + thermocline cross-section
-│       ├── splash/               # Handwritten KMD loader shown until data is ready
+│       ├── splash/               # Host timing for the shared design-system loader
 │       ├── impact-modal/         # Event detail dialog with external research links
 │       └── glossary/             # Searchable glossary popup
 └── assets/
-    ├── branding/                 # KMD monogram, handwritten loader and favicon assets
     └── data/
         ├── land-50m.json         # Bundled Natural Earth land topology
         ├── timeline-meta.json    # Weekly keyframes, live Open-Meteo snapshot

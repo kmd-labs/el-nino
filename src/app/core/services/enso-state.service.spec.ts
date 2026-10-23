@@ -9,24 +9,24 @@ describe('EnsoStateService', () => {
     service = TestBed.inject(EnsoStateService);
   });
 
-  it('should be created and start playing from earliest keyframe s = -1.6', () => {
+  it('should be created and start playing from earliest keyframe s = -1.8', () => {
     expect(service).toBeTruthy();
-    expect(service.sCur()).toBe(-1.6);
-    expect(service.sTarget()).toBe(-1.6);
+    expect(service.sCur()).toBe(-1.8);
+    expect(service.sTarget()).toBe(-1.8);
     expect(service.isPlaying()).toBe(true);
     expect(service.experienceReady()).toBe(false);
   });
 
   it('should unlock the animation only when the splash begins the experience', () => {
     service.updateInterpolatedStrength(0.1);
-    expect(service.sCur()).toBe(-1.6);
+    expect(service.sCur()).toBe(-1.8);
 
     service.beginExperience();
     expect(service.experienceReady()).toBe(true);
 
     service.updateCycle(1);
     service.updateInterpolatedStrength(0.1);
-    expect(service.sCur()).toBeGreaterThan(-1.6);
+    expect(service.sCur()).toBeGreaterThan(-1.8);
   });
 
   it('should allow setting target strength', () => {
@@ -55,6 +55,6 @@ describe('EnsoStateService', () => {
     service.setStrengthTarget(1.4);
     service.startPlaying();
     expect(service.isPlaying()).toBe(true);
-    expect(service.sTarget()).toBe(-1.6);
+    expect(service.sTarget()).toBe(-1.8);
   });
 });

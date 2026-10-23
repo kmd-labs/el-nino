@@ -9,9 +9,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
+  CalendarDays,
   LucideAngularModule,
   Pause,
-  Play
+  Play,
+  Thermometer,
+  Waves,
+  Wind
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PRESETS } from '../../core/constants/enso-data';
@@ -21,6 +25,7 @@ import { TimelineMarker } from '@kmd/design-system/ui/timeline-slider/timeline-s
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 
 export interface DateMarker {
   id: string;
@@ -34,7 +39,7 @@ export interface DateMarker {
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule],
+  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
@@ -45,6 +50,10 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
+  readonly calendarIcon = CalendarDays;
+  readonly waterIcon = Waves;
+  readonly airIcon = Thermometer;
+  readonly windIcon = Wind;
 
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;
@@ -111,7 +120,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     const fallbackForecast = fallbackForecastDate.toISOString().slice(0, 10);
 
     const milestones = [
-      { id: 'm-nina', value: -1.6, dateIso: ninaKf?.date ?? '2025-01-15', now: false, forecast: false, hot: false },
+      { id: 'm-nina', value: -1.8, dateIso: ninaKf?.date ?? '2024-11-06', now: false, forecast: false, hot: false },
       { id: 'm-neu', value: 0.0, dateIso: '2025-07-15', now: false, forecast: false, hot: false },
       { id: 'm-now', value: 1.4, dateIso: nowKf?.date ?? fallbackNow, now: true, forecast: false, hot: false },
       { id: 'm-fc', value: 2.6, dateIso: fcKf?.date ?? fallbackForecast, now: false, forecast: true, hot: true }

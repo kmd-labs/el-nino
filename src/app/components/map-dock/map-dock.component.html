@@ -1,32 +1,36 @@
 @let t = i18n.t();
 
 <div #wrap class="dock-wrap">
-  <!-- Date, observed water temperature and live Open-Meteo conditions -->
+  <!-- Timeline date on its own; water, air and wind in one greyscale data lozenge -->
   <div class="dock-topline">
-    <div class="cycle-pill glass-panel" role="status">
+    <div class="date-pill glass-panel" role="status">
+      <lucide-icon class="date-pill__icon" [img]="calendarIcon" [size]="13"></lucide-icon>
       <span>{{ activeDateLabel() || '2026' }}</span>
-      @if (activeSstLabel()) {
-        <span class="cycle-pill__sst" [title]="t.sstOnDateTitle">
-          <span
-            class="cycle-pill__dot"
-            [style.background]="state.category().col"
-            aria-hidden="true"></span>{{ activeSstLabel() }}
-        </span>
-      }
     </div>
 
-    @if (live(); as lc) {
-      <div class="live-pill glass-panel" [title]="t.liveConditionsTitle" role="status">
-        <span class="live-pill__badge">{{ t.currentLive }}</span>
-        <span class="live-pill__item">
-          <span class="live-pill__key">{{ t.airTempLabel }}</span>{{ liveAirTempLabel() }}
-        </span>
-        <span class="live-pill__sep" aria-hidden="true"></span>
-        <span class="live-pill__item">
-          <span class="live-pill__key">{{ t.windSpeedLabel }}</span>{{ liveWindLabel() }}
-        </span>
-      </div>
-    }
+    <div class="data-pill glass-panel" role="status" [attr.aria-label]="t.liveConditionsLabel">
+      <span class="data-pill__item" [appTooltip]="t.sstOnDateTitle" tooltipPlacement="top">
+        <lucide-icon class="data-pill__icon" [img]="waterIcon" [size]="13"></lucide-icon>
+        <span class="data-pill__key">{{ t.waterTempLabel }}</span>
+        <span class="data-pill__val">{{ activeSstLabel() || '—' }}</span>
+      </span>
+
+      <span class="data-pill__sep" aria-hidden="true"></span>
+
+      <span class="data-pill__item" [appTooltip]="t.airTempTitle" tooltipPlacement="top">
+        <lucide-icon class="data-pill__icon" [img]="airIcon" [size]="13"></lucide-icon>
+        <span class="data-pill__key">{{ t.airTempLabel }}</span>
+        <span class="data-pill__val">{{ liveAirTempLabel() }}</span>
+      </span>
+
+      <span class="data-pill__sep" aria-hidden="true"></span>
+
+      <span class="data-pill__item" [appTooltip]="t.windSpeedTitle" tooltipPlacement="top">
+        <lucide-icon class="data-pill__icon" [img]="windIcon" [size]="13"></lucide-icon>
+        <span class="data-pill__key">{{ t.windSpeedLabel }}</span>
+        <span class="data-pill__val">{{ liveWindLabel() }}</span>
+      </span>
+    </div>
   </div>
 
   <div class="dock glass-panel">
