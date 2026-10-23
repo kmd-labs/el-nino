@@ -29,6 +29,7 @@ export class I18nService {
       if (typeof document !== 'undefined') {
         document.documentElement.lang = d.htmlLang;
         document.title = d.docTitle;
+        document.querySelector('meta[name="description"]')?.setAttribute('content', d.metaDescription);
       }
       this.persistLang(currentLang);
     });
