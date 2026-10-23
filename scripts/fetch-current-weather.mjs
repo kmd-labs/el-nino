@@ -60,7 +60,11 @@ async function fetchOpenMeteoCurrent(baseUrl, variables, extra = '') {
 
 async function fetchLiveWindAndWaves() {
   try {
-    const wind = await fetchOpenMeteoCurrent(OM_WIND_URL, ['wind_speed_10m', 'wind_direction_10m'], '&wind_speed_unit=ms');
+    const wind = await fetchOpenMeteoCurrent(
+      OM_WIND_URL,
+      ['wind_speed_10m', 'wind_direction_10m', 'temperature_2m'],
+      '&wind_speed_unit=ms'
+    );
     await new Promise(r => setTimeout(r, 1200));
     const waves = await fetchOpenMeteoCurrent(OM_WAVE_URL, ['wave_height', 'wave_direction', 'wave_period']);
     return {
@@ -70,6 +74,7 @@ async function fetchLiveWindAndWaves() {
       grid: { lat0: OM_LAT0, lon0: OM_LON0, step: OM_STEP, nLat: OM_N_LAT, nLon: OM_N_LON },
       windSpeed: wind.map(w => round1(w.wind_speed_10m)),
       windDir: wind.map(w => round1(w.wind_direction_10m)),
+      airTemp: wind.map(w => round1(w.temperature_2m)),
       waveHeight: waves.map(w => round1(w.wave_height)),
       waveDir: waves.map(w => round1(w.wave_direction)),
       wavePeriod: waves.map(w => round1(w.wave_period))
@@ -186,7 +191,8 @@ function downsampleSst05(raw, scale, fill) {
 }
 
 // Compute Niño 3.4 box anomaly mean (5°S–5°N, 170°W–120°W) in °C from anom dataset
-const round1 = (v) => Math.round(v * 10) / 10;
+// Preserve Open-Meteo nulls (e.g. wave data over land) instead of turning them into 0.
+const round1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
 const round2 = (v) => Math.round(v * 100) / 100;
 const round3 = (v) => Math.round(v * 1000) / 1000;
 
@@ -364,6 +370,12 @@ async function main() {
     return;
   }
 
+  // Keep frames in chronological order even if an earlier week was backfilled late.
+  const order = validDates.map((_, i) => i).sort((a, b) => validDates[a].iso.localeCompare(validDates[b].iso));
+  grids = order.map(i => grids[i]);
+  validDates = order.map(i => validDates[i]);
+  nino34Values = order.map(i => nino34Values[i]);
+
   console.log(`Synthesizing global forecast frame from latest observed frame (${validDates[validDates.length - 1].iso})...`);
   const lastObservedIdx = grids.length - 1;
   const forecastGrid = synthesizeForecast(grids[lastObservedIdx]);
@@ -376,7 +388,11 @@ async function main() {
   }
   combinedBin.set(forecastGrid, grids.length * FRAME_POINTS);
 
-  const forecastDate = { ym: '202612', ymd: '20261216', iso: '2026-12-16', forecast: true };
+  // Issue #30: the seasonal forecast horizon follows the latest observation
+  // instead of a hard-coded date (8 weeks ahead ≈ the event peak).
+  const forecastDateObj = new Date(`${validDates[lastObservedIdx].iso}T12:00:00Z`);
+  forecastDateObj.setUTCDate(forecastDateObj.getUTCDate() + 56);
+  const forecastDate = { iso: forecastDateObj.toISOString().slice(0, 10), forecast: true };
   const allDates = [...validDates, forecastDate];
   const allNino34 = [...nino34Values, round1(nino34Values[lastObservedIdx] + 1.1)];
 

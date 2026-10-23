@@ -1,9 +1,22 @@
 @use "variables" as *;
 
 .impact-events {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 14px;
+
+  // Issue #32: subtle KMD monogram tiling behind the impact cards.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%230F172A' stroke-width='4' stroke-linecap='round' stroke-linejoin='round' opacity='0.06'%3E%3Cpath d='M30 24v72M30 60L62 24M30 60l34 36'/%3E%3C/g%3E%3Ccircle cx='92' cy='24' r='6' fill='%23D37400' opacity='0.12'/%3E%3C/svg%3E");
+    background-size: 120px 120px;
+  }
 }
 
 .ev {

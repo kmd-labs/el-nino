@@ -2,7 +2,7 @@ import { Dict } from './i18n.types';
 
 export const EN: Dict = {
   htmlLang: 'en',
-  docTitle: 'KMD · El Niño — 3D Globe',
+  docTitle: 'KMD | El Niño — 3D Globe',
   langName: 'English',
 
   phase: { super: 'Super El Niño', nino: 'El Niño', nina: 'La Niña', neu: 'Neutral' },
@@ -43,11 +43,16 @@ export const EN: Dict = {
   hintPins: (count, phase) => `${count} locations with documented impacts of ${phase}. Click any pin on the globe to inspect the event data and source.`,
 
   chooseView: 'View',
-  viewTemp: 'Temperature',
-  viewAnom: 'Temperature',
-  viewWalker: 'Walker Cell',
+  viewTemp: 'Water temperature',
+  viewAnom: 'Water temperature',
+  viewWalker: 'Walker Cell & Thermocline',
   viewImpacts: 'Impacts',
   viewCurrent: 'Current situation',
+  sstOnDateTitle: 'Mean sea-surface temperature in the Niño 3.4 box for the selected date',
+  liveConditionsLabel: 'Live conditions',
+  liveConditionsTitle: 'Open-Meteo live snapshot, averaged over the tropical belt (30°S–30°N): 2 m air temperature and 10 m wind speed',
+  airTempLabel: 'Air',
+  windSpeedLabel: 'Wind',
   timelineNow: 'Now',
   timelineForecast: 'Forecast',
   currentLive: 'Live',
@@ -62,9 +67,9 @@ export const EN: Dict = {
   sstSourceTitle: (date, preliminary) => `NOAA OISST v2.1 – daily sea surface temperature from satellites, ships and buoys, ${date}${preliminary ? ' (preliminary)' : ''}; averaged to a 1° grid`,
   currentLoading: 'Loading current data…',
   currentError: 'Current wind and wave data is unavailable.',
-  scaleSst: 'Sea surface temperature (°C)',
-  scaleAnom: 'Temperature anomaly vs. normal (°C)',
-  scaleSstShort: 'Ocean temperature',
+  scaleSst: 'Sea surface (water) temperature (°C)',
+  scaleAnom: 'Water temperature anomaly vs. normal (°C)',
+  scaleSstShort: 'Water temperature',
   scaleAnomShort: 'Temperature anomaly',
   impactsTab: 'Legend',
   flowLegendTitle: 'Ocean & Air Circulation',
@@ -107,8 +112,8 @@ export const EN: Dict = {
   mRole: 'Role of ENSO:',
   mSource: 'Source:',
 
-  walkerAria: 'Walker circulation – cross-section along the equator',
-  walkerCaption: 'Cross-section along the equator (0°) · atmosphere 0–16 km · ocean 0–300 m (vertical scale exaggerated)',
+  walkerAria: 'Walker circulation and thermocline – cross-section along the equator',
+  walkerCaption: 'Walker circulation & thermocline · cross-section along the equator (0°) · atmosphere 0–16 km · ocean 0–300 m (vertical scale exaggerated)',
   walkerNow: 'live',
   walkerCycle: 'cycle',
   walkerCurrent: phase => `Current state: ${phase} · Press Play for step-by-step walkthrough`,
@@ -147,6 +152,10 @@ export const EN: Dict = {
     warmPool: 'warm pool',
     coldTongue: 'cold tongue'
   },
+
+  splashLoading: 'Loading climate data…',
+  splashPreparing: 'Preparing the globe…',
+  splashError: 'Some data could not be loaded — starting with the available layers.',
 
   glTitle: 'Glossary & Key Terms',
   glSearch: 'Search terms, e.g. thermocline…',

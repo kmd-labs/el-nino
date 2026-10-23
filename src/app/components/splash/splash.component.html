@@ -1,0 +1,22 @@
+@if (!gone()) {
+  <div
+    class="splash"
+    [class.splash--fading]="fading()"
+    role="status"
+    aria-live="polite"
+    [attr.aria-label]="statusText()">
+    <div class="splash__inner">
+      <img
+        class="splash__logo"
+        src="assets/branding/kmd-handwritten.svg"
+        alt="KMD"
+        draggable="false" />
+
+      <div class="splash__track" aria-hidden="true">
+        <span class="splash__fill" [style.width.%]="progress()"></span>
+      </div>
+
+      <p class="splash__status">{{ statusText() }}</p>
+    </div>
+  </div>
+}

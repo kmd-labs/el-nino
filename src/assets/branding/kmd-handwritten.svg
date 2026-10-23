@@ -1,0 +1,35 @@
+<svg width="340" height="140" viewBox="0 0 340 140" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KMD">
+  <style>
+    .kmd-ink {
+      fill: none;
+      stroke: #0F172A;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: kmd-draw 2.05s cubic-bezier(0.5, 0.05, 0.35, 1) 0.15s forwards;
+    }
+    .kmd-dot {
+      fill: #D37400;
+      opacity: 0;
+      animation: kmd-dot-in 0.32s ease-out 1.92s forwards;
+    }
+    @keyframes kmd-draw {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes kmd-dot-in {
+      from { opacity: 0; transform: scale(0.35); transform-origin: 322px 116px; }
+      to { opacity: 1; transform: scale(1); transform-origin: 322px 116px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .kmd-ink { animation: none; stroke-dashoffset: 0; }
+      .kmd-dot { animation: none; opacity: 1; }
+    }
+  </style>
+  <path
+    class="kmd-ink"
+    pathLength="1"
+    d="M30 16 L30 124 L30 78 L98 16 L30 78 L98 124 L130 124 L130 16 L168 92 L206 16 L206 124 L232 124 L232 16 C 276 16 300 38 300 70 C 300 102 276 124 232 124" />
+  <circle class="kmd-dot" cx="322" cy="116" r="6.5" />
+</svg>
