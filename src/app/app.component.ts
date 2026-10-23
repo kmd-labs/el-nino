@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GlobeComponent } from './components/globe/globe.component';
 import { HeaderComponent } from './components/header/header.component';
-import { SplashComponent } from './components/splash/splash.component';
+import { SplashHostComponent } from './components/splash/splash-host.component';
 import { MapDockComponent } from './components/map-dock/map-dock.component';
 import { WalkerViewComponent } from './components/walker-view/walker-view.component';
 import { PopupComponent } from '@kmd/design-system/ui/popup/popup.component';
@@ -16,7 +16,7 @@ import { EnsoStateService } from './core/services/enso-state.service';
   imports: [
     CommonModule,
     GlobeComponent,
-    SplashComponent,
+    SplashHostComponent,
     HeaderComponent,
     MapDockComponent,
     WalkerViewComponent,

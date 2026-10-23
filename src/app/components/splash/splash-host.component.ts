@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { SplashComponent } from '@kmd/design-system/ui/splash/splash.component';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -10,14 +11,17 @@ const MIN_VISIBLE_MS = 2400;
 const MAX_WAIT_MS = 12000;
 const FADE_MS = 620;
 
+/**
+ * App-side splash host: owns readiness detection and timing, while the visual
+ * loader itself is the shared `<app-splash>` design-system component.
+ */
 @Component({
-  selector: 'app-splash',
+  selector: 'app-splash-host',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './splash.component.html',
-  styleUrl: './splash.component.scss'
+  imports: [CommonModule, SplashComponent],
+  templateUrl: './splash-host.component.html'
 })
-export class SplashComponent {
+export class SplashHostComponent {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   private weather = inject(CurrentWeatherService);
