@@ -8,6 +8,7 @@
     "build:gh-pages": "ng build --base-href /el-nino/",
     "fetch:weather": "node scripts/fetch-current-weather.mjs",
     "fetch:history": "node scripts/fetch-enso-history.mjs",
+    "fetch:relief": "node scripts/fetch-relief.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false --browsers=ChromeHeadlessCI"
   },

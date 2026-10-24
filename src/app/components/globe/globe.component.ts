@@ -103,6 +103,15 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private landMat?: THREE.MeshLambertMaterial;
   private hemiLight?: THREE.HemisphereLight;
   private loadedLandFeature: any = null;
+  /** Natural Earth shaded relief; `base` is the value flat ground sits at. */
+  private relief: { data: Uint8Array; w: number; h: number; base: number } | null = null;
+  /** Land fill already shaded by the relief, rebuilt only when the token changes. */
+  private reliefCanvas: HTMLCanvasElement | null = null;
+  private reliefTintedFor = '';
+  /** How far the relief darkens and lightens the land fill. */
+  private readonly RELIEF_STRENGTH = 0.55;
+  /** Deviation from `base` that reaches full strength. */
+  private readonly RELIEF_RANGE = 46;
   /** Niño 3.4 / dipole boxes are drawn on the land layer (hidden in the live view) */
   private landBoxes = true;
   private maskBuiltFor: any = null;
@@ -618,6 +627,82 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       }
     };
     loadLand();
+    this.loadRelief();
+  }
+
+  /**
+   * Loads the packed shaded-relief raster. Failing is harmless: the land simply stays
+   * the flat token fill it was before.
+   */
+  private async loadRelief() {
+    try {
+      const resp = await fetch('assets/data/relief.bin.gz');
+      if (!resp.ok || !resp.body) return;
+      if (typeof DecompressionStream === 'undefined') return;
+      const stream = resp.body.pipeThrough(new DecompressionStream('gzip'));
+      const buf = await new Response(stream).arrayBuffer();
+
+      const head = new DataView(buf);
+      // 'KMDR', then u16 width, u16 height, u8 base, u8 version
+      if (buf.byteLength < 10 || head.getUint32(0, false) !== 0x4b4d4452) return;
+      const w = head.getUint16(4, true);
+      const h = head.getUint16(6, true);
+      const base = head.getUint8(8);
+      if (buf.byteLength < 10 + w * h) return;
+
+      this.relief = { data: new Uint8Array(buf, 10, w * h), w, h, base };
+      if (this.loadedLandFeature) this.drawLand(this.loadedLandFeature);
+    } catch (err) {
+      console.warn('Could not load relief data:', err);
+    }
+  }
+
+  /**
+   * The land fill shaded by the relief: each pixel is the token colour scaled by how far
+   * the relief sits above or below flat ground, so ridges lighten and slopes darken while
+   * lowlands keep the token exactly. Built once per token value, never per frame.
+   */
+  private reliefLayer(fill: string): HTMLCanvasElement | null {
+    const r = this.relief;
+    if (!r) return null;
+    if (this.reliefCanvas && this.reliefTintedFor === fill) return this.reliefCanvas;
+
+    const cv = this.reliefCanvas ?? document.createElement('canvas');
+    cv.width = r.w;
+    cv.height = r.h;
+    const cx = cv.getContext('2d');
+    if (!cx) return null;
+
+    const [fr, fg, fb] = this.cssToRgb(fill);
+    const img = cx.createImageData(r.w, r.h);
+    const px = img.data;
+    for (let i = 0, o = 0; i < r.data.length; i++, o += 4) {
+      const d = this.math.clamp((r.data[i] - r.base) / this.RELIEF_RANGE, -1, 1);
+      const f = 1 + this.RELIEF_STRENGTH * d;
+      px[o] = this.math.clamp(fr * f, 0, 255);
+      px[o + 1] = this.math.clamp(fg * f, 0, 255);
+      px[o + 2] = this.math.clamp(fb * f, 0, 255);
+      px[o + 3] = 255;
+    }
+    cx.putImageData(img, 0, 0);
+
+    this.reliefCanvas = cv;
+    this.reliefTintedFor = fill;
+    return cv;
+  }
+
+  /** Resolves any CSS colour a token may hold to RGB, via a 1x1 scratch canvas. */
+  private cssToRgb(css: string): [number, number, number] {
+    const cv = document.createElement('canvas');
+    cv.width = 1;
+    cv.height = 1;
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    if (!cx) return [207, 216, 227];
+    cx.fillStyle = '#cfd8e3';
+    cx.fillStyle = css;
+    cx.fillRect(0, 0, 1, 1);
+    const d = cx.getImageData(0, 0, 1, 1).data;
+    return [d[0], d[1], d[2]];
   }
 
   private drawLand(land: any) {
@@ -640,10 +725,23 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     ctx.stroke();
 
     if (land) {
+      const fill = this.theme.getTokenColor('globe-land-fill', '#cfd8e3');
       ctx.beginPath();
       path(land);
-      ctx.fillStyle = this.theme.getTokenColor('globe-land-fill', '#25332d');
+      ctx.fillStyle = fill;
       ctx.fill();
+
+      // Mountain ranges and highlands, clipped to the coastline so the ocean keeps its SST
+      const relief = this.reliefLayer(fill);
+      if (relief) {
+        ctx.save();
+        ctx.clip();
+        ctx.drawImage(relief, 0, 0, Wc, Hc);
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      path(land);
       ctx.strokeStyle = this.theme.getTokenColor('globe-land-stroke', 'rgba(205, 230, 215, 0.55)');
       ctx.lineWidth = Wc / 1800;
       ctx.stroke();

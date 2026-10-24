@@ -118,6 +118,21 @@ applying ENSO anomaly deltas relative to the `now` baseline (`ds = s - 1.4`). Ev
 while `status()` is not `ready` the globe shows neutral grey and falls back to the procedural
 `ensoWindLines` / `ensoWaveLines`, and land topology falls back from `assets/data/land-50m.json` to a jsDelivr CDN copy.
 
+### Shaded relief on the land
+
+`scripts/fetch-relief.mjs` (`npm run fetch:relief`) turns the Natural Earth 50m shaded-relief raster into
+`src/assets/data/relief.bin.gz` — a 10-byte header (`KMDR`, u16 width, u16 height, u8 base, u8 version)
+followed by raw equirectangular greyscale, 2048 x 1024, ~0.4 MB. Natural Earth ships the source as an
+*uncompressed* 8-bit TIFF, one strip per row, so the script needs no image library. The relief never
+changes, so unlike the two fetches above this one is **not** in CI — run it by hand if the asset is ever lost.
+
+`GlobeComponent.reliefLayer()` multiplies it into the `globe-land-fill` token: each pixel is the token colour
+scaled by how far the relief sits above or below `base` (the flat/sea-level value the script records), so
+ridges lighten, slopes darken and lowlands keep the token exactly. `drawLand()` paints it **clipped to the
+coastline**, so the ocean keeps its SST. The tinted layer is rebuilt only when the token changes, never per
+frame. Note the land material is emissive (`color: black`, `emissive: white`, `emissiveMap: landTex`) — the
+land ignores scene lighting entirely, which is why relief has to be baked into the texture rather than lit.
+
 ### i18n is positional — the main footgun
 
 `core/i18n/i18n.types.ts` `Dict` is the contract; `en.ts`, `pl.ts`, `es.ts` must all implement it (add the key
