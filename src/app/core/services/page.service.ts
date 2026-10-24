@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { AboutModalComponent } from '@kmd/design-system';
 import { I18nService } from '../i18n/i18n.service';
-import { AboutPageComponent } from '../../components/about-page/about-page.component';
 
 const PARAM = 'page';
 const ABOUT = 'about';
@@ -81,7 +81,8 @@ export class PageService {
     this.popup.open({
       id: ABOUT,
       title: computed(() => this.i18n.t().about.title),
-      component: AboutPageComponent,
+      component: AboutModalComponent,
+      componentInputs: { lang: this.i18n.lang() },
       size: 'lg',
       actions: [
         {
