@@ -2,7 +2,7 @@
 
 <header class="header">
   <div class="header__left">
-    <!-- 1. Unified Brand Pill: Logo, Work with us CTA, Share -->
+    <!-- 1. Brand Pill: Logo & Contact CTA -->
     <div class="header__brand glass-panel">
       <button
         type="button"
@@ -24,10 +24,13 @@
         [appTooltip]="t.about.cta"
         (click)="page.openAbout()">
         <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
-        <span class="header__cta-text">{{ t.about.cta }}</span>
+        <span class="header__cta-text header__cta-text--desktop">{{ t.about.cta }}</span>
+        <span class="header__cta-text header__cta-text--mobile">{{ t.about.contact }}</span>
       </button>
+    </div>
 
-      <span class="header__divider" aria-hidden="true"></span>
+    <!-- 2. Standalone Share Button -->
+    <div class="header__share glass-panel">
       <app-button
         variant="ghost"
         [iconOnly]="true"
@@ -38,7 +41,7 @@
       </app-button>
     </div>
 
-    <!-- 2. Standalone Settings Button to the right of brand lozenge -->
+    <!-- 3. Standalone Settings Button -->
     <div class="header__settings glass-panel">
       <app-button
         variant="ghost"

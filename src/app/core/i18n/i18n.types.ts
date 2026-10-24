@@ -57,6 +57,7 @@ export interface AboutText {
   docTitle: string;
   metaDescription: string;
   cta: string;
+  contact: string;
   openAbout: string;
   title: string;
   kicker: string;

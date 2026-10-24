@@ -147,4 +147,39 @@ describe('CurrentWeatherService', () => {
     expect(landSample.waterTemp).toBeNull();
     expect(landSample.airTemp).toBeDefined();
   });
+
+  it('adjusts land air temperature for seasonal cycle based on keyframe date', () => {
+    const om = {
+      source: 'Open-Meteo',
+      sourceUrl: '',
+      time: '2026-10-24T09:30',
+      grid: { lat0: -60, lon0: -180, step: 10, nLat: 13, nLon: 36 },
+      windSpeed: new Array(13 * 36).fill(5),
+      windDir: new Array(13 * 36).fill(90),
+      airTemp: new Array(13 * 36).fill(10), // 10°C baseline in October
+      waveHeight: [],
+      waveDir: [],
+      wavePeriod: []
+    };
+    service['meta'].set({
+      source: 'test',
+      sourceUrl: '',
+      sstSourceUrl: '',
+      fetchedAt: '',
+      totalFrames: 2,
+      binFile: '',
+      grid: { lat0: -89.75, lon0: -179.75, step: 0.5, nLat: 360, nLon: 720 },
+      openMeteo: om,
+      keyframes: [
+        { index: 0, id: 'k0', date: '2025-06-11', s: 0.0, nino34: 0 },
+        { index: 1, id: 'k1', date: '2025-06-11', s: 1.0, nino34: 0 }
+      ]
+    });
+    service['prepareOpenMeteo'](om);
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(255); // Land
+    const summerSample = service.samplePointAt(17, 51, 0); // Wroclaw coordinates in June
+    expect(summerSample.waterTemp).toBeNull();
+    // Mid-latitude land in June should be warmer than the October baseline (10°C)
+    expect(summerSample.airTemp!).toBeGreaterThan(18);
+  });
 });

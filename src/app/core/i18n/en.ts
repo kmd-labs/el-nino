@@ -185,6 +185,7 @@ export const EN: Dict = {
     docTitle: 'About us – KMD Labs, the team behind El Niño 2026 in 3D',
     metaDescription: 'Meet KMD Labs, a team of three building interactive data visualisations: data engineering, machine learning, 3D graphics and cartography. Open to new projects.',
     cta: 'Open to new projects',
+    contact: 'Contact',
     openAbout: 'About KMD',
     title: 'About us',
     kicker: 'laboratory',

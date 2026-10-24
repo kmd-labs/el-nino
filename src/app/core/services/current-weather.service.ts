@@ -368,6 +368,19 @@ export class CurrentWeatherService {
     return n > 0 ? sum / n : null;
   }
 
+  private parseDoy(dateStr?: string | null): number {
+    if (!dateStr) return 297;
+    const parts = dateStr.split('-');
+    if (parts.length < 3) return 297;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (!y || !m || !d) return 297;
+    const date = new Date(Date.UTC(y, m - 1, d));
+    const start = new Date(Date.UTC(y, 0, 1));
+    return Math.max(1, Math.min(365, (date.getTime() - start.getTime()) / 86400000 + 1));
+  }
+
   samplePointAt(lon: number, lat: number, s: number): PointSample {
     let waterTemp: number | null = null;
     let airTemp: number | null = null;
@@ -421,15 +434,32 @@ export class CurrentWeatherService {
       ? daily.airTemp - live.airTemp
       : (s - 1.4) * 0.4 * Math.exp(-(lat * lat) / 200);
 
+    // Seasonal cycle correction: the Open-Meteo baseline snapshot was captured on openMeteo.time (late October).
+    // As the timeline moves through the calendar year, mid-latitude landmasses experience large seasonal swings.
+    const isLand = waterTemp == null;
+    const snapDoy = this.parseDoy(this.meta()?.openMeteo?.time?.slice(0, 10));
+    const doyA = this.parseDoy(pair?.kfA.date);
+    const doyB = this.parseDoy(pair?.kfB.date);
+    const targetDoy = pair ? doyA + (doyB - doyA) * pair.t : snapDoy;
+
+    const sign = lat >= 0 ? 1 : -1;
+    const absLat = Math.abs(lat);
+    const amp = isLand
+      ? 1.5 + 16.0 * Math.pow(Math.sin(absLat * DEG), 1.2)
+      : 1.0 + 5.0 * Math.pow(Math.sin(absLat * DEG), 1.2);
+    const phaseTarget = sign * Math.cos(2 * Math.PI * (targetDoy - 205) / 365.25);
+    const phaseSnap = sign * Math.cos(2 * Math.PI * (snapDoy - 205) / 365.25);
+    const seasonalOffset = amp * (phaseTarget - phaseSnap);
+
     if (baseAir != null) {
-      airTemp = baseAir + dailyOffset;
+      airTemp = baseAir + seasonalOffset + dailyOffset;
     } else if (waterTemp != null) {
       // Near sea-surface air temperature strongly coupled with water temp
       airTemp = waterTemp - 0.8 + dailyOffset * 0.5;
     } else {
       // Climatological latitude-based fallback
       const latRad = lat * DEG;
-      airTemp = 28 * Math.cos(latRad) - 12 * Math.sin(latRad) ** 2 + dailyOffset;
+      airTemp = 28 * Math.cos(latRad) - 12 * Math.sin(latRad) ** 2 + seasonalOffset + dailyOffset;
     }
 
     return { waterTemp, airTemp };
