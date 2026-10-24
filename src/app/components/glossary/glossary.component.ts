@@ -33,6 +33,17 @@ export class GlossaryComponent {
       .filter(g => g.terms.length > 0);
   });
 
+  readonly methodologyItems = computed(() => {
+    const all = this.i18n.t().methodology.items;
+    const q = this.query().trim().toLowerCase();
+    if (!q) return all;
+    return all.filter(item => (item.label + ' ' + item.area + ' ' + item.text).toLowerCase().includes(q));
+  });
+
+  readonly hasResults = computed(() => {
+    return this.groups().length > 0 || this.methodologyItems().length > 0;
+  });
+
   onSearch(e: Event) {
     this.query.set((e.target as HTMLInputElement).value);
   }

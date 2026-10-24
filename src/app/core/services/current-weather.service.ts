@@ -51,6 +51,7 @@ export interface TimelineMeta {
   sstSourceUrl: string;
   fetchedAt: string;
   grid: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
+  airGrid?: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
   totalFrames: number;
   binFile: string;
   keyframes: TimelineKeyframeMeta[];
@@ -64,6 +65,11 @@ export interface KeyframePair {
   t: number;
   kfA: TimelineKeyframeMeta;
   kfB: TimelineKeyframeMeta;
+}
+
+export interface PointSample {
+  waterTemp: number | null;
+  airTemp: number | null;
 }
 
 export interface WindSample {
@@ -122,6 +128,14 @@ export class CurrentWeatherService {
   sstBin: Uint8Array | null = null;
   readonly FRAME_SIZE = 720 * 360;
 
+  // Packed 10° Int16Array (tenths of °C) for all weekly frames (612 values per frame)
+  airBin: Int16Array | null = null;
+  readonly AIR_MISSING = -32768;
+
+  // On-demand exact coordinate daily ERA5 air temperature series (key = "lat,lon")
+  private pointAirSeries = new Map<string, Record<string, number>>();
+  private pendingPointKeys = new Set<string>();
+
   private u = new Float32Array(0);
   private v = new Float32Array(0);
   private at = new Float32Array(0);
@@ -145,6 +159,7 @@ export class CurrentWeatherService {
     ])
       .then(([meta, bin]) => {
         this.sstBin = bin;
+        this.extractAirBin(meta, bin);
         this.prepareOpenMeteo(meta.openMeteo);
         this.progress.set(95);
         this.meta.set(meta);
@@ -156,6 +171,18 @@ export class CurrentWeatherService {
         this.status.set('error');
         this.progress.set(100);
       });
+  }
+
+  extractAirBin(meta: TimelineMeta, bin: Uint8Array) {
+    const ag = meta.airGrid;
+    if (!ag) return;
+    const sstBytes = meta.totalFrames * this.FRAME_SIZE;
+    const airPoints = ag.nLat * ag.nLon;
+    const airBytes = meta.totalFrames * airPoints * 2;
+    if (bin.byteLength >= sstBytes + airBytes) {
+      const slice = bin.slice(sstBytes, sstBytes + airBytes);
+      this.airBin = new Int16Array(slice.buffer, slice.byteOffset, meta.totalFrames * airPoints);
+    }
   }
 
   private async fetchSstBinary(): Promise<Uint8Array> {
@@ -361,6 +388,119 @@ export class CurrentWeatherService {
       }
     }
     return n > 0 ? sum / n : null;
+  }
+
+  /**
+   * Fetches exact coordinate daily 2m air temperature (ERA5 Reanalysis + recent Open-Meteo archive)
+   * on demand when a user clicks a location on the globe.
+   */
+  fetchExactPointAirSeries(lon: number, lat: number) {
+    const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
+    const key = `${lat.toFixed(2)},${lon180.toFixed(2)}`;
+    if (this.pointAirSeries.has(key) || this.pendingPointKeys.has(key)) return;
+
+    const kfs = this.meta()?.keyframes.filter(k => !k.forecast);
+    if (!kfs?.length) return;
+    const startDate = kfs[0].date;
+    const endDate = kfs[kfs.length - 1].date;
+
+    this.pendingPointKeys.add(key);
+    const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat.toFixed(2)}&longitude=${lon180.toFixed(2)}&start_date=${startDate}&end_date=${endDate}&daily=temperature_2m_mean&timezone=UTC`;
+    const recentUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon180.toFixed(2)}&past_days=14&forecast_days=1&daily=temperature_2m_mean&timezone=UTC`;
+
+    Promise.allSettled([
+      fetch(archiveUrl).then(r => (r.ok ? r.json() : null)),
+      fetch(recentUrl).then(r => (r.ok ? r.json() : null))
+    ])
+      .then(([archRes, recRes]) => {
+        const series: Record<string, number> = {};
+        const applyDaily = (data: any) => {
+          const times: string[] | undefined = data?.daily?.time;
+          const temps: (number | null)[] | undefined = data?.daily?.temperature_2m_mean;
+          if (!Array.isArray(times) || !Array.isArray(temps)) return;
+          for (let i = 0; i < times.length; i++) {
+            const v = temps[i];
+            if (typeof v === 'number' && Number.isFinite(v)) {
+              series[times[i]] = v;
+            }
+          }
+        };
+        if (archRes.status === 'fulfilled' && archRes.value) applyDaily(archRes.value);
+        if (recRes.status === 'fulfilled' && recRes.value) applyDaily(recRes.value);
+        if (Object.keys(series).length > 0) {
+          this.pointAirSeries.set(key, series);
+        }
+      })
+      .finally(() => {
+        this.pendingPointKeys.delete(key);
+      });
+  }
+
+  samplePointAt(lon: number, lat: number, s: number): PointSample {
+    let waterTemp: number | null = null;
+    let airTemp: number | null = null;
+
+    if (this.isForecast(s)) {
+      return { waterTemp, airTemp };
+    }
+
+    const pair = this.getKeyframePairMeta(s);
+    const kf = pair ? (pair.t < 0.5 ? pair.kfA : pair.kfB) : null;
+    if (kf?.forecast) {
+      return { waterTemp, airTemp };
+    }
+
+    const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
+
+    // 1. Water SST from 0.5° NOAA OISST v2.1 keyframe grid (no spatial or temporal interpolation)
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    if (kf && bin && g) {
+      const r = Math.max(0, Math.min(g.nLat - 1, Math.round((lat - g.lat0) / g.step)));
+      const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
+      const val = bin[kf.index * this.FRAME_SIZE + r * g.nLon + c];
+      if (val !== undefined && val !== 255) {
+        waterTemp = val * 0.2 - 5.0;
+      }
+    }
+
+    // 2. Real observational 2m air temperature (no spatial or temporal interpolation)
+    // 2a. Exact coordinate daily ERA5 series if fetched on click
+    const key = `${lat.toFixed(2)},${lon180.toFixed(2)}`;
+    const exactSeries = this.pointAirSeries.get(key);
+    if (exactSeries && !kf?.forecast) {
+      const exactDate = this.dateIsoAt(s);
+      const v = (exactDate && exactSeries[exactDate] !== undefined)
+        ? exactSeries[exactDate]
+        : (kf ? exactSeries[kf.date] : undefined);
+      if (v !== undefined && Number.isFinite(v)) {
+        airTemp = v;
+      }
+    }
+
+    // 2b. Pre-baked weekly 10° reanalysis air temperature grid for the keyframe date
+    const ag = this.meta()?.airGrid;
+    if (airTemp == null && kf && this.airBin && ag) {
+      const r = Math.max(0, Math.min(ag.nLat - 1, Math.round((lat - ag.lat0) / ag.step)));
+      const c = ((Math.round((lon180 - ag.lon0) / ag.step) % ag.nLon) + ag.nLon) % ag.nLon;
+      const raw = this.airBin[kf.index * (ag.nLat * ag.nLon) + r * ag.nLon + c];
+      if (raw !== undefined && raw !== this.AIR_MISSING) {
+        airTemp = raw / 10;
+      }
+    }
+
+    // 2c. Direct nearest cell from Open-Meteo snapshot if airBin is not present
+    const og = this.meta()?.openMeteo?.grid;
+    if (airTemp == null && og && this.at.length > 0 && !kf?.forecast) {
+      const r = Math.max(0, Math.min(og.nLat - 1, Math.round((lat - og.lat0) / og.step)));
+      const c = ((Math.round((lon180 - og.lon0) / og.step) % og.nLon) + og.nLon) % og.nLon;
+      const val = this.at[r * og.nLon + c];
+      if (Number.isFinite(val)) {
+        airTemp = val;
+      }
+    }
+
+    return { waterTemp, airTemp };
   }
 
   wind(lon: number, lat: number, s: number, out: WindSample): boolean {

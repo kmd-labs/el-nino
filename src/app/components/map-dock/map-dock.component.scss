@@ -17,80 +17,6 @@
   }
 }
 
-.dock-topline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  pointer-events: none;
-
-  > * {
-    pointer-events: auto;
-  }
-}
-
-.date-pill,
-.data-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: radius("pill");
-  font-size: font-size("xs");
-  font-weight: font-weight("medium");
-  font-variant-numeric: tabular-nums;
-  animation: panelSlideIn 0.2s ease-out;
-}
-
-.date-pill {
-  color: color("text-main");
-  font-family: var(--font-family-mono);
-  font-weight: font-weight("semibold");
-
-  &__value {
-    display: inline-block;
-    min-width: 12ch;
-    text-align: center;
-  }
-}
-
-.data-pill {
-  color: color("text-main");
-
-  &__item {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    cursor: default;
-  }
-
-  &__icon {
-    color: color("text-dim");
-    flex: none;
-  }
-
-  &__key {
-    color: color("text-dim");
-    font-weight: font-weight("medium");
-  }
-
-  &__val {
-    display: inline-block;
-    min-width: 8ch;
-    color: color("text-bright");
-    font-family: var(--font-family-mono);
-    font-weight: font-weight("semibold");
-    text-align: right;
-  }
-
-  &__sep {
-    width: 1px;
-    height: 12px;
-    background: color("line-strong");
-  }
-}
-
 .dock {
   display: flex;
   flex-direction: column;
@@ -100,6 +26,79 @@
   border-radius: radius("panel");
   width: min(740px, 100%);
   animation: panelSlideIn 0.22s ease-out;
+
+  &__header-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  &__status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: radius("pill");
+    font-size: font-size("xxs");
+    font-weight: font-weight("bold");
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    line-height: 1;
+    cursor: default;
+
+    &--live {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      color: color("danger-600");
+      cursor: pointer;
+      transition: background transition("fast"), border-color transition("fast");
+
+      &:hover {
+        background: rgba(220, 38, 38, 0.16);
+        border-color: rgba(220, 38, 38, 0.5);
+      }
+    }
+
+    &--forecast {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: color("primary-600");
+    }
+  }
+
+  &__live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: color("danger-500");
+    animation: livePulse 1.8s infinite ease-in-out;
+    flex-shrink: 0;
+  }
+
+  &__status-text {
+    line-height: 1;
+  }
+
+  &__date-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: radius("pill");
+    background: color("btn-bg");
+    border: 1px solid color("line");
+    font-family: var(--font-family-mono);
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    color: color("text-main");
+    flex-shrink: 0;
+    line-height: 1;
+  }
 
   &__readout {
     display: inline-flex;
@@ -268,6 +267,19 @@
   }
 }
 
+@keyframes livePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.9);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0);
+  }
+}
+
 @include respond-to("mobile") {
   .dock-wrap {
     left: 8px;
@@ -275,41 +287,42 @@
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
-  .dock-topline {
-    gap: 5px;
-  }
-
-  .date-pill,
-  .data-pill {
-    padding: 3px 9px;
-    font-size: font-size("xxs");
-    gap: 5px;
-  }
-
-  .data-pill {
-    &__item {
-      gap: 4px;
-    }
-
-    &__key {
-      display: none;
-    }
-
-    &__sep {
-      height: 10px;
-    }
-  }
-
   .dock {
     padding: 8px 8px 10px;
     gap: 8px;
 
+    &__header-group {
+      gap: 5px;
+    }
+
+    &__status-pill {
+      height: 20px;
+      padding: 0 5px;
+      font-size: 9px;
+      gap: 3px;
+    }
+
+    &__live-dot {
+      width: 5px;
+      height: 5px;
+    }
+
+    &__date-pill {
+      height: 20px;
+      padding: 0 6px;
+      font-size: 11px;
+    }
+
     &__readout {
-      gap: 6px;
+      gap: 4px;
+    }
+
+    &__readout-label {
+      font-size: 9px;
     }
 
     &__readout-val {
-      font-size: font-size("sm");
+      font-size: font-size("xs");
     }
 
     &__divider {
@@ -346,7 +359,7 @@
   }
 }
 
-// play button with the speed (gear) menu above it
+// play button with the speed menu above it
 .dock__play {
   position: relative;
   display: inline-flex;
@@ -359,14 +372,66 @@
   left: 50%;
   transform: translateX(-50%);
 
-  ::ng-deep .dropdown__chevron {
-    display: none;
+  ::ng-deep {
+    .dropdown__chevron {
+      display: none;
+    }
+
+    .btn {
+      height: 32px;
+      min-height: 32px;
+      width: 32px;
+      min-width: 32px;
+      padding: 0;
+      border-radius: radius("control");
+      background: rgba(palette("neutral-900"), 0.05);
+      border: 1px solid rgba(palette("neutral-900"), 0.16);
+      color: color("text-main");
+      justify-content: center;
+      transition: background transition("fast"), border-color transition("fast"), color transition("fast"), transform transition("fast");
+
+      &:hover:not(:disabled) {
+        background: rgba(palette("neutral-900"), 0.1);
+        border-color: rgba(palette("neutral-900"), 0.26);
+        color: color("text-bright");
+      }
+
+      &.btn--active,
+      &:active:not(:disabled) {
+        background: rgba(palette("neutral-900"), 0.14);
+        border-color: rgba(palette("neutral-900"), 0.32);
+        color: color("text-bright");
+      }
+    }
+
+    .dropdown__menu {
+      min-width: 76px;
+      width: max-content;
+      padding: 4px;
+    }
+
+    .dropdown__item {
+      justify-content: center;
+      font-family: var(--font-family-mono, monospace);
+      font-size: font-size("xs");
+      font-variant-numeric: tabular-nums;
+      padding: 6px 12px;
+      border-radius: radius("sm");
+    }
   }
 
-  // the "Super El Niño" marker sits above the play button on phones: gear goes to its left
+  // on mobile, speed button sits to the left of the play button
   @include respond-to("mobile") {
     position: static;
     transform: none;
-    margin-right: 2px;
+    margin-right: 4px;
+
+    ::ng-deep .btn {
+      height: 30px;
+      min-height: 30px;
+      width: 30px;
+      min-width: 30px;
+      padding: 0;
+    }
   }
 }

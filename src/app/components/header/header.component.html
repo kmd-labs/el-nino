@@ -1,45 +1,62 @@
 @let t = i18n.t();
 
-<header class="header">
+<header class="header" [class.header--popup-open]="isPopupOpen()">
   <div class="header__left">
-    <!-- 1. Brand / Logotype Container -->
-    <div class="header__brand glass-panel">
-      <button
-        type="button"
-        class="header__logo"
-        [attr.aria-label]="t.about.openAbout"
-        [appTooltip]="t.about.openAbout"
-        (click)="page.openAbout()">
-        <img
-          class="header__logo-img"
-          src="assets/design-system/logo/kmd-black-orange.svg"
-          alt="" />
-      </button>
-      <span class="header__divider" aria-hidden="true"></span>
-      <h1 class="header__app-name">El Niño</h1>
-    </div>
+    <!-- 1. Brand Pill: Logo & Contact CTA -->
+    <div class="header__brand-wrap">
+      <div
+        class="header__brand glass-panel"
+        [class.header__brand--expanded]="isBrandExpanded()"
+        (mouseenter)="onBrandHover(true)"
+        (mouseleave)="onBrandHover(false)"
+        (click)="onBrandClick($event)">
+        <button
+          type="button"
+          class="header__brand-btn"
+          [attr.aria-label]="t.about.openAbout + ' – ' + t.about.cta">
+          <span class="header__logo">
+            <img
+              class="header__logo-img"
+              src="assets/design-system/logo/kmd-black-orange.svg"
+              alt="KMD"
+              width="40"
+              height="16" />
+          </span>
 
-    <!-- 2. Language Selector Container -->
-    <div class="header__settings glass-panel" role="group" [attr.aria-label]="t.changeLanguage">
-      <app-dropdown
-        variant="ghost"
-        [icon]="bp.mobile() ? null : globeIcon"
-        [options]="langOptions()"
-        [value]="i18n.lang()"
-        [ariaLabel]="t.changeLanguage"
-        (valueChange)="onLangChange($event)">
-      </app-dropdown>
-    </div>
-
-    <!-- 3. Call to action: opens the About page -->
-    @if (showCta()) {
-      <div class="header__cta glass-panel">
-        <app-button variant="ghost" (btnClick)="page.openAbout()">
-          <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="15"></lucide-icon>
-          <span>{{ t.about.cta }}</span>
-        </app-button>
+          <span class="header__brand-expand">
+            <span class="header__divider" aria-hidden="true"></span>
+            <span class="header__cta">
+              <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
+              <span class="header__cta-text">{{ t.about.cta }}</span>
+            </span>
+          </span>
+        </button>
       </div>
-    }
+    </div>
+
+    <!-- 2. Standalone Share Button -->
+    <div class="header__share glass-panel">
+      <app-button
+        variant="ghost"
+        [iconOnly]="true"
+        [ariaLabel]="t.shareLink"
+        [titleText]="t.shareLink"
+        (btnClick)="openSharePopup()">
+        <lucide-icon [img]="shareIcon" [size]="15"></lucide-icon>
+      </app-button>
+    </div>
+
+    <!-- 3. Standalone Settings Button -->
+    <div class="header__settings glass-panel">
+      <app-button
+        variant="ghost"
+        [iconOnly]="true"
+        [ariaLabel]="t.settingsAria"
+        [titleText]="t.settingsAria"
+        (btnClick)="openSettings()">
+        <lucide-icon [img]="settingsIcon" [size]="15"></lucide-icon>
+      </app-button>
+    </div>
 
     @if (!state.mapLoaded()) {
       <div class="header__loading glass-panel" [class.header__loading--error]="state.mapError()">
@@ -50,17 +67,6 @@
 
   <!-- 3. Standalone View / Anomaly Mode Dropdown -->
   <div class="header__right">
-    <div #sharePill class="header__share glass-panel">
-      <app-dropdown
-        variant="ghost"
-        align="right"
-        [iconOnly]="true"
-        [icon]="copied() ? checkIcon : shareIcon"
-        [options]="shareOptions()"
-        [ariaLabel]="t.shareLink"
-        (valueChange)="onShare($event)">
-      </app-dropdown>
-    </div>
     <div class="header__view glass-panel">
       <app-dropdown
         variant="ghost"

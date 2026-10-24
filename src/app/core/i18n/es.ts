@@ -2,6 +2,7 @@ import { Dict } from './i18n.types';
 
 export const ES: Dict = {
   htmlLang: 'es',
+  locale: 'es-ES',
   docTitle: 'El Niño 2026 en 3D - Visualización interactiva | KMD Labs',
   metaDescription: 'Explora El Niño y La Niña en un globo 3D interactivo: temperaturas reales del mar (NOAA), vientos, la circulación de Walker e impactos globales.',
   langName: 'Español',
@@ -19,6 +20,12 @@ export const ES: Dict = {
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',
   changeLanguage: 'Idioma',
+  settingsTitle: 'Configuración',
+  settingsSubtitle: 'Idioma y unidades',
+  settingsAria: 'Configuración',
+  temperatureUnit: 'Unidad de temperatura',
+  unitCelsius: 'Celsius (°C)',
+  unitFahrenheit: 'Fahrenheit (°F)',
 
   ensoLabel: 'Fase ENSO',
   strengthAria: 'Intensidad de ENSO',
@@ -48,13 +55,18 @@ export const ES: Dict = {
 
   chooseView: 'Vista',
   shareLink: 'Compartir un enlace',
+  shareTitle: 'Compartir',
+  shareSubtitle: 'Enlace a la app, fecha concreta, estado ENSO o código QR',
+  shareAppUrl: 'Enlace a la aplicación',
+  shareQrCode: 'Escanea el código QR para abrir en el móvil',
+  copyLink: 'Copiar',
   shareDate: 'Enlace a esta fecha',
   shareState: 'Enlace a este estado ENSO',
   linkCopied: 'Enlace copiado',
   linkCopyFailed: 'No se pudo copiar: usa la barra de direcciones',
   viewTemp: 'Temperatura del agua',
   viewAnom: 'Temperatura del agua',
-  viewWalker: 'Celda Walker y termoclina',
+  viewWalker: 'Celda Walker',
   viewImpacts: 'Impactos',
   viewCurrent: 'Situación actual',
   sstOnDateTitle: 'Temperatura media de la superficie del mar en el recuadro Niño 3.4 para la fecha seleccionada',
@@ -64,13 +76,14 @@ export const ES: Dict = {
   windSpeedLabel: 'Viento',
   airTempTitle: 'Temperatura media diaria del aire a 2 m para la fecha seleccionada, promediada en los trópicos.',
   windSpeedTitle: 'Velocidad media diaria del viento a 10 m para la fecha seleccionada, promediada en los trópicos.',
-  timelineNow: 'Ahora',
+  timelineNow: 'Más reciente',
+  live: 'Más reciente',
   timelineForecast: 'Pronóstico',
-  currentLive: 'En vivo',
+  currentLive: 'Más reciente',
   currentAt: time => `a las ${time} UTC`,
   currentWind: 'viento a 10 m',
   currentWaves: 'oleaje',
-  scaleSstNow: 'Temperatura del agua – ahora',
+  scaleSstNow: 'Temperatura del agua – más reciente',
   scaleSstOn: date => `Temperatura del agua · ${date}`,
   scaleNoData: 'sin datos',
   currentSources: 'Fuentes:',
@@ -125,7 +138,7 @@ export const ES: Dict = {
 
   walkerAria: 'Circulación de Walker y termoclina: corte a lo largo del ecuador',
   walkerCaption: 'Circulación de Walker y termoclina · corte a lo largo del ecuador (0°) · atmósfera 0–16 km · océano 0–300 m (escala vertical convencional)',
-  walkerNow: 'ahora',
+  walkerNow: 'más reciente',
   walkerCycle: 'ciclo',
   walkerCurrent: phase => `Estado actual: ${phase} · Pulsa Reproducir para la explicación paso a paso`,
   walkerCycleCaption: month => `Ciclo ENSO · ${month || 'inicio'}`,
@@ -172,6 +185,7 @@ export const ES: Dict = {
     docTitle: 'Sobre nosotros – KMD Labs, el equipo detrás de El Niño 2026 en 3D',
     metaDescription: 'Conoce a KMD Labs, un equipo de tres personas que crea visualizaciones interactivas de datos: ingeniería de datos, aprendizaje automático, gráficos 3D y cartografía. Abiertos a nuevos proyectos.',
     cta: 'Abiertos a nuevos proyectos',
+    contact: 'Contacto',
     openAbout: 'Sobre KMD',
     title: 'Sobre nosotros',
     kicker: 'laboratory',
@@ -307,15 +321,77 @@ export const ES: Dict = {
     }
   ],
 
+  methodology: {
+    title: 'Datos y metodología',
+    subtitle: 'Cómo se calculan las temperaturas, anomalías y las áreas geográficas',
+    items: [
+      {
+        label: 'Anomalía de temperatura Niño 3.4',
+        area: 'Región Niño 3.4 (5°S–5°N, 170°W–120°W) · ~6,2 millones de km²',
+        text: 'El índice principal de intensidad de El Niño. Se calcula como la desviación media de la temperatura superficial del mar respecto a la media climatológica de 30 años (1971–2000) en todas las celdas marinas del recuadro. Anomalías superiores a +0,5 °C indican El Niño, superiores a +2,0 °C Súper El Niño, e inferiores a −0,5 °C La Niña.'
+      },
+      {
+        label: 'Temperatura del agua (SST)',
+        area: 'Océano global (89,75°S–89,75°N, 179,75°W–179,75°E) · malla de 0,5° × 0,5° (~3080 km² por celda en el ecuador)',
+        text: 'Generada a partir de los datos diarios de NOAA OISST v2.1 que combinan satélites, boyas y barcos con 2 fases de dilatación costera. Cada punto del globo muestrea con precisión la celda local de 0,5° interpolada según la fecha seleccionada en la línea temporal.'
+      },
+      {
+        label: 'Temperatura del aire (2 m)',
+        area: 'Zona tropical y continentes · malla de 10° × 10° de los modelos Open-Meteo y ECMWF',
+        text: 'Temperatura del aire modelada a 2 metros de altitud. Los valores locales se interpolan bilinealmente a partir de los nodos de la malla y se sincronizan con la fecha de la línea temporal y el acoplamiento oceánico regional.'
+      },
+      {
+        label: 'Interpolación y suavizado gaussiano',
+        area: 'Shader y textura visual de la superficie del globo',
+        text: 'Para visualizar datos de cuadrícula meteorológica discretos como un campo natural continuo, la capa de visualización aplica un filtro de desenfoque gaussiano que interpola suavemente las transiciones térmicas y elimina artefactos.'
+      }
+    ]
+  },
+
   built: {
     title: 'Cómo lo hicimos',
     rows: [
       { label: 'Tecnología', text: 'Angular y Three.js (globo en WebGL) con un corte transversal dibujado en canvas. Sin backend: un sitio estático en GitHub Pages, con datos que GitHub Actions actualiza cada día.' },
       { label: 'Datos', text: 'Temperatura del mar NOAA OISST, tiempo de Open-Meteo, el pronóstico ENSO de NOAA CPC, impactos en la lluvia según la OMM, el JRC de la UE y la JMA, y eventos históricos con sus fuentes enlazadas en la aplicación.' },
+      { label: 'Interpolación visual', text: 'Se aplica un filtro de desenfoque gaussiano a la visualización para interpolar y suavizar suavemente los datos discretos de la cuadrícula meteorológica en la superficie del globo.' },
       { label: 'Tiempo de desarrollo', text: 'Unas dos semanas, con un equipo de tres personas.' }
     ],
     teamLink: 'Conoce al equipo'
   },
+
+  sourcesTitle: 'Fuentes de datos y licencias',
+  sourcesList: [
+    {
+      name: 'NOAA OISST v2.1',
+      url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
+      license: 'Dominio público (Gobierno de EE. UU.)',
+      desc: 'Análisis diario de 0,5° de temperatura de la superficie del mar a partir de radiómetros satelitales, boyas a la deriva y buques de investigación.'
+    },
+    {
+      name: 'Open-Meteo',
+      url: 'https://open-meteo.com/',
+      license: 'CC BY 4.0',
+      desc: 'Modelos globales de previsión y reanálisis (ECMWF, DWD, NOAA), con temperatura del aire a 2 m, viento en superficie a 10 m y oleaje marino.'
+    },
+    {
+      name: 'NOAA CPC ENSO Diagnostics',
+      url: 'https://www.cpc.ncep.noaa.gov/',
+      license: 'Dominio público (Gobierno de EE. UU.)',
+      desc: 'Anomalías del Niño 3.4, discusiones diagnósticas mensuales y modelos probabilísticos de predicción ENSO del Centro de Predicción Climática.'
+    },
+    {
+      name: 'OMM · JRC (UE) · JMA Tokyo Climate Center',
+      url: 'https://wmo.int/',
+      license: 'Acceso abierto',
+      desc: 'Patrones continentales de anomalías de precipitación, cambios en el monzón y clasificaciones regionales de lluvia durante El Niño y La Niña.'
+    },
+    {
+      name: 'Registros de desastres e impactos históricos',
+      url: 'https://es.wikipedia.org/wiki/El_Ni%C3%B1o-Oscilaci%C3%B3n_del_Sur',
+      license: 'Abierto / CC BY-SA 4.0',
+      desc: 'Pérdidas económicas, inundaciones y sequías recopiladas directamente de informes de CDC MMWR, FAO GIEWS, FEMA, UNDRR y ReliefWeb de la ONU.'
+    }
+  ],
 
   regions: [
     { name: 'Indonesia y Filipinas', season: 'jun–feb' },
@@ -487,5 +563,14 @@ export const ES: Dict = {
     tex: 'Drovers (Texas AgriLife Extension) – marzo de 2012',
     bgd: 'ReliefWeb – informes de situación de UNDRO, inundaciones de 1988',
     moz: 'Wikipedia – Inundación de Mozambique de 2000'
-  }
+  },
+
+  inspectCoords: (lat: number, lon: number) => {
+    const ns = lat >= 0 ? `${lat.toFixed(1).replace('.', ',')}°N` : `${Math.abs(lat).toFixed(1).replace('.', ',')}°S`;
+    const ew = lon >= 0 ? `${lon.toFixed(1).replace('.', ',')}°E` : `${Math.abs(lon).toFixed(1).replace('.', ',')}°W`;
+    return `${ns}, ${ew}`;
+  },
+  inspectWater: 'Agua',
+  inspectAir: 'Aire',
+  inspectNoWater: '-'
 };

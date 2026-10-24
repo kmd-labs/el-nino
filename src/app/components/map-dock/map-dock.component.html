@@ -1,58 +1,36 @@
 @let t = i18n.t();
 
 <div #wrap class="dock-wrap">
-  <div class="dock-topline">
-    <div class="date-pill glass-panel" role="status">
-      <span class="date-pill__value">{{ activeDateLabel() || '2026' }}</span>
-    </div>
-
-    @if (dataReady()) {
-      <div class="data-pill glass-panel" role="status" [attr.aria-label]="isForecast() ? t.sstOnDateTitle : t.dailyConditionsLabel">
-        <span
-          class="data-pill__item"
-          [appTooltip]="t.sstOnDateTitle"
-          tooltipPlacement="top"
-          [attr.aria-label]="t.waterTempLabel + ': ' + (activeSst() | weatherValue: '°C' : t.htmlLang)">
-          <lucide-icon class="data-pill__icon" [img]="waterIcon" [size]="13"></lucide-icon>
-          <span class="data-pill__key">{{ t.waterTempLabel }}</span>
-          <span class="data-pill__val">{{ activeSst() | weatherValue: '°C' : t.htmlLang }}</span>
-        </span>
-
-        @if (!isForecast()) {
-          <span class="data-pill__sep" aria-hidden="true"></span>
-
-          <span
-            class="data-pill__item"
-            [appTooltip]="t.airTempTitle"
-            tooltipPlacement="top"
-            [attr.aria-label]="t.airTempLabel + ': ' + (daily()?.airTemp | weatherValue: '°C' : t.htmlLang)">
-            <lucide-icon class="data-pill__icon" [img]="airIcon" [size]="13"></lucide-icon>
-            <span class="data-pill__key">{{ t.airTempLabel }}</span>
-            <span class="data-pill__val">{{ daily()?.airTemp | weatherValue: '°C' : t.htmlLang }}</span>
-          </span>
-
-          <span class="data-pill__sep" aria-hidden="true"></span>
-
-          <span
-            class="data-pill__item"
-            [appTooltip]="t.windSpeedTitle"
-            tooltipPlacement="top"
-            [attr.aria-label]="t.windSpeedLabel + ': ' + (daily()?.windSpeed | weatherValue: 'm/s' : t.htmlLang)">
-            <lucide-icon class="data-pill__icon" [img]="windIcon" [size]="13"></lucide-icon>
-            <span class="data-pill__key">{{ t.windSpeedLabel }}</span>
-            <span class="data-pill__val">{{ daily()?.windSpeed | weatherValue: 'm/s' : t.htmlLang }}</span>
-          </span>
-        }
-      </div>
-    }
-  </div>
-
   <div class="dock glass-panel">
-    <!-- Row 1: Niño 3.4 readout (left) & Legend/Glossary (right) -->
+    <!-- Row 1: Status (Live), Niño 3.4 Readout & Date Lozenge (left), Legend & Glossary (right) -->
     <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
-      <div class="dock__readout">
-        <span class="dock__readout-label">{{ t.readoutTitle }}</span>
-        <span class="dock__readout-val">{{ formattedNino() }}</span>
+      <div class="dock__header-group">
+        @if (isNow()) {
+          <div
+            class="dock__status-pill dock__status-pill--live"
+            role="status"
+            [attr.aria-label]="t.live"
+            (click)="onDateClick(1.4)">
+            <span class="dock__live-dot" aria-hidden="true"></span>
+            <span class="dock__status-text">{{ t.live }}</span>
+          </div>
+        } @else if (isForecast()) {
+          <div
+            class="dock__status-pill dock__status-pill--forecast"
+            role="status"
+            [attr.aria-label]="t.timelineForecast">
+            <span class="dock__status-text">{{ t.timelineForecast }}</span>
+          </div>
+        }
+
+        <div class="dock__readout">
+          <span class="dock__readout-label">{{ t.readoutTitle }}</span>
+          <span class="dock__readout-val">{{ formattedNino() }}</span>
+        </div>
+
+        <div class="dock__date-pill" role="status">
+          <span class="dock__date-val">{{ activeDateLabel() }}</span>
+        </div>
       </div>
 
       <app-legend-panel></app-legend-panel>
@@ -94,14 +72,14 @@
         <div timelineAction class="dock__play">
           <app-dropdown
             class="dock__speed"
-            variant="ghost"
+            variant="default"
             align="right"
             direction="up"
-            [iconOnly]="true"
             [icon]="speedIcon"
+            [iconOnly]="true"
             [options]="speedOptions()"
             [value]="state.playbackSpeed()"
-            [ariaLabel]="t.playbackSpeed"
+            [ariaLabel]="t.playbackSpeed + ' (' + state.playbackSpeed() + 'x)'"
             (valueChange)="state.setPlaybackSpeed($event)">
           </app-dropdown>
           <app-button

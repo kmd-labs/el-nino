@@ -2,3 +2,4 @@
 	path = src/design-system
 	url = https://github.com/kmd-labs/design-system.git
 	branch = main
+	ignore = dirty

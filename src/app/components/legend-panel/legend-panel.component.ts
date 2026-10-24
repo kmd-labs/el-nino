@@ -6,13 +6,13 @@ import { EnsoMathService } from '../../core/services/enso-math.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DisplayMode } from '../../core/models/enso.model';
-import { IMPACT_SOURCES } from '../../core/constants/impacts-data';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 
 /**
  * Legend & Glossary controls:
@@ -23,6 +23,7 @@ import { CurrentWeatherService } from '../../core/services/current-weather.servi
   selector: 'app-legend-panel',
   standalone: true,
   imports: [CommonModule, DropdownComponent, ButtonComponent, TooltipDirective, LucideAngularModule],
+  providers: [LocaleTempPipe],
   templateUrl: './legend-panel.component.html',
   styleUrl: './legend-panel.component.scss'
 })
@@ -32,10 +33,10 @@ export class LegendPanelComponent {
   bp = inject(BreakpointService);
   private math = inject(EnsoMathService);
   private popup = inject(PopupService);
+  private localeTemp = inject(LocaleTempPipe);
 
   readonly layersIcon = Layers;
   readonly bookOpenIcon = BookOpen;
-  readonly sources = IMPACT_SOURCES;
 
   @ViewChild('scaleCanvas') set scaleCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
     this.scaleRef = ref;
@@ -45,13 +46,12 @@ export class LegendPanelComponent {
 
   readonly scaleMode = computed<DisplayMode>(() => 'sst');
 
-  /** Ends and middle of the temperature scale, formatted for the UI language (e.g. "16,5 °C"). */
+  /** Ends and middle of the temperature scale, formatted for the UI language and temperature unit (e.g. "16,5 °C" or "61.7 °F"). */
   readonly scaleTicks = computed(() => {
     const st = this.math.getThermalStops();
     const lo = st[0][0];
     const hi = st[st.length - 1][0];
-    const fmt = (v: number) =>
-      `${v < 0 ? '−' : ''}${Math.abs(v).toLocaleString(this.i18n.t().htmlLang, { maximumFractionDigits: 1 })} °C`;
+    const fmt = (v: number) => this.localeTemp.transform(v, 'temp');
     return [fmt(lo), fmt((lo + hi) / 2), fmt(hi)];
   });
 

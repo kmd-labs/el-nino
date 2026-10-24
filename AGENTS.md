@@ -73,7 +73,8 @@ Shared styles, UI primitives, and core utilities live in the [`kmd-labs/design-s
   - `DropdownComponent` (`app-dropdown`) — accessible floating menu with icon/badge support.
   - `PopupComponent` & `PopupService` (`app-popup`) — modal dialogs for glossaries and deep-dive data.
   - `TooltipComponent`, `TooltipDirective`, & `TooltipService` (`[appTooltip]`).
-  - `BadgeComponent` (`app-badge`) — semantic status and phase pills.
+  - `SplashComponent` & `SplashService` (`app-splash`) — full-screen KMD loader with the official SVG logotype, progress bar, and reactive state management.
+  - `AboutModalComponent` & `AboutService` (`app-about-modal`) — shared KMD Labs team and story modal dialog.
   - `TimelineSliderComponent` (`app-timeline-slider`) — interactive range slider with preset markers.
 - **Core Services & Utils (`@kmd/design-system/services/*`, `@kmd/design-system/utils/*`):**
   - `BreakpointService` & `breakpoints.ts`

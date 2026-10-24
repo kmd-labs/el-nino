@@ -64,34 +64,6 @@
           </div>
         </div>
       }
-
-      <!-- Sources: SST Temperature Tiles, Open-Meteo Wind/Waves & Rainfall Impacts -->
-      <div class="legend-panel__group legend-panel__group--divider">
-        <div class="legend-panel__sources">
-          {{ t.sources }}
-          <a
-            href="https://www.ncei.noaa.gov/products/optimum-interpolation-sst"
-            target="_blank"
-            rel="noopener noreferrer"
-            [appTooltip]="t.sourceOisstTooltip">
-            NOAA OISST v2.1
-          </a>
-          ·
-          <a
-            href="https://open-meteo.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            [appTooltip]="t.sourceOpenMeteoTooltip">
-            Open-Meteo
-          </a>
-          @if (showImpactsLegend()) {
-            ·
-            @for (src of sources; track src.id; let i = $index, last = $last) {
-              <a [href]="src.url" target="_blank" rel="noopener noreferrer" [appTooltip]="t.impactSourceTitles[i]">{{ src.short }}</a>{{ last ? '' : ' ·' }}
-            }
-          }
-        </div>
-      </div>
     </div>
   </app-dropdown>
 
