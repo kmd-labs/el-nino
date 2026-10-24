@@ -5,7 +5,6 @@ import { HeaderComponent } from './components/header/header.component';
 import { SplashHostComponent } from './components/splash/splash-host.component';
 import { MapDockComponent } from './components/map-dock/map-dock.component';
 import { WalkerViewComponent } from './components/walker-view/walker-view.component';
-import { AboutPageComponent } from './components/about-page/about-page.component';
 import { CyclesViewComponent } from './components/cycles-view/cycles-view.component';
 import { PopupComponent } from '@kmd/design-system/ui/popup/popup.component';
 import { TooltipComponent } from '@kmd/design-system/ui/tooltip/tooltip.component';
@@ -26,7 +25,6 @@ import { EnsoHistoryService } from './core/services/enso-history.service';
     HeaderComponent,
     MapDockComponent,
     WalkerViewComponent,
-    AboutPageComponent,
     CyclesViewComponent,
     PopupComponent,
     TooltipComponent
@@ -46,5 +44,6 @@ export class AppComponent {
   constructor() {
     // Needed by the dock's peak-probability readout, not just by the cycles view.
     this.history.load();
+    this.page.initFromUrl();
   }
 }

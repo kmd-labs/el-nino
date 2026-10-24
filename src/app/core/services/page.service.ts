@@ -1,21 +1,51 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { I18nService } from '../i18n/i18n.service';
+import { AboutPageComponent } from '../../components/about-page/about-page.component';
 
 const PARAM = 'page';
 const ABOUT = 'about';
 
 /**
- * The "About us" page shown over the globe, linkable as `?page=about`.
- * Opening it pushes a history entry so the browser's Back button returns to the globe.
+ * The "About us" popup shown over the globe, linkable as `?page=about`.
+ * Opening it pushes a history entry so the browser's Back button closes the popup.
  */
 @Injectable({ providedIn: 'root' })
 export class PageService {
+  private popup = inject(PopupService);
+  private i18n = inject(I18nService);
+
   readonly about = signal<boolean>(this.aboutInUrl());
   /** Control that opened the page; focus goes back to it on close. */
   private opener: HTMLElement | null = null;
+  private isHandlingPopstate = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
-      window.addEventListener('popstate', () => this.setAbout(this.aboutInUrl()));
+      window.addEventListener('popstate', () => {
+        this.isHandlingPopstate = true;
+        try {
+          const inUrl = this.aboutInUrl();
+          if (inUrl && !this.about()) {
+            this.about.set(true);
+            this.showAboutPopup();
+          } else if (!inUrl && this.about()) {
+            this.setAbout(false);
+            if (this.popup.config()?.id === ABOUT) {
+              this.popup.close();
+            }
+          }
+        } finally {
+          this.isHandlingPopstate = false;
+        }
+      });
+    }
+  }
+
+  /** Initialize the popup on startup if ?page=about is in URL */
+  initFromUrl() {
+    if (this.about()) {
+      this.showAboutPopup();
     }
   }
 
@@ -27,20 +57,45 @@ export class PageService {
     url.searchParams.set(PARAM, ABOUT);
     history.pushState({ [ABOUT]: true }, '', url);
     this.about.set(true);
+    this.showAboutPopup();
   }
 
   closeAbout() {
     if (!this.about()) return;
-    // Opened from the globe: step back so the history has no leftover entry
-    if (history.state?.[ABOUT]) {
-      history.back();
-      return;
-    }
-    // Opened from a shared ?page=about link: there is nothing to go back to
-    const url = new URL(location.href);
-    url.searchParams.delete(PARAM);
-    history.replaceState(null, '', url);
     this.setAbout(false);
+    if (this.popup.config()?.id === ABOUT) {
+      this.popup.close();
+    }
+    if (!this.isHandlingPopstate) {
+      if (history.state?.[ABOUT]) {
+        history.back();
+      } else {
+        const url = new URL(location.href);
+        url.searchParams.delete(PARAM);
+        history.replaceState(null, '', url);
+      }
+    }
+  }
+
+  private showAboutPopup() {
+    this.popup.open({
+      id: ABOUT,
+      title: computed(() => this.i18n.t().about.title),
+      subtitle: computed(() => this.i18n.t().about.kicker),
+      component: AboutPageComponent,
+      size: 'lg',
+      actions: [
+        {
+          label: computed(() => this.i18n.t().close),
+          variant: 'default'
+        }
+      ],
+      onClose: () => {
+        if (this.about()) {
+          this.closeAbout();
+        }
+      }
+    });
   }
 
   private setAbout(open: boolean) {
@@ -48,7 +103,6 @@ export class PageService {
     if (!open && this.opener) {
       const el = this.opener;
       this.opener = null;
-      // after the page is removed and the globe UI is no longer inert
       setTimeout(() => el.focus({ preventScroll: true }));
     }
   }
