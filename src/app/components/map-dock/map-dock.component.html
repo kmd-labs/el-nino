@@ -91,20 +91,33 @@
         [ariaLabel]="t.strengthAria"
         (valueChange)="onSliderChange($event)"
         (markerClick)="onMarkerClick($event)">
-        <app-button
-          timelineAction
-          variant="play"
-          [iconOnly]="true"
-          [active]="state.isPlaying()"
-          [ariaLabel]="state.isPlaying() ? t.playStop : t.playStart"
-          [titleText]="state.isPlaying() ? t.playStop : t.playStart"
-          (btnClick)="state.togglePlaying()">
-          @if (state.isPlaying()) {
-            <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
-          } @else {
-            <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
-          }
-        </app-button>
+        <div timelineAction class="dock__play">
+          <app-dropdown
+            class="dock__speed"
+            variant="ghost"
+            align="right"
+            direction="up"
+            [iconOnly]="true"
+            [icon]="speedIcon"
+            [options]="speedOptions()"
+            [value]="state.playbackSpeed()"
+            [ariaLabel]="t.playbackSpeed"
+            (valueChange)="state.setPlaybackSpeed($event)">
+          </app-dropdown>
+          <app-button
+            variant="play"
+            [iconOnly]="true"
+            [active]="state.isPlaying()"
+            [ariaLabel]="state.isPlaying() ? t.playStop : t.playStart"
+            [titleText]="state.isPlaying() ? t.playStop : t.playStart"
+            (btnClick)="state.togglePlaying()">
+            @if (state.isPlaying()) {
+              <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
+            }
+          </app-button>
+        </div>
       </app-timeline-slider>
     </div>
   </div>

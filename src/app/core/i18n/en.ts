@@ -27,6 +27,8 @@ export const EN: Dict = {
   probSource: 'NOAA CPC',
   playStart: '4-yr cycle',
   playStop: 'Stop',
+  playbackSpeed: 'Playback speed',
+  speedNormal: 'Normal',
   detailsAria: 'Details',
   thermoChip: 'Thermocline',
   thermoAria: 'Thermocline cross-section along the equator',

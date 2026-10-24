@@ -77,4 +77,46 @@ describe('EnsoStateService', () => {
     expect(elapsed).toBeLessThan(12.5);
     expect(service.sTarget()).toBe(1.4);
   });
+
+  const playThrough = () => {
+    let elapsed = 0;
+    while (service.isPlaying() && elapsed < 100) {
+      service.updateCycle(0.05);
+      elapsed += 0.05;
+    }
+    return elapsed;
+  };
+
+  it('should play twice as slow as the intro after the user presses play, scaled by the speed', () => {
+    service.beginExperience();
+    playThrough();
+
+    service.startPlaying();
+    expect(playThrough()).toBeCloseTo(24, 0);
+
+    service.setPlaybackSpeed(2);
+    service.startPlaying();
+    expect(playThrough()).toBeCloseTo(12, 0);
+
+    service.setPlaybackSpeed(0.5);
+    service.startPlaying();
+    expect(playThrough()).toBeCloseTo(48, 0);
+  });
+
+  it('should keep the playhead when the speed changes mid-play', () => {
+    service.beginExperience();
+    playThrough();
+    service.startPlaying();
+    for (let i = 0; i < 100; i++) service.updateCycle(0.05);
+    const before = service.sTarget();
+
+    service.setPlaybackSpeed(2);
+    service.updateCycle(0.001);
+    expect(service.sTarget()).toBeCloseTo(before, 2);
+  });
+
+  it('should ignore unsupported speeds', () => {
+    service.setPlaybackSpeed(3);
+    expect(service.playbackSpeed()).toBe(1);
+  });
 });

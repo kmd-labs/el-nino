@@ -345,3 +345,28 @@
     }
   }
 }
+
+// play button with the speed (gear) menu above it
+.dock__play {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dock__speed {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  ::ng-deep .dropdown__chevron {
+    display: none;
+  }
+
+  // the "Super El Niño" marker sits above the play button on phones: gear goes to its left
+  @include respond-to("mobile") {
+    position: static;
+    transform: none;
+    margin-right: 2px;
+  }
+}

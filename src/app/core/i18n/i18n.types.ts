@@ -92,6 +92,8 @@ export interface Dict {
   probSource: string;
   playStart: string;
   playStop: string;
+  playbackSpeed: string;
+  speedNormal: string;
   detailsAria: string;
   thermoChip: string;
   thermoAria: string;

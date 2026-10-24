@@ -6,7 +6,11 @@ import { I18nService } from '../i18n/i18n.service';
 
 const EARLIEST_STRENGTH = -1.8;
 const NOW_STRENGTH = 1.4;
-const PLAY_DURATION_S = 12;
+/** The automatic intro on page load. */
+const INTRO_DURATION_S = 12;
+/** Play pressed by the user, at 1×: twice as long as the intro so the changes can be followed. */
+const PLAY_DURATION_S = 24;
+export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +18,10 @@ const PLAY_DURATION_S = 12;
 export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
-  private playElapsed = 0;
+  /** Position of the running playback, 0–1 (eased into strength in updateCycle). */
+  private playProgress = 0;
+  /** The running playback is the intro, which ignores the speed setting. */
+  private introRun = false;
   /** Set by a shared link: the intro animation is skipped so the linked state stays on screen. */
   private skipIntro = false;
 
@@ -28,6 +35,7 @@ export class EnsoStateService {
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
   readonly isPlaying = signal<boolean>(true);
+  readonly playbackSpeed = signal<number>(1);
   readonly experienceReady = signal<boolean>(false);
   /** True once the splash has handed over and the intro (if any) has started. */
   readonly experienceStarted = signal<boolean>(false);
@@ -107,7 +115,10 @@ export class EnsoStateService {
     this.prepareExperience();
     if (this.experienceStarted()) return;
     this.experienceStarted.set(true);
-    if (!this.isPlaying() && !this.skipIntro) this.startPlaying();
+    if (!this.isPlaying() && !this.skipIntro) {
+      this.startPlaying();
+      this.introRun = true;
+    }
   }
 
   /** Applies a view and/or strength from a shared link; a linked moment skips the intro animation. */
@@ -131,15 +142,20 @@ export class EnsoStateService {
   }
 
   startPlaying() {
+    this.introRun = false;
     if (this.sTarget() >= NOW_STRENGTH - 0.05) {
       this.sTarget.set(EARLIEST_STRENGTH);
       this.sCur.set(EARLIEST_STRENGTH);
-      this.playElapsed = 0;
+      this.playProgress = 0;
     } else {
       this.sCur.set(this.sTarget());
-      this.playElapsed = this.timeForStrength(this.sTarget());
+      this.playProgress = this.progressForStrength(this.sTarget());
     }
     this.isPlaying.set(true);
+  }
+
+  setPlaybackSpeed(speed: number) {
+    if (PLAYBACK_SPEEDS.includes(speed)) this.playbackSpeed.set(speed);
   }
 
   stopPlaying() {
@@ -198,8 +214,10 @@ export class EnsoStateService {
 
   updateCycle(dt: number) {
     if (!this.experienceReady() || !this.isPlaying()) return;
-    this.playElapsed += dt;
-    const t = Math.min(1, this.playElapsed / PLAY_DURATION_S);
+    // progress (not elapsed time) is kept, so a speed change mid-play continues without a jump
+    const duration = this.introRun ? INTRO_DURATION_S : PLAY_DURATION_S / this.playbackSpeed();
+    this.playProgress = Math.min(1, this.playProgress + dt / duration);
+    const t = this.playProgress;
     const nextS = EARLIEST_STRENGTH + (NOW_STRENGTH - EARLIEST_STRENGTH) * this.ease(t);
     if (t >= 1) {
       this.sTarget.set(NOW_STRENGTH);
@@ -215,7 +233,7 @@ export class EnsoStateService {
     return 0.15 * t + 0.85 * smooth;
   }
 
-  private timeForStrength(s: number): number {
+  private progressForStrength(s: number): number {
     const p = Math.max(0, Math.min(1,
       (s - EARLIEST_STRENGTH) / (NOW_STRENGTH - EARLIEST_STRENGTH)
     ));
@@ -226,7 +244,7 @@ export class EnsoStateService {
       if (this.ease(mid) < p) lo = mid;
       else hi = mid;
     }
-    return ((lo + hi) / 2) * PLAY_DURATION_S;
+    return (lo + hi) / 2;
   }
 
   updateInterpolatedStrength(dt: number) {

@@ -14,11 +14,14 @@ import {
   Play,
   Thermometer,
   Waves,
-  Wind
+  Wind,
+  Settings
 } from 'lucide-angular';
-import { EnsoStateService } from '../../core/services/enso-state.service';
+import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { PRESETS } from '../../core/constants/enso-data';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
+import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
+import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
 import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/timeline-slider.component';
 import { TimelineMarker } from '@kmd/design-system/ui/timeline-slider/timeline-slider.model';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -39,7 +42,7 @@ export interface DateMarker {
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective, WeatherValuePipe],
+  imports: [CommonModule, ButtonComponent, DropdownComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective, WeatherValuePipe],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
@@ -53,6 +56,14 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly waterIcon = Waves;
   readonly airIcon = Thermometer;
   readonly windIcon = Wind;
+  readonly speedIcon = Settings;
+
+  /** YouTube-style playback speed menu: 0,5× … 2×, with 1× labelled "Normal". */
+  readonly speedOptions = computed<DropdownOption<number>[]>(() => {
+    const t = this.i18n.t();
+    const fmt = new Intl.NumberFormat(t.htmlLang);
+    return PLAYBACK_SPEEDS.map(s => ({ value: s, label: s === 1 ? t.speedNormal : `${fmt.format(s)}×` }));
+  });
 
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;

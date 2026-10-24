@@ -27,6 +27,8 @@ export const PL: Dict = {
   probSource: 'NOAA CPC',
   playStart: 'Cykl 4-letni',
   playStop: 'Zatrzymaj',
+  playbackSpeed: 'Prędkość odtwarzania',
+  speedNormal: 'Normalna',
   detailsAria: 'Szczegóły',
   thermoChip: 'Termoklina',
   thermoAria: 'Przekrój termokliny wzdłuż równika',
