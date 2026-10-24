@@ -3,37 +3,29 @@
 <header class="header">
   <div class="header__left">
     <!-- 1. Brand Pill: Logo & Contact CTA -->
-    <div class="header__brand-wrap">
-      <div
-        class="header__brand glass-panel"
-        [class.header__brand--expanded]="mobileBrandExpanded()"
-        (mouseenter)="onBrandHover(true)"
-        (mouseleave)="onBrandHover(false)">
-        <button
-          type="button"
-          class="header__logo"
-          [attr.aria-label]="t.about.openAbout"
-          [appTooltip]="t.about.openAbout"
-          (click)="onLogoClick($event)">
+    <div class="header__brand glass-panel" (click)="openAbout()">
+      <button
+        type="button"
+        class="header__brand-btn"
+        [attr.aria-label]="t.about.openAbout + ' – ' + t.about.cta"
+        [appTooltip]="t.about.openAbout"
+        (click)="openAbout(); $event.stopPropagation()">
+        <span class="header__logo">
           <img
             class="header__logo-img"
             src="assets/design-system/logo/kmd-black-orange.svg"
-            alt="KMD" />
-        </button>
+            alt="KMD"
+            width="40"
+            height="16" />
+        </span>
 
-        <div class="header__rollout">
-          <span class="header__divider" aria-hidden="true"></span>
-          <button
-            type="button"
-            class="header__cta-btn"
-            [attr.aria-label]="t.about.cta"
-            [appTooltip]="t.about.cta"
-            (click)="onCtaClick($event)">
-            <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
-            <span class="header__cta-text">{{ t.about.cta }}</span>
-          </button>
-        </div>
-      </div>
+        <span class="header__divider" aria-hidden="true"></span>
+
+        <span class="header__cta">
+          <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
+          <span class="header__cta-text">{{ t.about.cta }}</span>
+        </span>
+      </button>
     </div>
 
     <!-- 2. Standalone Share Button -->

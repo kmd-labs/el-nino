@@ -63,6 +63,26 @@ interface CloudPuff {
   ph: number;
 }
 
+// Suppress harmless driver info logs about unread vertex shader varyings (e.g. webgl_bb661f8cd88de0ad)
+if (typeof (THREE as any).setConsoleFunction === 'function') {
+  (THREE as any).setConsoleFunction((type: string, message: string, ...params: any[]) => {
+    const fullText = `${message} ${(params || []).join(' ')}`;
+    if (
+      fullText.includes('Output of vertex shader') &&
+      fullText.includes('not read by fragment shader')
+    ) {
+      return;
+    }
+    if (type === 'warn') {
+      console.warn(message, ...params);
+    } else if (type === 'error') {
+      console.error(message, ...params);
+    } else {
+      console.log(message, ...params);
+    }
+  });
+}
+
 @Component({
   selector: 'app-globe',
   standalone: true,
