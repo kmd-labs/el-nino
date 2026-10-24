@@ -204,15 +204,15 @@ export const ES: Dict = {
     people: [
       {
         bio: 'Ingeniero ambiental de formación e ingeniero de IA por elección. Mi aventura con el código empezó en 2019 con three.js y el arte generativo, lo que me llevó a crear mis propias soluciones de realidad aumentada (AR). Hoy me centro en la inteligencia artificial y el aprendizaje automático, uniendo la tecnología con la resolución de problemas reales, como demuestra la victoria en la 11.ª edición del hackathon CASSINI. Además de programar, participo en proyectos de código abierto, juego, hago música y fotografío.',
-        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'IA', 'ML']
+        tasks: ['Desarrollo fullstack', 'Gráficos 3D', 'DevOps', 'UX/UI', 'Inteligencia artificial', 'Aprendizaje automático']
       },
       {
         bio: 'Máster en Administración por la Universidad de Breslavia. Profesionalmente trabajo como ingeniero de datos en una gran empresa de gran consumo (FMCG). Además de gestionar bases de datos, me especializo en la detección de anomalías, el control de calidad de los datos y la automatización de procesos. En el proyecto Viadrus AI reuní a todo el equipo y me encargué de la obtención de datos. Antes trabajé con Marcin en la misma entidad financiera: como becario le hacía muchísimas preguntas. Me gusta demostrar que lo imposible sí es posible. En mi tiempo libre fotografío y pinto paisajes, y me interesan los mapas y los juegos de estrategia.',
         tasks: ['Ingeniería de datos', 'Aprendizaje automático', 'Analítica de datos', 'Obtención de datos', 'Calidad de datos']
       },
       {
-        bio: 'Licenciado en Geografía Marina por la Facultad de Ciencias de la Tierra de la Universidad de Szczecin y en Geoinformación por la Facultad de Ciencias Geográficas y Geológicas de la Universidad Adam Mickiewicz de Poznan. Me especializo en cartografía multimedia y geovisualización. En el proyecto Viadrus AI me encargué de la geoinformática, el procesamiento y el análisis de los datos de origen y los algoritmos. Actualmente trabajo como product manager en una entidad financiera, en proyectos de sistemas ERP.',
-        tasks: ['Geoinformática', 'Procesamiento de datos', 'Análisis de datos de origen', 'Algoritmos', 'Geovisualización']
+        bio: 'Soy licenciado en Geografía Marina por la Facultad de Ciencias de la Tierra de la Universidad de Szczecin, en Geoinformación por la Facultad de Ciencias Geográficas y Geológicas de la Universidad Adam Mickiewicz de Poznań y en Inteligencia Artificial en Finanzas y Control de Gestión Empresarial por la Universidad Kozminski. Desde hace 12 años trabajo como consultor funcional de sistemas ERP. Fuera del horario laboral desarrollo sistemas de detección de anomalías en datos financieros y satelitales mediante aprendizaje automático. Crear geovisualizaciones es otra de mis grandes pasiones. Llevo 4 años desarrollando mis competencias en inteligencia artificial. Creo que el futuro pertenece a los expertos de dominio capaces de usar la IA con eficacia como herramienta en su trabajo diario. En lo personal me apasionan el entrenamiento de fuerza, los juegos de mesa, Magic: The Gathering y la jardinería.',
+        tasks: ['Geoinformática', 'Geovisualización', 'Detección de anomalías', 'Aprendizaje automático', 'Inteligencia artificial']
       }
     ]
   },
