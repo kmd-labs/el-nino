@@ -165,6 +165,34 @@ export const ES: Dict = {
   splashPreparing: 'Preparando el globo…',
   splashError: 'No se pudieron cargar algunos datos; empezamos con las capas disponibles.',
 
+  about: {
+    cta: 'Colabora con nosotros',
+    openAbout: 'Sobre KMD',
+    title: 'Sobre nosotros',
+    kicker: 'Visualización interactiva de datos',
+    lead: 'KMD es un equipo de tres personas que convierte datos científicos en visualizaciones interactivas. Combinamos ingeniería de datos, aprendizaje automático, gráficos 3D y cartografía: desde la obtención y limpieza de los datos hasta un modelo que se puede girar en el navegador. El globo de El Niño es nuestro proyecto que muestra cómo un solo fenómeno del Pacífico cambia el tiempo en todo el mundo. Buscamos nuevos proyectos: si tienes datos que merece la pena mostrar, escríbenos en LinkedIn.',
+    back: 'Volver al globo',
+    tasksLabel: 'Áreas',
+    photoSoon: 'Foto próximamente',
+    linkedinAria: name => `Perfil de LinkedIn – ${name}`,
+    githubAria: name => `Perfil de GitHub – ${name}`,
+    footer: 'KMD · visualización interactiva de datos',
+    people: [
+      {
+        bio: 'Ingeniero ambiental de formación e ingeniero de IA por elección. Mi aventura con el código empezó en 2019 con three.js y el arte generativo, lo que me llevó a crear mis propias soluciones de realidad aumentada (AR). Hoy me centro en la inteligencia artificial y el aprendizaje automático, uniendo la tecnología con la resolución de problemas reales, como demuestra la victoria en la 11.ª edición del hackathon CASSINI. Además de programar, participo en proyectos de código abierto, juego, hago música y fotografío.',
+        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'IA', 'ML']
+      },
+      {
+        bio: 'Máster en Administración por la Universidad de Breslavia. Profesionalmente trabajo como ingeniero de datos en una gran empresa de gran consumo (FMCG). Además de gestionar bases de datos, me especializo en la detección de anomalías, el control de calidad de los datos y la automatización de procesos. En el proyecto Viadrus AI reuní a todo el equipo y me encargué de la obtención de datos. Antes trabajé con Marcin en la misma entidad financiera: como becario le hacía muchísimas preguntas. Me gusta demostrar que lo imposible sí es posible. En mi tiempo libre fotografío y pinto paisajes, y me interesan los mapas y los juegos de estrategia.',
+        tasks: ['Ingeniería de datos', 'Aprendizaje automático', 'Analítica de datos', 'Obtención de datos', 'Calidad de datos']
+      },
+      {
+        bio: 'Licenciado en Geografía Marina por la Facultad de Ciencias de la Tierra de la Universidad de Szczecin y en Geoinformación por la Facultad de Ciencias Geográficas y Geológicas de la Universidad Adam Mickiewicz de Poznan. Me especializo en cartografía multimedia y geovisualización. En el proyecto Viadrus AI me encargué de la geoinformática, el procesamiento y el análisis de los datos de origen y los algoritmos. Actualmente trabajo como product manager en una entidad financiera, en proyectos de sistemas ERP.',
+        tasks: ['Geoinformática', 'Procesamiento de datos', 'Análisis de datos de origen', 'Algoritmos', 'Geovisualización']
+      }
+    ]
+  },
+
   glTitle: 'Glosario de términos clave',
   glSearch: 'Buscar término, p. ej. termoclina…',
   glSearchAria: 'Buscar un término',

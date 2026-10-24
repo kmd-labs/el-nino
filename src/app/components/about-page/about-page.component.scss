@@ -1,0 +1,403 @@
+@use "variables" as *;
+
+// The design-system type scale ends at xl (22px), too small for the heading of a content page
+$fs-display: clamp(1.75rem, 4.5vw, 2.625rem);
+$fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
+
+.about {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  background-color: color("bg-deep");
+  // soft accent and sky glows, the same idea as the globe's atmosphere
+  background-image:
+    radial-gradient(60rem 40rem at 85% -10%, color("accent-glow-soft"), transparent 70%),
+    radial-gradient(50rem 32rem at 5% 8%, color-mix(in srgb, #{color("link-color")} 6%, transparent), transparent 70%);
+  background-repeat: no-repeat;
+  color: color("text-main");
+  font-size: font-size("base");
+  line-height: 1.6;
+  animation: aboutIn transition("base") both;
+  @include custom-scrollbar;
+}
+
+@keyframes aboutIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.about__page,
+.about__header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+.about__page {
+  padding-block: 0 56px;
+}
+
+// ─── header: brand pill + back, full width so its fade has no visible edges ───
+.about__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  // keeps scrolled content from showing through the pills
+  background: linear-gradient(color("bg-deep") 60%, transparent);
+}
+
+.about__header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-block: 16px 10px;
+}
+
+.about__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 4px 14px;
+  border-radius: radius("pill");
+}
+
+.about__brand-logo {
+  height: 16px;
+  width: auto;
+  display: block;
+}
+
+.about__divider {
+  width: 1px;
+  height: 16px;
+  background: color("line-strong");
+  flex: none;
+}
+
+.about__brand-name {
+  font-size: font-size("sm");
+  font-weight: font-weight("semibold");
+  color: color("text-bright");
+  white-space: nowrap;
+}
+
+.about__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding-inline: 16px;
+  border-radius: radius("pill");
+  font: inherit;
+  font-size: font-size("sm");
+  font-weight: font-weight("medium");
+  color: color("text-main");
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background transition("fast");
+
+  &:hover {
+    background: color("panel-bg-solid");
+    color: color("text-bright");
+  }
+
+  &:focus-visible {
+    outline: 2px solid color("accent");
+    outline-offset: 2px;
+  }
+}
+
+.about__back-icon {
+  color: color("accent");
+  display: inline-flex;
+}
+
+// ─── hero ───
+.hero {
+  margin-top: 18px;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 5vw, 56px);
+  text-align: center;
+}
+
+.hero__logo {
+  display: block;
+  margin: 0 auto;
+  height: clamp(38px, 7vw, 56px);
+  width: auto;
+}
+
+.hero__kicker {
+  margin: 16px 0 0;
+  font-size: font-size("xs");
+  font-weight: font-weight("semibold");
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color("accent");
+}
+
+.hero__title {
+  margin: clamp(10px, 2vw, 16px) 0 0;
+  font-size: $fs-display;
+  font-weight: font-weight("bold");
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: color("text-bright");
+  text-wrap: balance;
+}
+
+.hero__lead {
+  margin: clamp(14px, 2.5vw, 20px) auto 0;
+  max-width: 64ch;
+  font-size: font-size("md");
+  line-height: 1.7;
+  color: color("text-desc");
+}
+
+// ─── people ───
+.people {
+  margin-top: clamp(22px, 4vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 3vw, 28px);
+}
+
+.person {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-areas:
+    "photo body"
+    "tasks tasks";
+  gap: clamp(18px, 3vw, 32px);
+  padding: clamp(18px, 3vw, 30px);
+}
+
+// every other person: photo on the right
+.person--mirrored {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas:
+    "body photo"
+    "tasks tasks";
+}
+
+.person__photo {
+  grid-area: photo;
+  aspect-ratio: 4 / 5;
+  max-width: 100%;
+  border-radius: radius("card");
+  border: 1px solid color("line");
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    135deg,
+    color("neutral-100") 0 12px,
+    color("neutral-200") 12px 24px
+  );
+  display: grid;
+  place-items: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.person__photo-hint {
+  font-size: font-size("xxs");
+  font-weight: font-weight("semibold");
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color("text-dim");
+  background: color("panel-bg-heavy");
+  border: 1px solid color("line");
+  border-radius: radius("pill");
+  padding: 5px 12px;
+}
+
+.person__body {
+  grid-area: body;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  // a short bio should not hang at the top edge of a tall photo
+  justify-content: center;
+  gap: 8px;
+}
+
+.person__name {
+  margin: 0;
+  font-size: $fs-person;
+  font-weight: font-weight("bold");
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: color("text-bright");
+}
+
+// first letter of the surname in the orange of the KMD logo dot
+.person__initial {
+  color: color("accent");
+}
+
+.person__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.person__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding-inline: 10px;
+  border-radius: radius("pill");
+  background: color-mix(in srgb, #{color("link-color")} 10%, transparent);
+  border: 1px solid color-mix(in srgb, #{color("link-color")} 30%, transparent);
+  font-size: font-size("xxs");
+  font-weight: font-weight("semibold");
+  letter-spacing: 0.04em;
+  color: color("link-color");
+  text-decoration: none;
+  transition:
+    background transition("fast"),
+    border-color transition("fast");
+
+  &:hover {
+    background: color-mix(in srgb, #{color("link-color")} 16%, transparent);
+    border-color: color-mix(in srgb, #{color("link-color")} 50%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color("accent");
+    outline-offset: 2px;
+  }
+
+  lucide-icon {
+    display: inline-flex;
+  }
+}
+
+.person__text {
+  margin: 4px 0 0;
+  max-width: 62ch;
+  line-height: 1.7;
+  color: color("text-desc");
+}
+
+// ─── task chips ───
+.tasks {
+  grid-area: tasks;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: clamp(14px, 2vw, 18px);
+  border-top: 1px solid color("line");
+}
+
+.tasks__label {
+  font-size: font-size("xxs");
+  font-weight: font-weight("semibold");
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color("text-dim");
+}
+
+.tasks__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: inline-flex;
+  align-items: center;
+  height: $control-height;
+  padding-inline: 14px;
+  border-radius: radius("pill");
+  border: 1px solid color("line");
+  background: color("btn-bg");
+  font-size: font-size("xs");
+  font-weight: font-weight("medium");
+  white-space: nowrap;
+}
+
+.about__footer {
+  margin-top: clamp(24px, 4vw, 44px);
+  font-size: font-size("xxs");
+  color: color("text-dim");
+  text-align: center;
+}
+
+@include respond-to("tablet") {
+  .person,
+  .person--mirrored {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "photo"
+      "body"
+      "tasks";
+  }
+
+  .person__photo {
+    max-width: 260px;
+  }
+}
+
+@include respond-to("mobile") {
+  .about__page,
+  .about__header-inner {
+    padding-inline: 16px;
+  }
+
+  .about__header-inner {
+    padding-block-start: 10px;
+  }
+
+  // only the KMD logotype stays in the brand pill, as in the app header
+  .about__divider,
+  .about__brand-name {
+    display: none;
+  }
+
+  .about__brand,
+  .about__back {
+    height: 38px;
+  }
+
+  .about__back {
+    padding-inline: 12px;
+  }
+
+  .about__back-label {
+    display: none;
+  }
+
+  .hero__lead {
+    text-align: left;
+  }
+
+  .person__photo {
+    max-width: 240px;
+  }
+
+  .task {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about {
+    animation: none;
+  }
+}

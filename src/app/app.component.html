@@ -1,6 +1,6 @@
 <app-splash-host></app-splash-host>
 
-<main class="app-main">
+<main class="app-main" [attr.inert]="page.about() ? '' : null">
   <app-globe></app-globe>
   <app-header></app-header>
   @if (state.view() === 'walker') {
@@ -10,3 +10,7 @@
   <app-popup [closeAriaLabel]="i18n.t().close"></app-popup>
   <app-tooltip></app-tooltip>
 </main>
+
+@if (page.about()) {
+  <app-about-page></app-about-page>
+}

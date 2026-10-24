@@ -19,6 +19,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as d3Geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
+import { PageService } from '../../core/services/page.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { EVENTS_META } from '../../core/constants/enso-data';
@@ -79,6 +80,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
+  private page = inject(PageService);
   i18n = inject(I18nService);
   private theme = inject(ThemeService);
   private popup = inject(PopupService);
@@ -1511,8 +1513,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.state.updateCycle(dt);
     this.state.updateInterpolatedStrength(dt);
 
-    // the cycle keeps running in other views; only the globe itself pauses
-    if (this.state.crossSectionView()) return;
+    // the cycle keeps running in other views; only the globe itself pauses (also under the About page)
+    if (this.state.crossSectionView() || this.page.about()) return;
 
     const ready = this.state.experienceReady();
     const s = this.state.sCur();

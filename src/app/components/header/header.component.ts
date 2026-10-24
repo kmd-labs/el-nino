@@ -9,10 +9,12 @@ import {
   CloudRain,
   Share2,
   Check,
-  CalendarDays
+  CalendarDays,
+  Handshake
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { ShareLinkService, ShareMode } from '../../core/services/share-link.service';
+import { PageService } from '../../core/services/page.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/i18n.types';
@@ -20,6 +22,8 @@ import { DisplayMode, ViewMode } from '../../core/models/enso.model';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
 import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
+import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 
 @Component({
   selector: 'app-header',
@@ -27,6 +31,8 @@ import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
   imports: [
     CommonModule,
     DropdownComponent,
+    ButtonComponent,
+    TooltipDirective,
     LucideAngularModule
   ],
   templateUrl: './header.component.html',
@@ -36,6 +42,7 @@ export class HeaderComponent {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   bp = inject(BreakpointService);
+  page = inject(PageService);
   private shareLink = inject(ShareLinkService);
   private tooltip = inject(TooltipService);
   private copiedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,6 +50,7 @@ export class HeaderComponent {
   readonly globeIcon = Globe;
   readonly shareIcon = Share2;
   readonly checkIcon = Check;
+  readonly ctaIcon = Handshake;
   readonly copied = signal(false);
 
   @ViewChild('sharePill') private sharePill?: ElementRef<HTMLElement>;

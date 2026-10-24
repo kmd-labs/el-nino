@@ -165,6 +165,34 @@ export const EN: Dict = {
   splashPreparing: 'Preparing the globe…',
   splashError: 'Some data could not be loaded — starting with the available layers.',
 
+  about: {
+    cta: 'Work with us',
+    openAbout: 'About KMD',
+    title: 'About us',
+    kicker: 'Interactive data visualisation',
+    lead: 'KMD is a team of three that turns scientific data into interactive visualisations. We combine data engineering, machine learning, 3D graphics and cartography – from collecting and cleaning the data to a model you can turn in your browser. The El Niño globe is our project showing how one phenomenon in the Pacific changes the weather around the world. We are looking for new projects: if you have data worth showing, message any of us on LinkedIn.',
+    back: 'Back to the globe',
+    tasksLabel: 'Focus',
+    photoSoon: 'Photo coming soon',
+    linkedinAria: name => `LinkedIn profile – ${name}`,
+    githubAria: name => `GitHub profile – ${name}`,
+    footer: 'KMD · interactive data visualisation',
+    people: [
+      {
+        bio: 'An environmental engineer by training and an AI engineer by choice. My adventure with code began in 2019 with three.js and generative art, which led to building my own augmented reality (AR) solutions. Today I focus on artificial intelligence and machine learning, connecting technology with solving real problems – as shown by winning the 11th edition of the CASSINI hackathon. Beyond coding I contribute to open source, play games, make music and take photos.',
+        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'AI', 'ML']
+      },
+      {
+        bio: 'Master of Administration from the University of Wrocław. Professionally I work as a data engineer at a large FMCG company. Besides managing databases I specialise in anomaly detection, data quality control and process automation. In the Viadrus AI project I brought the whole team together and was responsible for data acquisition. I worked with Marcin before at the same financial institution – as an intern I asked him a great many questions. I like proving that the impossible is possible after all. In my free time I photograph and paint landscapes and I am into maps and strategy games.',
+        tasks: ['Data engineering', 'Machine learning', 'Data analytics', 'Data acquisition', 'Data quality']
+      },
+      {
+        bio: 'Graduate of Marine Geography at the Faculty of Earth Sciences, University of Szczecin, and of Geoinformation at the Faculty of Geographical and Geological Sciences, Adam Mickiewicz University in Poznań. I specialise in multimedia cartography and geovisualisation. In the Viadrus AI project I was responsible for geoinformatics, processing and analysing the source data, and algorithms. I currently work as a product manager at a financial institution, on ERP system projects.',
+        tasks: ['Geoinformatics', 'Data processing', 'Source data analysis', 'Algorithms', 'Geovisualisation']
+      }
+    ]
+  },
+
   glTitle: 'Glossary & Key Terms',
   glSearch: 'Search terms, e.g. thermocline…',
   glSearchAria: 'Search for a term',

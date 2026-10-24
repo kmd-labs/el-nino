@@ -165,6 +165,34 @@ export const PL: Dict = {
   splashPreparing: 'Przygotowywanie globu…',
   splashError: 'Nie udało się wczytać części danych — startujemy z dostępnymi warstwami.',
 
+  about: {
+    cta: 'Szukamy projektów',
+    openAbout: 'O KMD',
+    title: 'O nas',
+    kicker: 'Interaktywne wizualizacje danych',
+    lead: 'KMD to trzyosobowy zespół, który zamienia dane naukowe w interaktywne wizualizacje. Łączymy inżynierię danych, uczenie maszynowe, grafikę 3D i kartografię – od pozyskania i oczyszczenia danych po model, który można obracać w przeglądarce. Globus El Niño to nasz projekt pokazujący, jak jedno zjawisko na Pacyfiku zmienia pogodę na całym świecie. Szukamy kolejnych projektów: jeśli masz dane, które warto pokazać, napisz do któregoś z nas na LinkedIn.',
+    back: 'Wróć do globu',
+    tasksLabel: 'Zadania',
+    photoSoon: 'Zdjęcie wkrótce',
+    linkedinAria: name => `Profil LinkedIn – ${name}`,
+    githubAria: name => `Profil GitHub – ${name}`,
+    footer: 'KMD · interaktywne wizualizacje danych',
+    people: [
+      {
+        bio: 'Z wykształcenia magister inżynier środowiska, z wyboru AI Engineer. Moja przygoda z kodem zaczęła się w 2019 roku od three.js i sztuki generatywnej, co zaowocowało tworzeniem autorskich rozwiązań w AR (rzeczywistości rozszerzonej). Dziś skupiam się na sztucznej inteligencji i uczeniu maszynowym, łącząc technologię z realnym rozwiązywaniem problemów, czego dowodem jest zwycięstwo w 11. edycji hackathonu CASSINI. Poza kodowaniem działam w open source, gram, tworzę muzykę i fotografuję.',
+        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'AI', 'ML']
+      },
+      {
+        bio: 'Magister Administracji Uniwersytetu Wrocławskiego. Zawodowo pracuję jako Data Engineer w dużej firmie z branży FMCG. Oprócz zarządzania bazami danych specjalizuję się w wykrywaniu anomalii, kontroli jakości danych i automatyzacji procesów. W projekcie Viadrus AI zebrałem cały zespół i odpowiadałem za pozyskanie danych. Z Marcinem pracowałem wcześniej w tej samej instytucji finansowej – jako stażysta zadawałem mu bardzo dużo pytań. Lubię udowadniać, że niemożliwe jednak jest możliwe. W wolnym czasie fotografuję i maluję krajobrazy, interesuję się mapami i grami strategicznymi.',
+        tasks: ['Inżynieria danych', 'Machine Learning', 'Analityka danych', 'Pozyskiwanie danych', 'Jakość danych']
+      },
+      {
+        bio: 'Absolwent Geografii Morza na Wydziale Nauk o Ziemi Uniwersytetu Szczecińskiego oraz Geoinformacji na Wydziale Nauk Geograficznych i Geologicznych Uniwersytetu im. Adama Mickiewicza w Poznaniu. Specjalizuję się w kartografii multimedialnej i geowizualizacjach. W projekcie Viadrus AI odpowiadałem za geoinformatykę, przetwarzanie i analizę danych źródłowych oraz algorytmy. Obecnie pracuję jako Product Manager w instytucji finansowej, gdzie zajmuję się projektami z obszaru systemów ERP.',
+        tasks: ['Geoinformatyka', 'Przetwarzanie danych', 'Analiza danych źródłowych', 'Algorytmy', 'Geowizualizacje']
+      }
+    ]
+  },
+
   glTitle: 'Słownik istotnych terminów',
   glSearch: 'Szukaj terminu, np. termoklina…',
   glSearchAria: 'Szukaj terminu',

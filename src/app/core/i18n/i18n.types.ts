@@ -45,6 +45,28 @@ export interface WalkerCanvasText {
   coldTongue: string;
 }
 
+/** Translated bio and task chips of one TEAM member, in the same order as TEAM. */
+export interface PersonText {
+  bio: string;
+  tasks: string[];
+}
+
+/** "About us" page and the header entry points to it. */
+export interface AboutText {
+  cta: string;
+  openAbout: string;
+  title: string;
+  kicker: string;
+  lead: string;
+  back: string;
+  tasksLabel: string;
+  photoSoon: string;
+  linkedinAria: (name: string) => string;
+  githubAria: (name: string) => string;
+  footer: string;
+  people: PersonText[];
+}
+
 /** Every user-facing text of the app in one language. */
 export interface Dict {
   htmlLang: string;
@@ -185,6 +207,8 @@ export interface Dict {
   splashLoading: string;
   splashPreparing: string;
   splashError: string;
+
+  about: AboutText;
 
   // glossary
   glTitle: string;

@@ -13,6 +13,7 @@
   z-index: 20;
 
   &__left {
+    position: relative;
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
@@ -33,6 +34,22 @@
   &__logo {
     display: inline-flex;
     align-items: center;
+    padding: 4px;
+    margin: -4px;
+    border: 0;
+    border-radius: radius("sm");
+    background: none;
+    cursor: pointer;
+    transition: opacity transition("fast");
+
+    &:hover {
+      opacity: 0.75;
+    }
+
+    &:focus-visible {
+      outline: 2px solid color("accent");
+      outline-offset: 2px;
+    }
   }
 
   &__logo-img {
@@ -64,6 +81,18 @@
     gap: 4px;
     padding: 4px;
     border-radius: radius("pill");
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: radius("pill");
+  }
+
+  &__cta-icon {
+    display: inline-flex;
+    color: color("accent");
   }
 
   &__loading {
@@ -140,6 +169,15 @@
       padding: 3px;
       height: 38px;
       gap: 2px;
+    }
+
+    // no room in the top row next to the share and view pills: second row under the logo
+    &__cta {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      padding: 3px;
+      height: 38px;
     }
 
     &__right {

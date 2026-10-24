@@ -4,12 +4,17 @@
   <div class="header__left">
     <!-- 1. Brand / Logotype Container -->
     <div class="header__brand glass-panel">
-      <div class="header__logo">
+      <button
+        type="button"
+        class="header__logo"
+        [attr.aria-label]="t.about.openAbout"
+        [appTooltip]="t.about.openAbout"
+        (click)="page.openAbout()">
         <img
           class="header__logo-img"
           src="assets/design-system/logo/kmd-black-orange.svg"
-          alt="KMD" />
-      </div>
+          alt="" />
+      </button>
       <span class="header__divider" aria-hidden="true"></span>
       <h1 class="header__app-name">El Niño</h1>
     </div>
@@ -26,6 +31,14 @@
       </app-dropdown>
     </div>
 
+
+    <!-- 3. Call to action: opens the About page -->
+    <div class="header__cta glass-panel">
+      <app-button variant="ghost" (btnClick)="page.openAbout()">
+        <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="15"></lucide-icon>
+        <span>{{ t.about.cta }}</span>
+      </app-button>
+    </div>
 
     @if (!state.mapLoaded()) {
       <div class="header__loading glass-panel" [class.header__loading--error]="state.mapError()">
