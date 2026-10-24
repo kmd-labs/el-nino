@@ -118,6 +118,37 @@ applying ENSO anomaly deltas relative to the `now` baseline (`ds = s - 1.4`). Ev
 while `status()` is not `ready` the globe shows neutral grey and falls back to the procedural
 `ensoWindLines` / `ensoWaveLines`, and land topology falls back from `assets/data/land-50m.json` to a jsDelivr CDN copy.
 
+### Shaded relief on the land
+
+`scripts/fetch-relief.mjs` (`npm run fetch:relief`) turns the Natural Earth 50m shaded-relief raster into
+`src/assets/data/relief.bin.gz` — a 10-byte header (`KMDR`, u16 width, u16 height, u8 base, u8 version)
+followed by raw equirectangular greyscale at 4096 x 2048, ~1.6 MB — the same size as the land canvas on
+anything with an 8k max texture size, so the relief stays crisp when the globe is zoomed in. Natural Earth
+ships the source as an *uncompressed* 8-bit TIFF, one strip per row, so the script needs no image library.
+The relief never changes, so unlike the two fetches above this one is **not** in CI.
+
+`GlobeComponent.reliefLayer()` multiplies it into the `globe-land-fill` token: each pixel is the token colour
+scaled by how far the relief sits above or below `base` (the flat/sea-level value the script records), so
+ridges lighten, slopes darken and lowlands keep the token exactly. `drawLand()` paints it **clipped to the
+coastline**, so the ocean keeps its SST. The tinted layer is rebuilt only when the token changes, never per
+frame. Note the land material is emissive (`color: black`, `emissive: white`, `emissiveMap: landTex`) — the
+land ignores scene lighting entirely, which is why relief has to be baked into the texture rather than lit.
+
+`scripts/fetch-elevation.mjs` (`npm run fetch:elevation`) adds the vertical exaggeration on top of that.
+ETOPO2v2c ships a raw little-endian int16 grid (10800 x 5400, no header), so reading it is a cast; the
+script flattens bathymetry to sea level **per sample before averaging** — the ocean must not drag the coast
+below the sphere — and writes `src/assets/data/elevation.png`, an 8-bit greyscale PNG at 2048 x 1024
+(~0.3 MB). PNG because `displacementMap` is a GPU texture: nothing reads these pixels on the CPU, so the
+browser’s own decoder does the work and no normals need recomputing (the emissive land ignores them anyway).
+
+Heights are normalised against a fixed `MAX_ELEV_M` ceiling rather than the grid maximum, so the runtime
+derives `displacementScale` as `R * (ELEV_CEILING_M / EARTH_RADIUS_M) * ELEV_EXAGGERATION` with no metadata
+fetch — **keep `ELEV_CEILING_M` in `GlobeComponent` and `MAX_ELEV_M` in the script equal.** Exaggeration is
+`10`: real relief is 0.14% of the radius, which at `R = 5` is less than the 0.015 gap between the land and
+ocean spheres, so unexaggerated terrain is literally invisible. The land sphere is subdivided to 1024 x 512
+(512 x 256 under `isAtMost('mobile')`) — at the original 128 x 64 a segment spans ~2.8 degrees and no height
+map can show. Note the tallest peaks then poke through the impacts overlay at `R * 1.0045`.
+
 ### i18n is positional — the main footgun
 
 `core/i18n/i18n.types.ts` `Dict` is the contract; `en.ts`, `pl.ts`, `es.ts` must all implement it (add the key
