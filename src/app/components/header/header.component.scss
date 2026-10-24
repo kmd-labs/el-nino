@@ -10,7 +10,22 @@
   align-items: center;
   gap: 12px;
   pointer-events: none;
-  z-index: 120; // Above popup-backdrop (z-index: 100) so KMD brand pill is always visible
+  z-index: 25;
+
+  // When any modal/popup is open, elevate header to z-index 120 (above popup-backdrop's 100)
+  // and hide all other controls so JUST the KMD brand pill in expanded view is visible.
+  &--popup-open {
+    z-index: 120;
+
+    .header__share,
+    .header__settings,
+    .header__loading,
+    .header__right {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
 
   &__left {
     position: relative;
@@ -134,6 +149,7 @@
     height: 42px;
     padding: 4px;
     border-radius: radius("pill");
+    transition: opacity transition("fast"), visibility transition("fast");
   }
 
   &__loading {
@@ -141,6 +157,7 @@
     color: color("loading-warn");
     padding: 6px 12px;
     border-radius: radius("pill");
+    transition: opacity transition("fast"), visibility transition("fast");
 
     &--error {
       color: color("error");
@@ -153,6 +170,7 @@
     gap: 8px;
     pointer-events: auto;
     flex: none;
+    transition: opacity transition("fast"), visibility transition("fast");
   }
 
   &__view {
