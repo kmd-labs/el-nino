@@ -78,8 +78,18 @@
   }
 
   &__right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     pointer-events: auto;
     flex: none;
+  }
+
+  &__share {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: radius("pill");
   }
 
   &__view {
@@ -130,6 +140,15 @@
       padding: 3px;
       height: 38px;
       gap: 2px;
+    }
+
+    &__right {
+      gap: 6px;
+    }
+
+    &__share {
+      padding: 3px;
+      height: 38px;
     }
 
     &__view {

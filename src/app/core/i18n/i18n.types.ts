@@ -88,6 +88,9 @@ export interface Dict {
 
   // view dock
   chooseView: string;
+  shareLink: string;
+  linkCopied: string;
+  linkCopyFailed: string;
   viewTemp: string;
   viewAnom: string;
   viewWalker: string;

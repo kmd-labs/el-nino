@@ -9,6 +9,7 @@ import { PopupComponent } from '@kmd/design-system/ui/popup/popup.component';
 import { TooltipComponent } from '@kmd/design-system/ui/tooltip/tooltip.component';
 import { I18nService } from './core/i18n/i18n.service';
 import { EnsoStateService } from './core/services/enso-state.service';
+import { ShareLinkService } from './core/services/share-link.service';
 
 @Component({
   selector: 'app-root',
@@ -29,4 +30,6 @@ import { EnsoStateService } from './core/services/enso-state.service';
 export class AppComponent {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
+  /** Created eagerly so a shared link is applied before the intro starts. */
+  private shareLink = inject(ShareLinkService);
 }

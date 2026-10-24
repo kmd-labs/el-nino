@@ -15,6 +15,8 @@ export class EnsoStateService {
   private math = inject(EnsoMathService);
   private i18n = inject(I18nService);
   private playElapsed = 0;
+  /** Set by a shared link: the intro animation is skipped so the linked state stays on screen. */
+  private skipIntro = false;
 
   readonly sTarget = signal<number>(EARLIEST_STRENGTH);
   readonly sCur = signal<number>(EARLIEST_STRENGTH);
@@ -101,7 +103,17 @@ export class EnsoStateService {
 
   beginExperience() {
     this.prepareExperience();
-    if (!this.isPlaying()) this.startPlaying();
+    if (!this.isPlaying() && !this.skipIntro) this.startPlaying();
+  }
+
+  /** Applies a view and strength from a shared link before the experience starts. */
+  applySharedState(view: ViewMode | null, strength: number | null) {
+    if (view) this.view.set(view);
+    if (strength !== null) {
+      this.skipIntro = true;
+      this.sTarget.set(strength);
+      this.sCur.set(strength);
+    }
   }
 
   setStrengthTarget(val: number) {

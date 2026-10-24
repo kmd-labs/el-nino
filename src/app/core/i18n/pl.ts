@@ -44,6 +44,9 @@ export const PL: Dict = {
   hintPins: (count, phase) => `${count} lokalizacji z udokumentowanymi skutkami fazy ${phase}. Kliknij pinezkę na globie, aby zobaczyć dane i źródło.`,
 
   chooseView: 'Widok',
+  shareLink: 'Udostępnij link do tego widoku',
+  linkCopied: 'Skopiowano link',
+  linkCopyFailed: 'Nie udało się skopiować – użyj paska adresu',
   viewTemp: 'Temperatura wody',
   viewAnom: 'Temperatura wody',
   viewWalker: 'Komórka Walkera i termoklina',

@@ -44,6 +44,9 @@ export const ES: Dict = {
   hintPins: (count, phase) => `${count} lugares con impactos documentados de ${phase}. Haz clic en un marcador para ver los datos y la fuente.`,
 
   chooseView: 'Vista',
+  shareLink: 'Compartir un enlace a esta vista',
+  linkCopied: 'Enlace copiado',
+  linkCopyFailed: 'No se pudo copiar: usa la barra de direcciones',
   viewTemp: 'Temperatura del agua',
   viewAnom: 'Temperatura del agua',
   viewWalker: 'Celda Walker y termoclina',
