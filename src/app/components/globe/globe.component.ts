@@ -100,7 +100,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private globeMat?: THREE.MeshBasicMaterial;
   private landMat?: THREE.MeshLambertMaterial;
   private hemiLight?: THREE.HemisphereLight;
-  private stars?: THREE.Points;
   private loadedLandFeature: any = null;
   /** Niño 3.4 / dipole boxes are drawn on the land layer (hidden in the live view) */
   private landBoxes = true;
@@ -126,13 +125,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private applyThemeVisuals() {
     if (this.scene) {
       this.scene.background = new THREE.Color(this.theme.getTokenColor('globe-bg', '#f5f7fb'));
-    }
-    if (this.stars) {
-      this.stars.visible = true;
-      const mat = this.stars.material as THREE.PointsMaterial;
-      mat.color.set(this.theme.getTokenColor('globe-star', '#475569'));
-      mat.opacity = 0.85;
-      mat.needsUpdate = true;
     }
     if (this.hemiLight) {
       this.hemiLight.color.setHex(0xffffff);
@@ -389,11 +381,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.math.pos(-165, 12, (isPortrait ? 26 : 16) * zoomOut, this.camera.position);
     this.controls.update();
 
-    // Glow / uniform drop shadow shader & starry background
-    this.initGlowAndStars();
+    // Glow / uniform drop shadow shader & soft bokeh background
+    this.initGlowAndBokeh();
   }
 
-  private initGlowAndStars() {
+  private initGlowAndBokeh() {
     const R = this.math.R;
     // Outer halo sphere (radius R * 1.15). At the globe's limb (r = R), -dot(vN, vV) = sqrt(1 - (1/1.15)^2) = 0.4938.
     this.glowMat = new THREE.ShaderMaterial({
@@ -434,28 +426,51 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const glow = new THREE.Mesh(new THREE.SphereGeometry(R * 1.15, 64, 32), this.glowMat);
     this.scene.add(glow);
 
-    // Star points
-    const n = 1800;
-    const starPos = new Float32Array(n * 3);
-    const starVec = new THREE.Vector3();
-    for (let i = 0; i < n; i++) {
-      starVec.randomDirection().multiplyScalar(120 + Math.random() * 120);
-      starPos.set([starVec.x, starVec.y, starVec.z], i * 3);
+    this.initBokeh();
+  }
+
+  /**
+   * Very soft, out-of-focus discs in pale palette tints, fixed in world space so they drift past
+   * while the camera orbits (a motion cue that does not read as dust on the light background).
+   * They sit beyond controls.maxDistance (40) so they never pass in front of the globe.
+   */
+  private initBokeh() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d')!;
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.7)');
+    g.addColorStop(0.7, 'rgba(255,255,255,0.22)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+
+    // 12 shared materials (tint × opacity level) instead of one per sprite
+    const tints = ['primary-200', 'info-200', 'primary-100', 'warning-100'];
+    const fallbacks = ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
+    const opacities = [0.16, 0.24, 0.32];
+    const mats = tints.flatMap((t, i) => opacities.map(o => new THREE.SpriteMaterial({
+      map: tex,
+      color: new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])),
+      transparent: true,
+      opacity: o,
+      depthWrite: false,
+      fog: false
+    })));
+
+    const bokeh = new THREE.Group();
+    const v = new THREE.Vector3();
+    for (let i = 0; i < 200; i++) {
+      const sp = new THREE.Sprite(mats[Math.floor(Math.random() * mats.length)]);
+      sp.position.copy(v.randomDirection().multiplyScalar(60 + Math.random() * 90));
+      const s = 10 + Math.random() * 22;
+      sp.scale.set(s, s, 1);
+      bokeh.add(sp);
     }
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    this.stars = new THREE.Points(
-      starGeo,
-      new THREE.PointsMaterial({
-        color: new THREE.Color(this.theme.getTokenColor('globe-star', '#475569')),
-        size: 0.6,
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.85
-      })
-    );
-    this.stars.visible = true;
-    this.scene.add(this.stars);
+    this.scene.add(bokeh);
   }
 
   private initSstData() {
