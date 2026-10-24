@@ -359,7 +359,7 @@
   }
 }
 
-// play button with the speed (gear) menu above it
+// play button with the speed menu above it
 .dock__play {
   position: relative;
   display: inline-flex;
@@ -372,14 +372,70 @@
   left: 50%;
   transform: translateX(-50%);
 
-  ::ng-deep .dropdown__chevron {
-    display: none;
+  ::ng-deep {
+    .dropdown__chevron {
+      display: none;
+    }
+
+    .btn {
+      height: 32px;
+      min-height: 32px;
+      padding: 0 8px;
+      min-width: 38px;
+      border-radius: radius("control");
+      background: rgba(palette("neutral-900"), 0.05);
+      border: 1px solid rgba(palette("neutral-900"), 0.16);
+      color: color("text-main");
+      font-family: var(--font-family-mono, monospace);
+      font-size: font-size("xs");
+      font-weight: font-weight("semibold");
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      justify-content: center;
+      transition: background transition("fast"), border-color transition("fast"), color transition("fast"), transform transition("fast");
+
+      &:hover:not(:disabled) {
+        background: rgba(palette("neutral-900"), 0.1);
+        border-color: rgba(palette("neutral-900"), 0.26);
+        color: color("text-bright");
+      }
+
+      &.btn--active,
+      &:active:not(:disabled) {
+        background: rgba(palette("neutral-900"), 0.14);
+        border-color: rgba(palette("neutral-900"), 0.32);
+        color: color("text-bright");
+      }
+    }
+
+    .dropdown__menu {
+      min-width: 76px;
+      width: max-content;
+      padding: 4px;
+    }
+
+    .dropdown__item {
+      justify-content: center;
+      font-family: var(--font-family-mono, monospace);
+      font-size: font-size("xs");
+      font-variant-numeric: tabular-nums;
+      padding: 6px 12px;
+      border-radius: radius("sm");
+    }
   }
 
-  // the "Super El Niño" marker sits above the play button on phones: gear goes to its left
+  // on mobile, speed button sits to the left of the play button
   @include respond-to("mobile") {
     position: static;
     transform: none;
-    margin-right: 2px;
+    margin-right: 4px;
+
+    ::ng-deep .btn {
+      height: 30px;
+      min-height: 30px;
+      min-width: 34px;
+      padding: 0 6px;
+      font-size: font-size("xxs");
+    }
   }
 }

@@ -14,8 +14,7 @@ import {
   Play,
   Thermometer,
   Waves,
-  Wind,
-  Settings
+  Wind
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { PRESETS } from '../../core/constants/enso-data';
@@ -67,13 +66,14 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly waterIcon = Waves;
   readonly airIcon = Thermometer;
   readonly windIcon = Wind;
-  readonly speedIcon = Settings;
 
-  /** YouTube-style playback speed menu: 0,5× … 2×, with 1× labelled "Normal". */
+  /** Playback speed menu options formatted as 0.5x, 1x, 1.5x, 2x, etc. */
   readonly speedOptions = computed<DropdownOption<number>[]>(() => {
-    const t = this.i18n.t();
-    const fmt = new Intl.NumberFormat(t.htmlLang);
-    return PLAYBACK_SPEEDS.map(s => ({ value: s, label: s === 1 ? t.speedNormal : `${fmt.format(s)}×` }));
+    return PLAYBACK_SPEEDS.map(s => ({
+      value: s,
+      label: `${s}x`,
+      shortLabel: `${s}x`
+    }));
   });
 
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;

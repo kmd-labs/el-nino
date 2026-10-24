@@ -72,11 +72,9 @@
         <div timelineAction class="dock__play">
           <app-dropdown
             class="dock__speed"
-            variant="ghost"
+            variant="default"
             align="right"
             direction="up"
-            [iconOnly]="true"
-            [icon]="speedIcon"
             [options]="speedOptions()"
             [value]="state.playbackSpeed()"
             [ariaLabel]="t.playbackSpeed"
