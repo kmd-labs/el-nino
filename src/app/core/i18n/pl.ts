@@ -246,6 +246,16 @@ export const PL: Dict = {
     }
   ],
 
+  built: {
+    title: 'Jak to zrobiliśmy',
+    rows: [
+      { label: 'Technologia', text: 'Angular i Three.js (globus w WebGL) oraz przekrój rysowany na canvasie. Bez backendu: statyczna strona na GitHub Pages, dane odświeżane codziennie przez GitHub Actions.' },
+      { label: 'Dane', text: 'Temperatura oceanu NOAA OISST, pogoda z Open-Meteo, prognoza ENSO NOAA CPC, wpływ na opady według WMO, JRC (KE) i JMA oraz historyczne zdarzenia ze źródłami podlinkowanymi w aplikacji.' },
+      { label: 'Czas powstania', text: 'Około dwóch tygodni, w trzyosobowym zespole.' }
+    ],
+    teamLink: 'Poznaj zespół'
+  },
+
   regions: [
     { name: 'Indonezja i Filipiny', season: 'cze–lut' },
     { name: 'Australia', season: 'lip–sty' },

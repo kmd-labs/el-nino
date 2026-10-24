@@ -67,6 +67,13 @@ export interface AboutText {
   people: PersonText[];
 }
 
+/** "How we built it" mini case study at the end of the glossary. */
+export interface BuiltText {
+  title: string;
+  rows: { label: string; text: string }[];
+  teamLink: string;
+}
+
 /** Every user-facing text of the app in one language. */
 export interface Dict {
   htmlLang: string;
@@ -220,6 +227,7 @@ export interface Dict {
   /** suffix after "Wikipedia" when the linked article is in another language */
   wikiIn: Record<Lang, string>;
   glossary: GlossaryGroup[];
+  built: BuiltText;
 
   // impacts view data (same order as RAIN_REGIONS / IMPACT_SOURCES)
   regions: { name: string; season: string }[];

@@ -98,6 +98,72 @@
     }
   }
 
+  // "How we built it": a compact case study under the terms
+  &__built {
+    padding: 12px 14px;
+    border-radius: radius("card");
+    background: color("btn-bg");
+    border: 1px solid color("line");
+  }
+
+  &__built-list {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__built-row {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 10px;
+    font-size: font-size("xs");
+    line-height: 1.55;
+
+    dt {
+      font-weight: font-weight("semibold");
+      color: color("text-bright");
+    }
+
+    dd {
+      margin: 0;
+      color: color("text-desc");
+    }
+
+    @include respond-to("mobile") {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+
+  &__team {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    color: color("link-color");
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid color("accent");
+      outline-offset: 2px;
+    }
+
+    lucide-icon {
+      display: inline-flex;
+    }
+  }
+
   &__empty {
     font-size: font-size("sm");
     color: color("text-dim");

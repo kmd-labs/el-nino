@@ -246,6 +246,16 @@ export const EN: Dict = {
     }
   ],
 
+  built: {
+    title: 'How we built it',
+    rows: [
+      { label: 'Technology', text: 'Angular and Three.js (WebGL globe) with a canvas cross-section. No backend: a static site on GitHub Pages, with data refreshed daily by GitHub Actions.' },
+      { label: 'Data', text: 'NOAA OISST sea temperatures, Open-Meteo weather, the NOAA CPC ENSO outlook, rainfall impacts from WMO, EU JRC and JMA, and historical events with their sources linked in the app.' },
+      { label: 'Build time', text: 'About two weeks, by a team of three.' }
+    ],
+    teamLink: 'Meet the team'
+  },
+
   regions: [
     { name: 'Indonesia and the Philippines', season: 'Jun–Feb' },
     { name: 'Australia', season: 'Jul–Jan' },
