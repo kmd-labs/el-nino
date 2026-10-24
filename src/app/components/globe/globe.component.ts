@@ -329,7 +329,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private lastS = 999;
   private lastMode = '';
 
-  private rotateResumeTimer: ReturnType<typeof setTimeout> | null = null;
   private uiResizeObs: ResizeObserver | null = null;
 
   ngAfterViewInit() {
@@ -351,9 +350,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.uiResizeObs?.disconnect();
-    if (this.rotateResumeTimer !== null) {
-      clearTimeout(this.rotateResumeTimer);
-    }
     if (this.animId !== null) {
       cancelAnimationFrame(this.animId);
     }
@@ -366,20 +362,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const dockEl = document.querySelector('.dock-wrap');
     if (headerEl) this.uiResizeObs.observe(headerEl);
     if (dockEl) this.uiResizeObs.observe(dockEl);
-  }
-
-  private scheduleRotateResume(delayMs = 5000) {
-    if (this.rotateResumeTimer !== null) {
-      clearTimeout(this.rotateResumeTimer);
-    }
-    this.rotateResumeTimer = setTimeout(() => {
-      this.rotateResumeTimer = null;
-      if (!this.state.selectedLocation()) {
-        this.ngZone.run(() => {
-          this.state.toggleAutoRotate(true);
-        });
-      }
-    }, delayMs);
   }
 
   private initThree() {
@@ -400,20 +382,18 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.enablePan = false;
     this.controls.autoRotate = false;
 
-    this.controls.addEventListener('start', () => {
-      if (this.rotateResumeTimer !== null) {
-        clearTimeout(this.rotateResumeTimer);
-        this.rotateResumeTimer = null;
-      }
+    const stopAutoRotate = () => {
       this.controls.autoRotate = false;
-      this.ngZone.run(() => {
-        this.state.toggleAutoRotate(false);
-      });
-    });
+      if (this.state.autoRotate()) {
+        this.ngZone.run(() => {
+          this.state.toggleAutoRotate(false);
+        });
+      }
+    };
 
-    this.controls.addEventListener('end', () => {
-      this.scheduleRotateResume(5000);
-    });
+    this.controls.addEventListener('start', stopAutoRotate);
+    canvas.addEventListener('wheel', stopAutoRotate, { passive: true });
+    canvas.addEventListener('pointerdown', stopAutoRotate, { passive: true });
 
     this.hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe4f0, 1.25);
     this.scene.add(this.hemiLight);
@@ -1742,7 +1722,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
           ],
           onClose: () => {
             this.state.selectLocation(null);
-            this.scheduleRotateResume(5000);
           }
         });
         return;
