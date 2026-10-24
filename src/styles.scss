@@ -106,3 +106,9 @@
   max-width: min(880px, calc(100vw - 32px));
   max-height: min(90vh, 820px);
 }
+
+@include respond-to("mobile") {
+  .popup-backdrop {
+    padding-top: 56px !important;
+  }
+}

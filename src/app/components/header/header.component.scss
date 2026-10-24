@@ -10,7 +10,7 @@
   align-items: center;
   gap: 12px;
   pointer-events: none;
-  z-index: 25;
+  z-index: 120; // Above popup-backdrop (z-index: 100) so KMD brand pill is always visible
 
   &__left {
     position: relative;
@@ -77,7 +77,7 @@
     justify-content: center;
     flex: none;
     line-height: 0;
-    padding: 0;
+    padding: 0 2px;
     margin: 0;
   }
 
@@ -90,6 +90,13 @@
     pointer-events: none;
     flex: none;
     image-rendering: -webkit-optimize-contrast;
+  }
+
+  &__brand-expand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
   }
 
   &__divider {
@@ -186,27 +193,60 @@
     left: 8px;
     right: 8px;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 
     &__left {
       gap: 6px;
       flex-wrap: nowrap;
+      min-width: 0;
     }
 
     &__brand {
       height: 38px;
       padding: 3px;
+      transition: box-shadow 0.3s ease;
+
+      &--expanded {
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+      }
     }
 
     &__brand-btn {
       height: 32px;
-      padding: 0 8px 0 6px;
+      padding: 0 6px;
       gap: 6px;
+    }
+
+    &__brand--expanded &__brand-btn {
+      padding: 0 8px 0 6px;
+    }
+
+    &__logo {
+      padding: 0 2px;
     }
 
     &__logo-img {
       height: 14px;
       width: 35px;
+    }
+
+    &__brand-expand {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.25s ease;
+    }
+
+    &__brand--expanded &__brand-expand {
+      max-width: 240px;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     &__divider {
@@ -230,11 +270,12 @@
     &__right {
       gap: 6px;
       margin-left: auto;
+      min-width: 0;
     }
 
     &__view {
       width: auto;
-      min-width: 165px;
+      min-width: 140px;
       height: 38px;
       padding: 3px;
 
