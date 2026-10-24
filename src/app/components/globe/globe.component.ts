@@ -1014,6 +1014,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.inspectPin.visible = true;
     }
     this.inspectedPoint.set({ lon, lat, p });
+    this.weather.fetchExactPointAirSeries(lon, lat);
     this.updateInspectTooltip();
   }
 
@@ -1042,7 +1043,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const waterStr = sample.waterTemp != null
       ? this.localeTemp.transform(sample.waterTemp, 'temp')
       : (t.inspectNoWater || '-');
-    const airStr = this.localeTemp.transform(sample.airTemp, 'temp');
+    const airStr = sample.airTemp != null
+      ? this.localeTemp.transform(sample.airTemp, 'temp')
+      : (t.inspectNoWater || '-');
     const coordsStr = t.inspectCoords(pt.lat, pt.lon);
     const text = `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
 

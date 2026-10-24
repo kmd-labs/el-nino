@@ -26,6 +26,15 @@ const OM_CHUNK = 120;
 const OM_WIND_URL = 'https://api.open-meteo.com/v1/forecast';
 const OM_WAVE_URL = 'https://marine-api.open-meteo.com/v1/marine';
 
+// Global 10° grid (-80° to +80°) for pre-baked weekly 2m air temperature frames
+const AIR_LAT0 = -80;
+const AIR_LON0 = -180;
+const AIR_STEP = 10;
+const AIR_N_LAT = 17;
+const AIR_N_LON = 36;
+const AIR_FRAME_POINTS = AIR_N_LAT * AIR_N_LON; // 612
+const AIR_MISSING = -32768;
+
 const DAILY_START = '2024-11-06';
 const DAILY_LAT0 = -30;
 const DAILY_LAT1 = 30;
@@ -47,6 +56,13 @@ const dailyPoints = [];
 for (let lat = DAILY_LAT0; lat <= DAILY_LAT1; lat += DAILY_LAT_STEP) {
   for (let lon = DAILY_LON0; lon <= DAILY_LON1; lon += DAILY_LON_STEP) {
     dailyPoints.push({ lat, lon });
+  }
+}
+
+const airPoints = [];
+for (let r = 0; r < AIR_N_LAT; r++) {
+  for (let c = 0; c < AIR_N_LON; c++) {
+    airPoints.push({ lat: AIR_LAT0 + r * AIR_STEP, lon: AIR_LON0 + c * AIR_STEP });
   }
 }
 
@@ -198,6 +214,124 @@ async function fetchDailyWeather() {
     console.warn('Open-Meteo daily unavailable, using NASA POWER:', err.message);
     return await fetchPowerDaily();
   }
+}
+
+async function fetchWeeklyAirGrids(validDates, existingMeta, existingBin) {
+  const byDate = new Map();
+
+  // 1. Reuse existing packed air frames if grid shape matches
+  if (
+    existingMeta?.airGrid &&
+    existingMeta.airGrid.nLat === AIR_N_LAT &&
+    existingMeta.airGrid.nLon === AIR_N_LON &&
+    existingBin &&
+    existingMeta.keyframes
+  ) {
+    const existingTotal = existingMeta.totalFrames;
+    const sstBytes = existingTotal * FRAME_POINTS;
+    const airBytes = existingTotal * AIR_FRAME_POINTS * 2;
+    if (existingBin.byteLength >= sstBytes + airBytes) {
+      const existingObserved = existingMeta.keyframes.filter(k => !k.forecast);
+      for (const kf of existingObserved) {
+        const offset = sstBytes + kf.index * AIR_FRAME_POINTS * 2;
+        const slice = existingBin.subarray(offset, offset + AIR_FRAME_POINTS * 2);
+        const arr = new Int16Array(slice.buffer, slice.byteOffset, AIR_FRAME_POINTS);
+        // Only reuse if the frame has valid observations (not all AIR_MISSING)
+        let validCount = 0;
+        for (let i = 0; i < AIR_FRAME_POINTS; i++) {
+          if (arr[i] !== AIR_MISSING) validCount++;
+        }
+        if (validCount > AIR_FRAME_POINTS * 0.8) {
+          byDate.set(kf.date, new Int16Array(arr));
+        }
+      }
+    }
+  }
+
+  const missingDates = validDates.filter(d => !byDate.has(d.iso));
+  if (missingDates.length === 0) {
+    console.log(`Reusing all ${validDates.length} cached weekly 2m air temperature grids.`);
+    return validDates.map(d => byDate.get(d.iso));
+  }
+
+  console.log(`Fetching weekly 2m air temperature grids (${AIR_N_LAT}x${AIR_N_LON}) for ${missingDates.length} dates...`);
+  const startKey = missingDates[0].iso.replaceAll('-', '');
+  const endKey = missingDates[missingDates.length - 1].iso.replaceAll('-', '');
+
+  // Fetch NASA POWER MERRA-2 daily T2M for each grid point
+  const pointSeries = new Array(airPoints.length);
+  let cursor = 0;
+
+  async function powerWorker() {
+    while (cursor < airPoints.length) {
+      const idx = cursor++;
+      const p = airPoints[idx];
+      const url = `${POWER_URL}?parameters=T2M&community=RE`
+        + `&longitude=${p.lon}&latitude=${p.lat}&start=${startKey}&end=${endKey}&format=JSON`;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await fetch(url, { signal: AbortSignal.timeout(90000) });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const body = await res.json();
+          pointSeries[idx] = body.properties?.parameter?.T2M ?? {};
+          break;
+        } catch (err) {
+          if (attempt === 3) {
+            console.warn(`NASA POWER point (${p.lat},${p.lon}) failed:`, err.message);
+            pointSeries[idx] = {};
+          } else {
+            await new Promise(r => setTimeout(r, 500 * attempt));
+          }
+        }
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: 20 }, powerWorker));
+
+  // Supplement recent 14 days from Open-Meteo (since MERRA-2 lags by a few days at the tail)
+  const recentMap = new Array(airPoints.length).fill(null).map(() => ({}));
+  try {
+    const chunkSize = 100;
+    for (let i = 0; i < airPoints.length; i += chunkSize) {
+      const chunk = airPoints.slice(i, i + chunkSize);
+      const url = `${OM_WIND_URL}?latitude=${chunk.map(p => p.lat).join(',')}`
+        + `&longitude=${chunk.map(p => p.lon).join(',')}`
+        + '&past_days=14&forecast_days=1&daily=temperature_2m_mean&timezone=UTC';
+      const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
+      if (res.ok) {
+        const body = await res.json();
+        const list = Array.isArray(body) ? body : [body];
+        for (let k = 0; k < list.length; k++) {
+          const times = list[k]?.daily?.time ?? [];
+          const vals = list[k]?.daily?.temperature_2m_mean ?? [];
+          for (let d = 0; d < times.length; d++) {
+            if (Number.isFinite(vals[d])) {
+              recentMap[i + k][times[d]] = vals[d];
+            }
+          }
+        }
+      }
+      await new Promise(r => setTimeout(r, 400));
+    }
+  } catch (err) {
+    console.warn('Recent Open-Meteo supplement failed:', err.message);
+  }
+
+  for (const item of missingDates) {
+    const ymd = item.iso.replaceAll('-', '');
+    const frame = new Int16Array(AIR_FRAME_POINTS);
+    for (let i = 0; i < airPoints.length; i++) {
+      let val = pointSeries[i]?.[ymd];
+      if (!Number.isFinite(val) || val === -999) {
+        val = recentMap[i]?.[item.iso];
+      }
+      frame[i] = Number.isFinite(val) && val !== -999 ? Math.round(val * 10) : AIR_MISSING;
+    }
+    byDate.set(item.iso, frame);
+  }
+
+  return validDates.map(d => byDate.get(d.iso));
 }
 
 // Generate weekly dates from Nov 6, 2024 to present
@@ -495,17 +629,28 @@ async function main() {
   validDates = order.map(i => validDates[i]);
   nino34Values = order.map(i => nino34Values[i]);
 
+  const airGrids = await fetchWeeklyAirGrids(validDates, existingMeta, existingBin);
+
   console.log(`Synthesizing global forecast frame from latest observed frame (${validDates[validDates.length - 1].iso})...`);
   const lastObservedIdx = grids.length - 1;
   const forecastGrid = synthesizeForecast(grids[lastObservedIdx]);
+  const forecastAirGrid = new Int16Array(AIR_FRAME_POINTS).fill(AIR_MISSING);
 
-  // Combined frames: all observed frames + 1 forecast frame
+  // Combined frames: all observed frames + 1 forecast frame (SST followed by Int16 2m air temperature)
   const totalFrames = grids.length + 1;
-  const combinedBin = new Uint8Array(totalFrames * FRAME_POINTS);
+  const sstBytes = totalFrames * FRAME_POINTS;
+  const airBytes = totalFrames * AIR_FRAME_POINTS * 2;
+  const combinedBin = new Uint8Array(sstBytes + airBytes);
   for (let f = 0; f < grids.length; f++) {
     combinedBin.set(grids[f], f * FRAME_POINTS);
   }
   combinedBin.set(forecastGrid, grids.length * FRAME_POINTS);
+
+  const combinedAir = new Int16Array(combinedBin.buffer, combinedBin.byteOffset + sstBytes, totalFrames * AIR_FRAME_POINTS);
+  for (let f = 0; f < airGrids.length; f++) {
+    combinedAir.set(airGrids[f], f * AIR_FRAME_POINTS);
+  }
+  combinedAir.set(forecastAirGrid, airGrids.length * AIR_FRAME_POINTS);
 
   const forecastDateObj = new Date(`${validDates[lastObservedIdx].iso}T12:00:00Z`);
   forecastDateObj.setUTCDate(forecastDateObj.getUTCDate() + 56);
@@ -542,6 +687,7 @@ async function main() {
     sstSourceUrl: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
     fetchedAt: new Date().toISOString(),
     grid: { step: 0.5, nLat: N_LAT, nLon: N_LON, lat0: -89.75, lon0: -179.75 },
+    airGrid: { step: AIR_STEP, nLat: AIR_N_LAT, nLon: AIR_N_LON, lat0: AIR_LAT0, lon0: AIR_LON0 },
     totalFrames,
     binFile: 'assets/data/timeline-sst.bin.gz',
     keyframes: keyframesMeta,
