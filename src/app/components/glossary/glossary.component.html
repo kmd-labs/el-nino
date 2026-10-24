@@ -30,7 +30,25 @@
           }
         </dl>
       </section>
-    } @empty {
+    }
+
+    @if (methodologyItems().length > 0) {
+      <section class="gl__methodology" aria-labelledby="gl-methodology-title">
+        <h3 class="gl__gtitle" id="gl-methodology-title">{{ t.methodology.title }}</h3>
+        <p class="gl__msubtitle">{{ t.methodology.subtitle }}</p>
+        <div class="gl__mlist">
+          @for (m of methodologyItems(); track m.label) {
+            <article class="gl__mitem">
+              <h4 class="gl__mlabel">{{ m.label }}</h4>
+              <span class="gl__marea">{{ m.area }}</span>
+              <p class="gl__mtext">{{ m.text }}</p>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (!hasResults()) {
       <p class="gl__empty">{{ t.glEmpty(query()) }}</p>
     }
 
@@ -49,6 +67,24 @@
           {{ t.built.teamLink }}
           <lucide-icon [img]="arrowIcon" [size]="12"></lucide-icon>
         </button>
+      </section>
+
+      <section class="gl__sources" aria-labelledby="gl-sources-title">
+        <h3 class="gl__gtitle" id="gl-sources-title">{{ t.sourcesTitle }}</h3>
+        <div class="gl__sources-list">
+          @for (s of t.sourcesList; track s.name) {
+            <article class="gl__source-card">
+              <div class="gl__source-header">
+                <a [href]="s.url" target="_blank" rel="noopener noreferrer" class="gl__source-link">
+                  <span>{{ s.name }}</span>
+                  <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
+                </a>
+                <span class="gl__source-license">{{ s.license }}</span>
+              </div>
+              <p class="gl__source-desc">{{ s.desc }}</p>
+            </article>
+          }
+        </div>
       </section>
     }
   </div>

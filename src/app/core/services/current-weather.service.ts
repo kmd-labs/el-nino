@@ -66,6 +66,11 @@ export interface KeyframePair {
   kfB: TimelineKeyframeMeta;
 }
 
+export interface PointSample {
+  waterTemp: number | null;
+  airTemp: number | null;
+}
+
 export interface WindSample {
   u: number;
   v: number;
@@ -361,6 +366,73 @@ export class CurrentWeatherService {
       }
     }
     return n > 0 ? sum / n : null;
+  }
+
+  samplePointAt(lon: number, lat: number, s: number): PointSample {
+    let waterTemp: number | null = null;
+    let airTemp: number | null = null;
+
+    // 1. Water SST from 0.5° keyframe grid
+    const pair = this.getKeyframePair(s);
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    if (pair && bin && g) {
+      const r = Math.max(0, Math.min(g.nLat - 1, Math.round((lat - g.lat0) / g.step)));
+      const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
+      const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
+      const i = r * g.nLon + c;
+      const offsetA = pair.indexA * this.FRAME_SIZE;
+      const offsetB = pair.indexB * this.FRAME_SIZE;
+      const va = bin[offsetA + i];
+      const vb = bin[offsetB + i];
+      if (va !== 255 && vb !== 255) {
+        waterTemp = (va + (vb - va) * pair.t) * 0.2 - 5.0;
+      }
+    }
+
+    // 2. Air temperature from 10° Open-Meteo snapshot + timeline offset
+    const cell = this.cell(lon, lat);
+    let baseAir: number | null = null;
+    if (cell && this.at.length > 0) {
+      const [a, b, cc, d, tx, ty] = cell;
+      const w00 = (1 - tx) * (1 - ty);
+      const w10 = tx * (1 - ty);
+      const w01 = (1 - tx) * ty;
+      const w11 = tx * ty;
+      const corners = [a, b, cc, d];
+      const weights = [w00, w10, w01, w11];
+      let sumAt = 0;
+      let sumW = 0;
+      for (let k = 0; k < 4; k++) {
+        const val = this.at[corners[k]];
+        if (Number.isFinite(val)) {
+          sumAt += val * weights[k];
+          sumW += weights[k];
+        }
+      }
+      if (sumW > 0) {
+        baseAir = sumAt / sumW;
+      }
+    }
+
+    const daily = this.dailyWeatherOn(s);
+    const live = this.liveConditions();
+    const dailyOffset = (daily?.airTemp != null && live?.airTemp != null)
+      ? daily.airTemp - live.airTemp
+      : (s - 1.4) * 0.4 * Math.exp(-(lat * lat) / 200);
+
+    if (baseAir != null) {
+      airTemp = baseAir + dailyOffset;
+    } else if (waterTemp != null) {
+      // Near sea-surface air temperature strongly coupled with water temp
+      airTemp = waterTemp - 0.8 + dailyOffset * 0.5;
+    } else {
+      // Climatological latitude-based fallback
+      const latRad = lat * DEG;
+      airTemp = 28 * Math.cos(latRad) - 12 * Math.sin(latRad) ** 2 + dailyOffset;
+    }
+
+    return { waterTemp, airTemp };
   }
 
   wind(lon: number, lat: number, s: number, out: WindSample): boolean {

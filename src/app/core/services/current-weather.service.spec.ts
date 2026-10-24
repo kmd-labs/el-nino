@@ -120,4 +120,31 @@ describe('CurrentWeatherService', () => {
     expect(service.isForecast(1.5)).toBeTrue();
     expect(service.isForecast(2.6)).toBeTrue();
   });
+
+  it('should sample point water and air temperatures correctly', () => {
+    service['meta'].set({
+      source: 'test',
+      sourceUrl: '',
+      sstSourceUrl: '',
+      fetchedAt: '',
+      grid: { step: 0.5, nLat: 360, nLon: 720, lat0: -89.75, lon0: -179.75 },
+      totalFrames: 2,
+      binFile: '',
+      keyframes: [
+        { index: 0, id: 'k0', date: '2024-11-06', s: -1.0, nino34: 0 },
+        { index: 1, id: 'k1', date: '2024-11-13', s: 1.0, nino34: 2 }
+      ]
+    });
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(165); // 165 -> 28 °C
+
+    const sample = service.samplePointAt(0, 0, 0);
+    expect(sample.waterTemp).toBeCloseTo(28, 1);
+    expect(sample.airTemp).toBeDefined();
+
+    // Over land/missing data
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(255);
+    const landSample = service.samplePointAt(0, 0, 0);
+    expect(landSample.waterTemp).toBeNull();
+    expect(landSample.airTemp).toBeDefined();
+  });
 });

@@ -35,7 +35,8 @@
             "scripts": [],
             "stylePreprocessorOptions": {
               "includePaths": ["src", "src/design-system"]
-            }
+            },
+            "allowedCommonJsDependencies": ["qrcode"]
           },
           "configurations": {
             "production": {
@@ -111,5 +112,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

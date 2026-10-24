@@ -25,9 +25,9 @@
   &__brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     height: 42px;
-    padding: 4px 14px;
+    padding: 4px 4px 4px 10px;
     border-radius: radius("pill");
   }
 
@@ -35,7 +35,7 @@
     display: inline-flex;
     align-items: center;
     padding: 4px;
-    margin: -4px;
+    margin: -4px 0 -4px -2px;
     border: 0;
     border-radius: radius("sm");
     background: none;
@@ -66,38 +66,48 @@
     flex: none;
   }
 
-  &__app-name {
-    margin: 0;
+  &__cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+    padding: 4px 8px;
+    border-radius: radius("pill");
+    border: 0;
+    background: none;
+    font: inherit;
     font-size: font-size("xs");
     font-weight: font-weight("medium");
-    color: color("text-dim");
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
+    color: color("text-bright");
+    cursor: pointer;
+    transition: background transition("fast"), opacity transition("fast");
 
-  &__settings {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px;
-    border-radius: radius("pill");
-  }
+    &:hover {
+      background: color("btn-hover");
+    }
 
-  &__cta {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px;
-    border-radius: radius("pill");
-    animation: panelSlideIn transition("slow") both;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
+    &:focus-visible {
+      outline: 2px solid color("accent");
+      outline-offset: 1px;
     }
   }
 
   &__cta-icon {
     display: inline-flex;
     color: color("accent");
+    flex: none;
+  }
+
+  &__cta-text {
+    white-space: nowrap;
+  }
+
+  &__settings {
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    padding: 4px;
+    border-radius: radius("pill");
   }
 
   &__loading {
@@ -117,13 +127,6 @@
     gap: 8px;
     pointer-events: auto;
     flex: none;
-  }
-
-  &__share {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px;
-    border-radius: radius("pill");
   }
 
   &__view {
@@ -158,44 +161,29 @@
     }
 
     &__brand {
-      padding: 4px 10px;
+      padding: 3px 3px 3px 8px;
       height: 38px;
+      gap: 6px;
     }
 
-    &__app-name {
+    &__cta-text {
       display: none;
     }
 
-    &__brand .header__divider {
-      display: none;
+    &__cta-btn {
+      padding: 4px;
+      height: 30px;
+      min-width: 30px;
+      justify-content: center;
     }
 
     &__settings {
-      padding: 3px;
-      height: 38px;
-      gap: 2px;
-    }
-
-    // no room in the top row next to the share and view pills: second row under the logo
-    &__cta {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
       padding: 3px;
       height: 38px;
     }
 
     &__right {
       gap: 6px;
-    }
-
-    &__share {
-      padding: 3px;
-      height: 38px;
-
-      ::ng-deep .dropdown__chevron {
-        display: none;
-      }
     }
 
     &__view {

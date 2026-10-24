@@ -139,25 +139,7 @@
     }
   }
 
-  &__sources {
-    font-size: font-size("xxs");
-    color: color("text-dim");
-    line-height: 1.45;
-    max-width: 270px;
-    white-space: normal;
 
-    a {
-      color: color("link-color");
-      text-decoration: none;
-      margin: 0 1px;
-      font-weight: font-weight("medium");
-      white-space: nowrap;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
 
   &__flow-desc {
     margin: 2px 0 0;

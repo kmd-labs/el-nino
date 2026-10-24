@@ -98,6 +98,63 @@
     }
   }
 
+  &__methodology {
+    padding: 14px 16px;
+    border-radius: radius("card");
+    background: color("btn-bg");
+    border: 1px solid color("line");
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__msubtitle {
+    margin: -2px 0 6px;
+    font-size: font-size("xs");
+    color: color("text-dim");
+  }
+
+  &__mlist {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__mitem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid color("line");
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+
+  &__mlabel {
+    margin: 0;
+    font-size: font-size("sm");
+    font-weight: font-weight("semibold");
+    color: color("text-bright");
+  }
+
+  &__marea {
+    font-size: font-size("xxs");
+    color: color("accent");
+    font-family: var(--font-family-mono);
+    font-weight: font-weight("medium");
+    margin-bottom: 2px;
+  }
+
+  &__mtext {
+    margin: 0;
+    font-size: font-size("xs");
+    line-height: 1.55;
+    color: color("text-desc");
+  }
+
   // "How we built it": a compact case study under the terms
   &__built {
     padding: 12px 14px;
@@ -162,6 +219,69 @@
     lucide-icon {
       display: inline-flex;
     }
+  }
+
+  &__sources {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid color("line");
+  }
+
+  &__sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__source-card {
+    padding: 10px 12px;
+    border: 1px solid color("line");
+    border-radius: radius("sm");
+    background: color("btn-bg");
+  }
+
+  &__source-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  &__source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    color: color("accent");
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    lucide-icon {
+      display: inline-flex;
+    }
+  }
+
+  &__source-license {
+    font-size: font-size("xxs");
+    font-family: var(--font-family-mono);
+    color: color("text-dim");
+    padding: 2px 6px;
+    border-radius: radius("sm");
+    background: color("line");
+    white-space: nowrap;
+  }
+
+  &__source-desc {
+    margin: 0;
+    font-size: font-size("xs");
+    color: color("text-desc");
+    line-height: 1.45;
   }
 
   &__empty {

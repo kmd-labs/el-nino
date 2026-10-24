@@ -2,6 +2,7 @@ import { Dict } from './i18n.types';
 
 export const EN: Dict = {
   htmlLang: 'en',
+  locale: 'en-US',
   docTitle: 'El Niño 2026 in 3D - Interactive Visualization | KMD Labs',
   metaDescription: 'Explore El Niño and La Niña on an interactive 3D globe: real NOAA sea temperatures, winds, the Walker circulation and impacts worldwide.',
   langName: 'English',
@@ -19,6 +20,12 @@ export const EN: Dict = {
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',
   changeLanguage: 'Language',
+  settingsTitle: 'Settings',
+  settingsSubtitle: 'Language & units',
+  settingsAria: 'Settings',
+  temperatureUnit: 'Temperature unit',
+  unitCelsius: 'Celsius (°C)',
+  unitFahrenheit: 'Fahrenheit (°F)',
 
   ensoLabel: 'ENSO phase',
   strengthAria: 'ENSO strength',
@@ -47,6 +54,11 @@ export const EN: Dict = {
 
   chooseView: 'View',
   shareLink: 'Share a link',
+  shareTitle: 'Share',
+  shareSubtitle: 'Link to app, specific date, ENSO state or scan QR code',
+  shareAppUrl: 'App link',
+  shareQrCode: 'Scan QR code to open on mobile',
+  copyLink: 'Copy',
   shareDate: 'Link to this date',
   shareState: 'Link to this ENSO state',
   linkCopied: 'Link copied',
@@ -64,6 +76,7 @@ export const EN: Dict = {
   airTempTitle: 'Daily 2 m air temperature for the selected date, averaged over the tropics.',
   windSpeedTitle: 'Daily 10 m wind speed for the selected date, averaged over the tropics.',
   timelineNow: 'Now',
+  live: 'Live',
   timelineForecast: 'Forecast',
   currentLive: 'Live',
   currentAt: time => `as of ${time} UTC`,
@@ -248,15 +261,77 @@ export const EN: Dict = {
     }
   ],
 
+  methodology: {
+    title: 'Data & Methodology',
+    subtitle: 'How temperatures, anomalies and geographic areas are measured',
+    items: [
+      {
+        label: 'Niño 3.4 Temperature Anomaly',
+        area: 'Niño 3.4 Box (5°S–5°N, 170°W–120°W) · ~6.2 million km²',
+        text: 'The primary index of El Niño strength. Calculated as the average departure of sea-surface temperature from the 30-year climatological normal (1971–2000) across all ocean cells in the box. Anomalies above +0.5 °C denote El Niño, above +2.0 °C Super El Niño, and below −0.5 °C La Niña.'
+      },
+      {
+        label: 'Water Temperature (SST)',
+        area: 'Global Ocean (89.75°S–89.75°N, 179.75°W–179.75°E) · 0.5° × 0.5° grid (~3,080 km² per equatorial cell)',
+        text: 'Produced from NOAA OISST v2.1 combining daily satellite radiometer data, drifting buoys, and ships with 2-pass coastal dilation. Each point on the globe samples the exact local 0.5° cell interpolated along the timeline date.'
+      },
+      {
+        label: 'Air Temperature (2 m)',
+        area: 'Global Tropics & Continents · 10° × 10° grid from Open-Meteo & ECMWF models',
+        text: 'Modeled near-surface air temperature at 2 meters altitude. Local values are bilinearly interpolated across grid nodes and synchronized with the timeline date and regional sea-surface coupling.'
+      },
+      {
+        label: 'Display Interpolation & Gaussian Smoothing',
+        area: 'Visual Globe Surface Shader & Texture Pipeline',
+        text: 'To present discrete numerical weather grid data as a natural continuous field, the display layer applies a Gaussian blur filter that smoothly interpolates temperature transitions and eliminates step artifacts.'
+      }
+    ]
+  },
+
   built: {
     title: 'How we built it',
     rows: [
       { label: 'Technology', text: 'Angular and Three.js (WebGL globe) with a canvas cross-section. No backend: a static site on GitHub Pages, with data refreshed daily by GitHub Actions.' },
       { label: 'Data', text: 'NOAA OISST sea temperatures, Open-Meteo weather, the NOAA CPC ENSO outlook, rainfall impacts from WMO, EU JRC and JMA, and historical events with their sources linked in the app.' },
+      { label: 'Visual interpolation', text: 'A Gaussian blur filter is applied to the visual display to smoothly interpolate and shade the discrete meteorological grid data across the globe surface.' },
       { label: 'Build time', text: 'About two weeks, by a team of three.' }
     ],
     teamLink: 'Meet the team'
   },
+
+  sourcesTitle: 'Data Sources & Licences',
+  sourcesList: [
+    {
+      name: 'NOAA OISST v2.1',
+      url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
+      license: 'Public Domain (US Gov)',
+      desc: 'High-resolution daily sea surface temperature analysis (0.5° grid) produced from infrared/microwave satellite radiometers, drifting buoys, and research vessels.'
+    },
+    {
+      name: 'Open-Meteo',
+      url: 'https://open-meteo.com/',
+      license: 'CC BY 4.0',
+      desc: 'Global weather reanalysis and forecast models (ECMWF, DWD, NOAA), providing 2 m air temperature, 10 m surface wind velocity, and ocean waves.'
+    },
+    {
+      name: 'NOAA CPC ENSO Diagnostics',
+      url: 'https://www.cpc.ncep.noaa.gov/',
+      license: 'Public Domain (US Gov)',
+      desc: 'Climate Prediction Center Niño 3.4 baseline SST anomalies, official monthly diagnostic discussions, and probabilistic ENSO outlook models.'
+    },
+    {
+      name: 'WMO · EU JRC · JMA Tokyo Climate Center',
+      url: 'https://wmo.int/',
+      license: 'Open Access',
+      desc: 'Global precipitation anomaly maps, seasonal monsoon shifts, and regional rainfall pattern classifications during El Niño and La Niña.'
+    },
+    {
+      name: 'Disaster Records & Historical Impact Data',
+      url: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation',
+      license: 'Open / CC BY-SA 4.0',
+      desc: 'Curated socio-economic impact figures, flood and drought records sourced directly from CDC MMWR, FAO GIEWS, FEMA, UNDRR, and UN OCHA ReliefWeb.'
+    }
+  ],
 
   regions: [
     { name: 'Indonesia and the Philippines', season: 'Jun–Feb' },
@@ -428,5 +503,14 @@ export const EN: Dict = {
     tex: 'Drovers (Texas AgriLife Extension) – March 2012',
     bgd: 'ReliefWeb – UNDRO situation reports, 1988 floods',
     moz: 'Wikipedia – 2000 Mozambique flood'
-  }
+  },
+
+  inspectCoords: (lat: number, lon: number) => {
+    const ns = lat >= 0 ? `${lat.toFixed(1)}°N` : `${Math.abs(lat).toFixed(1)}°S`;
+    const ew = lon >= 0 ? `${lon.toFixed(1)}°E` : `${Math.abs(lon).toFixed(1)}°W`;
+    return `${ns}, ${ew}`;
+  },
+  inspectWater: 'Water',
+  inspectAir: 'Air',
+  inspectNoWater: '-'
 };

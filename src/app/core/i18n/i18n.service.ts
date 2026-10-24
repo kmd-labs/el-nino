@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
-import { Dict, Lang } from './i18n.types';
+import { Dict, Lang, TempUnit } from './i18n.types';
 import { PL } from './pl';
 import { EN } from './en';
 import { ES } from './es';
@@ -8,18 +8,22 @@ import { ImpactLocation, ImpactLocationMeta } from '../models/enso.model';
 
 const DICTS: Record<Lang, Dict> = { en: EN, pl: PL, es: ES };
 const STORAGE_KEY = 'el-nino.lang';
+const TEMP_UNIT_KEY = 'el-nino.temp-unit';
+const TEMP_UNIT_MANUAL_KEY = 'el-nino.temp-unit.manual';
 
 /**
- * Manages UI language and localized texts.
+ * Manages UI language, localized texts, and temperature units.
  * Initializes from localStorage or Navigator API (falling back to 'en' if not 'en' | 'pl' | 'es'),
- * and persists language selection to localStorage.
+ * and persists settings to localStorage.
  */
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   readonly dicts = DICTS;
   readonly langs: Lang[] = ['en', 'pl', 'es'];
 
-  readonly lang = signal<Lang>(this.resolveInitialLang());
+  private readonly initialLang = this.resolveInitialLang();
+  readonly lang = signal<Lang>(this.initialLang);
+  readonly tempUnit = signal<TempUnit>(this.resolveInitialTempUnit(this.initialLang));
   readonly t = computed(() => DICTS[this.lang()]);
 
   constructor() {
@@ -36,6 +40,47 @@ export class I18nService {
 
   setLang(lang: Lang) {
     this.lang.set(lang);
+    if (!this.hasManualTempUnit()) {
+      const autoUnit: TempUnit = lang === 'en' ? 'F' : 'C';
+      this.tempUnit.set(autoUnit);
+      this.persistTempUnit(autoUnit, false);
+    }
+  }
+
+  setTempUnit(unit: TempUnit) {
+    this.tempUnit.set(unit);
+    this.persistTempUnit(unit, true);
+  }
+
+  private hasManualTempUnit(): boolean {
+    try {
+      return localStorage.getItem(TEMP_UNIT_MANUAL_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private resolveInitialTempUnit(initialLang: Lang): TempUnit {
+    try {
+      const stored = localStorage.getItem(TEMP_UNIT_KEY);
+      if (stored === 'C' || stored === 'F') {
+        return stored;
+      }
+    } catch {
+      // localStorage unavailable
+    }
+    return initialLang === 'en' ? 'F' : 'C';
+  }
+
+  private persistTempUnit(unit: TempUnit, manual: boolean) {
+    try {
+      localStorage.setItem(TEMP_UNIT_KEY, unit);
+      if (manual) {
+        localStorage.setItem(TEMP_UNIT_MANUAL_KEY, 'true');
+      }
+    } catch {
+      // localStorage unavailable
+    }
   }
 
   /** Resolves an EVENTS_META entry (or ImpactLocation) with texts in the active language. */

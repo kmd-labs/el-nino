@@ -6,6 +6,8 @@ import { Lang } from '../i18n/i18n.types';
 import { CurrentWeatherService } from './current-weather.service';
 import { EnsoStateService } from './enso-state.service';
 
+export const APP_CANONICAL_URL = 'https://kmd-labs.github.io/el-nino/';
+
 /** `date` pins a day of the data, `state` pins an ENSO strength (preset or slider position). */
 export type ShareMode = 'date' | 'state';
 
@@ -65,7 +67,7 @@ export class ShareLinkService {
 
   /** Link to the current view plus either the shown day or the ENSO state. */
   buildUrl(mode: ShareMode): string {
-    const url = new URL(location.href);
+    const url = new URL(APP_CANONICAL_URL);
     url.search = '';
     url.hash = '';
     const params = url.searchParams;

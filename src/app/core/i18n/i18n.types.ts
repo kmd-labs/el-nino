@@ -1,6 +1,7 @@
 import { EnsoPhase } from '../models/enso.model';
 
 export type Lang = 'en' | 'pl' | 'es';
+export type TempUnit = 'C' | 'F';
 
 export interface GlossaryTerm {
   term: string;
@@ -76,9 +77,29 @@ export interface BuiltText {
   teamLink: string;
 }
 
+export interface MethodologyItem {
+  label: string;
+  area: string;
+  text: string;
+}
+
+export interface SourceItem {
+  name: string;
+  url: string;
+  license: string;
+  desc: string;
+}
+
+export interface MethodologyText {
+  title: string;
+  subtitle: string;
+  items: MethodologyItem[];
+}
+
 /** Every user-facing text of the app in one language. */
 export interface Dict {
   htmlLang: string;
+  locale: string;
   docTitle: string;
   metaDescription: string;
   langName: string;
@@ -92,6 +113,12 @@ export interface Dict {
   loadingMap: string;
   mapError: string;
   changeLanguage: string;
+  settingsTitle: string;
+  settingsSubtitle: string;
+  settingsAria: string;
+  temperatureUnit: string;
+  unitCelsius: string;
+  unitFahrenheit: string;
 
   // ENSO state & dock controls
   ensoLabel: string;
@@ -122,6 +149,11 @@ export interface Dict {
   // view dock
   chooseView: string;
   shareLink: string;
+  shareTitle: string;
+  shareSubtitle: string;
+  shareAppUrl: string;
+  shareQrCode: string;
+  copyLink: string;
   shareDate: string;
   shareState: string;
   linkCopied: string;
@@ -139,6 +171,7 @@ export interface Dict {
   airTempTitle: string;
   windSpeedTitle: string;
   timelineNow: string;
+  live: string;
   timelineForecast: string;
   /** current-situation view: live-data badge */
   currentLive: string;
@@ -229,7 +262,16 @@ export interface Dict {
   /** suffix after "Wikipedia" when the linked article is in another language */
   wikiIn: Record<Lang, string>;
   glossary: GlossaryGroup[];
+  methodology: MethodologyText;
   built: BuiltText;
+  sourcesTitle: string;
+  sourcesList: SourceItem[];
+
+  // globe inspection tooltip
+  inspectCoords: (lat: number, lon: number) => string;
+  inspectWater: string;
+  inspectAir: string;
+  inspectNoWater: string;
 
   // impacts view data (same order as RAIN_REGIONS / IMPACT_SOURCES)
   regions: { name: string; season: string }[];

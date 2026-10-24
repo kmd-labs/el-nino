@@ -28,7 +28,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
-import { WeatherValuePipe } from '../../core/pipes/weather-value.pipe';
+import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
+import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 
 export interface DateMarker {
   id: string;
@@ -42,7 +43,15 @@ export interface DateMarker {
 @Component({
   selector: 'app-map-dock',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, DropdownComponent, TimelineSliderComponent, LegendPanelComponent, LucideAngularModule, TooltipDirective, WeatherValuePipe],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    DropdownComponent,
+    TimelineSliderComponent,
+    LegendPanelComponent,
+    LucideAngularModule
+  ],
+  providers: [LocaleTempPipe, LocaleDatePipe],
   templateUrl: './map-dock.component.html',
   styleUrl: './map-dock.component.scss'
 })
@@ -50,6 +59,8 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
+  private localeTemp = inject(LocaleTempPipe);
+  private localeDate = inject(LocaleDatePipe);
 
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
@@ -69,14 +80,26 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   private resizeObs: ResizeObserver | null = null;
 
   readonly formattedNino = computed(() => {
-    const n = this.state.nino34Value();
-    return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)} °C`;
+    return this.localeTemp.transform(this.state.nino34Value(), 'delta');
   });
 
-  /** Interpolated date badge, e.g. "Oct 2026 · Now" or "Jan 2025" */
+  /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */
   readonly activeDateLabel = computed(() => {
-    const t = this.i18n.t();
-    return this.weather.interpolatedDateLabel(this.state.sCur(), t.htmlLang, t.timelineNow, t.timelineForecast);
+    const s = this.state.sCur();
+    const ms = this.weather.interpolatedDateMs(s);
+    if (ms == null) return '';
+    return this.localeDate.transform(ms, 'full');
+  });
+
+  /** Whether the timeline is currently at the live / current keyframe */
+  readonly isNow = computed(() => {
+    const s = this.state.sCur();
+    const nowKf = this.weather.meta()?.keyframes.find(k => k.now);
+    const ms = this.weather.interpolatedDateMs(s);
+    if (nowKf && ms != null) {
+      return new Date(ms).toISOString().slice(0, 10) === nowKf.date;
+    }
+    return Math.abs(s - 1.4) < 0.05;
   });
 
   readonly activeSst = computed(() => this.weather.nino34Sst(this.state.sCur()));
@@ -124,17 +147,16 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
     return milestones.map(p => {
       const d = new Date(`${p.dateIso}T12:00:00Z`);
-      const monthStr = new Intl.DateTimeFormat(lang, { month: 'short', timeZone: 'UTC' }).format(d);
-      const yearStr = d.getUTCFullYear();
+      const label = this.localeDate.transform(d, 'monthYear');
       let subLabel: string | undefined;
-      if (p.now) subLabel = t.timelineNow;
+      if (p.now) subLabel = t.live.toUpperCase();
       if (p.forecast) subLabel = t.timelineForecast;
       const active = Math.abs(sCur - p.value) < 0.22;
 
       return {
         id: p.id,
         value: p.value,
-        label: `${monthStr} ${yearStr}`,
+        label,
         subLabel,
         hot: p.hot,
         active

@@ -14,6 +14,7 @@ import {
   HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as d3Geo from 'd3-geo';
@@ -32,6 +33,7 @@ import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { CurrentWeatherLayer } from './current-weather.layer';
+import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 
 interface PinItem {
   loc: ImpactLocationMeta;
@@ -65,6 +67,7 @@ interface CloudPuff {
   selector: 'app-globe',
   standalone: true,
   imports: [CommonModule],
+  providers: [LocaleTempPipe],
   templateUrl: './globe.component.html',
   styleUrl: './globe.component.scss',
   host: { '[class.is-hidden]': 'state.crossSectionView()' }
@@ -85,11 +88,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private theme = inject(ThemeService);
   private popup = inject(PopupService);
   private tooltip = inject(TooltipService);
+  private localeTemp = inject(LocaleTempPipe);
+  private sanitizer = inject(DomSanitizer);
 
-  /** DMI formatted like the Niño 3.4 readout, e.g. "+0.6 °C". */
+  /** DMI formatted like the Niño 3.4 readout, e.g. "+0.6 °C" or "+1.1 °F". */
   readonly formattedDmi = computed(() => {
-    const v = this.state.dmiValue();
-    return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} °C`;
+    return this.localeTemp.transform(this.state.dmiValue(), 'delta');
   });
   private math = inject(EnsoMathService);
   private weather = inject(CurrentWeatherService);
@@ -100,6 +104,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private controls!: OrbitControls;
   private glowMat?: THREE.ShaderMaterial;
   private globeMat?: THREE.MeshBasicMaterial;
+  private globeMesh?: THREE.Mesh;
+  private inspectPin?: THREE.Sprite;
+  private readonly raycaster = new THREE.Raycaster();
+  readonly inspectedPoint = signal<{ lon: number; lat: number; p: THREE.Vector3 } | null>(null);
   private landMat?: THREE.MeshLambertMaterial;
   private hemiLight?: THREE.HemisphereLight;
   private loadedLandFeature: any = null;
@@ -107,7 +115,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private landBoxes = true;
   private maskBuiltFor: any = null;
   private animId: number | null = null;
-  private clock = new THREE.Clock();
+  private timer = new THREE.Timer();
 
   // SST texture
   private readonly GW = 720;
@@ -273,6 +281,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private downXY: [number, number] | null = null;
 
   private readonly camDir = new THREE.Vector3();
+  private readonly mouseVec = new THREE.Vector2();
   private readonly v3 = new THREE.Vector3();
   private readonly pv = new THREE.Vector3();
   private readonly fv = new THREE.Vector3();
@@ -297,6 +306,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.initAtmosphere();
       this.initCurrentLayer();
       this.initPins();
+      this.initInspectPin();
       this.initImpacts();
       this.applyThemeVisuals();
       this.handleResize();
@@ -517,11 +527,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         `
       );
     };
-    const globeMesh = new THREE.Mesh(
+    this.globeMesh = new THREE.Mesh(
       new THREE.SphereGeometry(this.math.R, 128, 64),
       this.globeMat
     );
-    this.scene.add(globeMesh);
+    this.scene.add(this.globeMesh);
   }
 
   private recolorTexture(s: number, dim = false) {
@@ -944,6 +954,132 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         a: 0,
         phases: new Set<EnsoPhase>(loc.ev.map(e => e.ph))
       };
+    });
+  }
+
+  private initInspectPin() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d')!;
+    ctx.translate(64, 64);
+    // Outer semi-transparent glow ring
+    ctx.strokeStyle = 'rgba(211, 116, 0, 0.45)';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.arc(0, 0, 52, 0, Math.PI * 2);
+    ctx.stroke();
+    // Dark outer border
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.arc(0, 0, 40, 0, Math.PI * 2);
+    ctx.stroke();
+    // Bright accent border
+    ctx.strokeStyle = '#d37400';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 40, 0, Math.PI * 2);
+    ctx.stroke();
+    // Inner white circle
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.fill();
+    // Center accent dot
+    ctx.fillStyle = '#d37400';
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.fill();
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    this.inspectPin = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false
+      })
+    );
+    this.inspectPin.renderOrder = 20;
+    this.inspectPin.scale.setScalar(0.48);
+    this.inspectPin.visible = false;
+    this.scene.add(this.inspectPin);
+  }
+
+  setInspectedPoint(lon: number, lat: number) {
+    const p = this.math.pos(lon, lat, this.math.R * 1.014);
+    if (this.inspectPin) {
+      this.inspectPin.position.copy(p);
+      this.inspectPin.visible = true;
+    }
+    this.inspectedPoint.set({ lon, lat, p });
+    this.updateInspectTooltip();
+  }
+
+  clearInspectedPoint() {
+    if (this.inspectPin) {
+      this.inspectPin.visible = false;
+    }
+    this.inspectedPoint.set(null);
+    this.tooltip.hide();
+  }
+
+  updateInspectTooltip() {
+    const pt = this.inspectedPoint();
+    if (!pt) return;
+    const facing = this.facingOf(pt.p);
+    if (facing < 0.08) {
+      this.tooltip.hide();
+      if (this.inspectPin) this.inspectPin.visible = false;
+      return;
+    }
+    if (this.inspectPin) this.inspectPin.visible = true;
+
+    const [sx, sy] = this.screenOf(pt.p);
+    const t = this.i18n.t();
+    const sample = this.weather.samplePointAt(pt.lon, pt.lat, this.state.sCur());
+    const waterStr = sample.waterTemp != null
+      ? this.localeTemp.transform(sample.waterTemp, 'temp')
+      : (t.inspectNoWater || '-');
+    const airStr = this.localeTemp.transform(sample.airTemp, 'temp');
+    const coordsStr = t.inspectCoords(pt.lat, pt.lon);
+    const text = `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
+
+    const waterIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--water"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>`;
+    const airIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--air"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
+
+    const htmlString = `
+      <div class="globe-tooltip-col">
+        <div class="globe-tooltip-col__header">
+          <span class="globe-tooltip-col__coords">${coordsStr}</span>
+        </div>
+        <div class="globe-tooltip-col__divider"></div>
+        <div class="globe-tooltip-col__rows">
+          <div class="globe-tooltip-col__row">
+            <div class="globe-tooltip-col__label-group">
+              ${waterIconSvg}
+              <span class="globe-tooltip-col__label">${t.inspectWater}</span>
+            </div>
+            <span class="globe-tooltip-col__val">${waterStr}</span>
+          </div>
+          <div class="globe-tooltip-col__row">
+            <div class="globe-tooltip-col__label-group">
+              ${airIconSvg}
+              <span class="globe-tooltip-col__label">${t.inspectAir}</span>
+            </div>
+            <span class="globe-tooltip-col__val">${airStr}</span>
+          </div>
+        </div>
+      </div>
+    `.trim();
+
+    const safeHtml = this.sanitizer.bypassSecurityTrustHtml(htmlString);
+    this.showPinTooltip(text, sx, sy, undefined, {
+      html: safeHtml,
+      interactive: true,
+      closable: true,
+      onClose: () => this.clearInspectedPoint()
     });
   }
 
@@ -1383,14 +1519,20 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private showPinTooltip(name: string, sx: number, sy: number, duration?: number) {
-    const halfW = Math.min(130, (window.innerWidth - 32) / 2);
+  private showPinTooltip(
+    name: string,
+    sx: number,
+    sy: number,
+    duration?: number,
+    options?: { html?: SafeHtml | string; noWrap?: boolean; interactive?: boolean; closable?: boolean; onClose?: () => void }
+  ) {
+    const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (window.innerWidth - 32) / 2);
     const safeX = Math.max(halfW + 12, Math.min(window.innerWidth - halfW - 12, sx));
-    const placement = sy < 110 ? 'bottom' : 'top';
+    const placement = sy < 120 ? 'bottom' : 'top';
     const safeY = placement === 'bottom'
       ? Math.max(68, sy + 18)
       : Math.min(window.innerHeight - 130, sy - 16);
-    this.tooltip.show(name, safeX, safeY, placement, duration);
+    this.tooltip.show(name, safeX, safeY, placement, duration, options);
   }
 
   onPointerDown(e: PointerEvent) {
@@ -1429,6 +1571,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const pn = this.pickPin(e.clientX, e.clientY, e.pointerType === 'touch' ? 34 : 22);
     this.ngZone.run(() => {
       if (pn) {
+        this.clearInspectedPoint();
         this.tooltip.hide();
         const loc = pn.loc;
         this.state.selectLocation(loc);
@@ -1449,6 +1592,26 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
             this.scheduleRotateResume(5000);
           }
         });
+        return;
+      }
+
+      // Check if user clicked on the globe surface to inspect point temperatures
+      const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+      const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      this.mouseVec.set(ndcX, ndcY);
+      this.raycaster.setFromCamera(this.mouseVec, this.camera);
+      const hits = this.globeMesh ? this.raycaster.intersectObject(this.globeMesh) : [];
+      if (hits.length > 0) {
+        const p = hits[0].point;
+        const R = this.math.R;
+        const lat = Math.asin(this.math.clamp(p.y / R, -1, 1)) / this.math.DEG;
+        let phi = Math.atan2(p.z, -p.x);
+        if (phi < 0) phi += Math.PI * 2;
+        const lon = (phi / (Math.PI * 2)) * 360 - 180;
+        this.setInspectedPoint(lon, lat);
+      } else {
+        this.clearInspectedPoint();
       }
     });
   }
@@ -1465,10 +1628,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
     this.hoverPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
     const canvas = this.canvasRef.nativeElement;
-    canvas.style.cursor = this.hoverPin ? 'pointer' : '';
+    canvas.style.cursor = (this.hoverPin || this.inspectedPoint()) ? 'pointer' : '';
 
     if (this.hoverPin) {
       this.showPinTooltip(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY);
+    } else if (this.inspectedPoint()) {
+      // Keep inspection tooltip active at the pinned coordinates
     } else {
       this.tooltip.hide();
     }
@@ -1477,7 +1642,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   onPointerLeave() {
     this.clearPinHoldTimer();
     this.hoverPin = null;
-    this.tooltip.hide();
+    if (!this.inspectedPoint()) {
+      this.tooltip.hide();
+    }
   }
 
   @HostListener('window:resize')
@@ -1507,8 +1674,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private animate = () => {
     this.animId = requestAnimationFrame(this.animate);
 
-    const dt = Math.min(this.clock.getDelta(), 0.05);
-    const t = this.clock.elapsedTime;
+    this.timer.update();
+    const dt = Math.min(this.timer.getDelta(), 0.05);
+    const t = this.timer.getElapsed();
 
     this.state.updateCycle(dt);
     this.state.updateInterpolatedStrength(dt);
@@ -1564,6 +1732,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.updateLabels(s);
     this.updateImpacts(s, dt);
     this.layoutLabels();
+
+    if (this.inspectedPoint()) {
+      this.updateInspectTooltip();
+    }
 
     this.renderer.render(this.scene, this.camera);
 

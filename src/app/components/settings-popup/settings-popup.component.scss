@@ -1,0 +1,90 @@
+@use "variables" as *;
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__label {
+    margin: 0;
+    font-size: font-size("xxs");
+    font-weight: font-weight("bold");
+    color: color("accent");
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  &__group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__option {
+    flex: 1;
+    min-width: 100px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: radius("control");
+    border: 1px solid color("line");
+    background: color("btn-bg");
+    color: color("text-main");
+    cursor: pointer;
+    font: inherit;
+    font-size: font-size("xs");
+    font-weight: font-weight("medium");
+    transition: background transition("fast"), border-color transition("fast"), color transition("fast");
+
+    &:hover {
+      background: color("btn-hover");
+      border-color: color("line-strong");
+      color: color("text-bright");
+    }
+
+    &:focus-visible {
+      outline: 2px solid color("btn-active-blue-border");
+      outline-offset: 1px;
+    }
+
+    &--active {
+      background: color("btn-active-blue");
+      border-color: color("btn-active-blue-border");
+      color: color("btn-active-blue-border");
+      font-weight: font-weight("semibold");
+
+      .settings__badge {
+        background: color("btn-active-blue-border");
+        color: #ffffff;
+      }
+    }
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 5px;
+    border-radius: radius("sm");
+    background: color("line");
+    color: color("text-dim");
+    font-size: 10px;
+    font-family: var(--font-family-mono);
+    font-weight: font-weight("bold");
+    line-height: 1;
+    transition: background transition("fast"), color transition("fast");
+  }
+
+  &__name {
+    white-space: nowrap;
+  }
+}

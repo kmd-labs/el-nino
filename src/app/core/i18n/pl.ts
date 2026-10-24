@@ -2,6 +2,7 @@ import { Dict } from './i18n.types';
 
 export const PL: Dict = {
   htmlLang: 'pl',
+  locale: 'pl-PL',
   docTitle: 'El Niño 2026 w 3D - interaktywna wizualizacja | KMD Labs',
   metaDescription: 'Odkryj El Niño i La Niña na interaktywnym globie 3D: prawdziwe temperatury oceanu z NOAA, wiatry, cyrkulacja Walkera i skutki na całym świecie.',
   langName: 'Polski',
@@ -19,6 +20,12 @@ export const PL: Dict = {
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
   changeLanguage: 'Język',
+  settingsTitle: 'Ustawienia',
+  settingsSubtitle: 'Język i jednostki',
+  settingsAria: 'Ustawienia',
+  temperatureUnit: 'Jednostka temperatury',
+  unitCelsius: 'Celsjusz (°C)',
+  unitFahrenheit: 'Fahrenheit (°F)',
 
   ensoLabel: 'Faza ENSO',
   strengthAria: 'Siła ENSO',
@@ -47,6 +54,11 @@ export const PL: Dict = {
 
   chooseView: 'Widok',
   shareLink: 'Udostępnij link',
+  shareTitle: 'Udostępnij',
+  shareSubtitle: 'Link do aplikacji, konkretnej daty, stanu ENSO lub kod QR',
+  shareAppUrl: 'Link do aplikacji',
+  shareQrCode: 'Zeskanuj kod QR, aby otworzyć na telefonie',
+  copyLink: 'Kopiuj',
   shareDate: 'Link do tego dnia',
   shareState: 'Link do tego stanu ENSO',
   linkCopied: 'Skopiowano link',
@@ -64,6 +76,7 @@ export const PL: Dict = {
   airTempTitle: 'Średnia dobowa temperatura powietrza na 2 m dla wybranej daty, uśredniona dla tropików.',
   windSpeedTitle: 'Średnia dobowa prędkość wiatru na 10 m dla wybranej daty, uśredniona dla tropików.',
   timelineNow: 'Teraz',
+  live: 'Na żywo',
   timelineForecast: 'Prognoza',
   currentLive: 'Na żywo',
   currentAt: time => `stan na ${time} UTC`,
@@ -248,15 +261,77 @@ export const PL: Dict = {
     }
   ],
 
+  methodology: {
+    title: 'Dane i metodologia',
+    subtitle: 'Jak mierzone są temperatury, anomalia oraz brane pod uwagę obszary',
+    items: [
+      {
+        label: 'Anomalia temperatury Niño 3.4',
+        area: 'Obszar Niño 3.4 (5°S–5°N, 170°W–120°W) · ~6,2 mln km²',
+        text: 'Podstawowy wskaźnik siły El Niño. Obliczany jako średnie odchylenie temperatury powierzchni oceanu od normy wieloletniej (1971–2000) dla wszystkich komórek oceanicznych w prostokącie. Wartości powyżej +0,5 °C oznaczają El Niño, powyżej +2,0 °C Super El Niño, a poniżej −0,5 °C La Niña.'
+      },
+      {
+        label: 'Temperatura wody (SST)',
+        area: 'Globalny ocean (89,75°S–89,75°N, 179,75°W–179,75°E) · siatka 0,5° × 0,5° (~3080 km² na równiku)',
+        text: 'Generowana na podstawie analizy NOAA OISST v2.1 łączącej codzienne pomiary satelitarne, boje i statki z 2-krotną dylatacją brzegową. Każdy punkt na globie próbkuje dokładnie lokalną komórkę 0,5° interpolowaną wzdłuż wybranej daty osi czasu.'
+      },
+      {
+        label: 'Temperatura powietrza (2 m)',
+        area: 'Strefa tropikalna i lądy · siatka 10° × 10° z modeli Open-Meteo i ECMWF',
+        text: 'Modelowana temperatura powietrza na wysokości 2 metrów nad gruntem. Wartości lokalne są biliniowo interpolowane z węzłów siatki i zsynchronizowane z wybraną datą na osi czasu oraz lokalnym sprzężeniem oceanicznym.'
+      },
+      {
+        label: 'Interpolacja i rozmycie Gaussa',
+        area: 'Warstwa wizualna i cieniowanie powierzchni globusa',
+        text: 'Aby zaprezentować dyskretne węzły siatek pogodowych jako ciągłe zjawisko fizyczne, w warstwie wyświetlania zastosowano filtr rozmycia Gaussa, który płynnie interpoluje przejścia temperatur i usuwa artefakty schodkowania.'
+      }
+    ]
+  },
+
   built: {
     title: 'Jak to zrobiliśmy',
     rows: [
       { label: 'Technologia', text: 'Angular i Three.js (globus w WebGL) oraz przekrój rysowany na canvasie. Bez backendu: statyczna strona na GitHub Pages, dane odświeżane codziennie przez GitHub Actions.' },
       { label: 'Dane', text: 'Temperatura oceanu NOAA OISST, pogoda z Open-Meteo, prognoza ENSO NOAA CPC, wpływ na opady według WMO, JRC (KE) i JMA oraz historyczne zdarzenia ze źródłami podlinkowanymi w aplikacji.' },
+      { label: 'Wizualna interpolacja', text: 'W warstwie wyświetlania zastosowano filtr rozmycia Gaussa (Gaussian blur), aby płynnie interpolować i cieniować dyskretne dane siatek pogodowych na powierzchni globusa.' },
       { label: 'Czas powstania', text: 'Około dwóch tygodni, w trzyosobowym zespole.' }
     ],
     teamLink: 'Poznaj zespół'
   },
+
+  sourcesTitle: 'Źródła danych i licencje',
+  sourcesList: [
+    {
+      name: 'NOAA OISST v2.1',
+      url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
+      license: 'Domena publiczna (US Gov)',
+      desc: 'Dobowa siatka 0,5° temperatury powierzchni oceanu opracowywana na podstawie radiometrów satelitarnych, boi dryfujących i statków badawczych.'
+    },
+    {
+      name: 'Open-Meteo',
+      url: 'https://open-meteo.com/',
+      license: 'CC BY 4.0',
+      desc: 'Globalne modele prognoz i reanaliz meteorologicznych (ECMWF, DWD, NOAA) dostarczające temperaturę powietrza 2 m, wiatr przyziemny 10 m oraz fale morskie.'
+    },
+    {
+      name: 'NOAA CPC ENSO Diagnostics',
+      url: 'https://www.cpc.ncep.noaa.gov/',
+      license: 'Domena publiczna (US Gov)',
+      desc: 'Anomalie temperatury w rejonie Niño 3.4, oficjalne miesięczne biuletyny diagnostyczne i prawdopodobieństwa faz ENSO z Climate Prediction Center.'
+    },
+    {
+      name: 'WMO · JRC (KE) · JMA Tokyo Climate Center',
+      url: 'https://wmo.int/',
+      license: 'Wolny dostęp (Open Access)',
+      desc: 'Zasięgi anomalii opadów na kontynentach, przesunięcia cyrkulacji monsunowej oraz wzorce opadowe w fazach El Niño i La Niña.'
+    },
+    {
+      name: 'Bazy zdarzeń i skutków historycznych',
+      url: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o_%E2%80%93_Oscylacja_Po%C5%82udniowa',
+      license: 'Otwarte / CC BY-SA 4.0',
+      desc: 'Dane o szkodach gospodarczych, powodziach i suszach zebrane bezpośrednio z raportów CDC MMWR, FAO GIEWS, FEMA, UNDRR oraz ONZ OCHA ReliefWeb.'
+    }
+  ],
 
   regions: [
     { name: 'Indonezja i Filipiny', season: 'cze–lut' },
@@ -428,5 +503,14 @@ export const PL: Dict = {
     tex: 'Drovers (Texas AgriLife Extension) – marzec 2012',
     bgd: 'ReliefWeb – raporty sytuacyjne UNDRO, powodzie 1988',
     moz: 'Wikipedia – 2000 Mozambique flood'
-  }
+  },
+
+  inspectCoords: (lat: number, lon: number) => {
+    const ns = lat >= 0 ? `${lat.toFixed(1).replace('.', ',')}°N` : `${Math.abs(lat).toFixed(1).replace('.', ',')}°S`;
+    const ew = lon >= 0 ? `${lon.toFixed(1).replace('.', ',')}°E` : `${Math.abs(lon).toFixed(1).replace('.', ',')}°W`;
+    return `${ns}, ${ew}`;
+  },
+  inspectWater: 'Woda',
+  inspectAir: 'Powietrze',
+  inspectNoWater: '-'
 };

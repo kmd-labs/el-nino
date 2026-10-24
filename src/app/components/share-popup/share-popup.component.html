@@ -1,0 +1,78 @@
+@let t = i18n.t();
+
+<div class="share-modal">
+  <!-- QR Code Section (hidden on mobile) -->
+  <div class="share-modal__qr-wrap">
+    <div class="share-modal__qr" [innerHTML]="qrSvg()"></div>
+    <span class="share-modal__qr-caption">
+      <lucide-icon [img]="qrIcon" [size]="13"></lucide-icon>
+      {{ t.shareQrCode }}
+    </span>
+  </div>
+
+  <!-- Direct App Link -->
+  <section class="share-modal__section">
+    <h3 class="share-modal__title">{{ t.shareAppUrl }}</h3>
+    <div class="share-modal__input-row">
+      <input
+        type="text"
+        class="share-modal__input"
+        readonly
+        [value]="appUrl()"
+        (click)="copyText(appUrl(), 'app')" />
+      <button
+        type="button"
+        class="share-modal__copy-btn"
+        [class.share-modal__copy-btn--copied]="copiedKey() === 'app'"
+        (click)="copyText(appUrl(), 'app')">
+        <lucide-icon [img]="copiedKey() === 'app' ? checkIcon : copyIcon" [size]="14"></lucide-icon>
+        <span>{{ copiedKey() === 'app' ? t.linkCopied : t.copyLink }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Specific Share Options -->
+  <section class="share-modal__section">
+    <h3 class="share-modal__title">{{ t.shareTitle }}</h3>
+    <div class="share-modal__options">
+      <!-- Option 1: Current Date (date on same line as label) -->
+      @if (currentDate()) {
+        <div class="share-modal__card">
+          <div class="share-modal__card-info">
+            <div class="share-modal__card-header">
+              <lucide-icon class="share-modal__card-icon" [img]="calendarIcon" [size]="15"></lucide-icon>
+              <span class="share-modal__card-label">{{ t.shareDate }}</span>
+              <span class="share-modal__card-badge">{{ dateLabel() }}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="share-modal__action-btn"
+            [class.share-modal__action-btn--copied]="copiedKey() === 'date'"
+            (click)="copyText(dateUrl(), 'date')">
+            <lucide-icon [img]="copiedKey() === 'date' ? checkIcon : copyIcon" [size]="13"></lucide-icon>
+            <span>{{ copiedKey() === 'date' ? t.linkCopied : t.copyLink }}</span>
+          </button>
+        </div>
+      }
+
+      <!-- Option 2: Current ENSO State (without el nino) -->
+      <div class="share-modal__card">
+        <div class="share-modal__card-info">
+          <div class="share-modal__card-header">
+            <lucide-icon class="share-modal__card-icon" [img]="activityIcon" [size]="15"></lucide-icon>
+            <span class="share-modal__card-label">{{ t.shareState }}</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="share-modal__action-btn"
+          [class.share-modal__action-btn--copied]="copiedKey() === 'state'"
+          (click)="copyText(stateUrl(), 'state')">
+          <lucide-icon [img]="copiedKey() === 'state' ? checkIcon : copyIcon" [size]="13"></lucide-icon>
+          <span>{{ copiedKey() === 'state' ? t.linkCopied : t.copyLink }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
