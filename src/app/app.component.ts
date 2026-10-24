@@ -12,6 +12,7 @@ import { I18nService } from './core/i18n/i18n.service';
 import { EnsoStateService } from './core/services/enso-state.service';
 import { ShareLinkService } from './core/services/share-link.service';
 import { PageService } from './core/services/page.service';
+import { SeoService } from './core/services/seo.service';
 
 @Component({
   selector: 'app-root',
@@ -36,4 +37,5 @@ export class AppComponent {
   page = inject(PageService);
   /** Created eagerly so a shared link is applied before the intro starts. */
   private shareLink = inject(ShareLinkService);
+  private seo = inject(SeoService);
 }

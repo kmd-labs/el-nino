@@ -168,6 +168,8 @@ export const PL: Dict = {
   splashError: 'Nie udało się wczytać części danych — startujemy z dostępnymi warstwami.',
 
   about: {
+    docTitle: 'O nas – KMD Labs, zespół stojący za El Niño 2026 w 3D',
+    metaDescription: 'Poznaj KMD Labs – trzyosobowy zespół tworzący interaktywne wizualizacje danych: inżynieria danych, uczenie maszynowe, grafika 3D i kartografia. Jesteśmy otwarci na projekty.',
     cta: 'Jesteśmy otwarci na projekty',
     openAbout: 'O KMD',
     title: 'O nas',

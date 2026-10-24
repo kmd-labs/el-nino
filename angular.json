@@ -24,6 +24,11 @@
                 "glob": "**/*",
                 "input": "src/design-system/assets",
                 "output": "assets/design-system"
+              },
+              {
+                "glob": "sitemap.xml",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": ["src/styles.scss"],

@@ -10,6 +10,82 @@
   <link rel="icon" type="image/svg+xml" href="assets/design-system/favicon.svg">
   <link rel="alternate icon" type="image/x-icon" href="assets/design-system/favicon.ico">
 
+  <!-- Search engines: English is the plain URL; SeoService keeps these in sync for the About page (?page=about) -->
+  <link rel="canonical" href="https://kmd-labs.github.io/el-nino/">
+  <link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/">
+  <link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl">
+  <link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es">
+  <link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "El Niño 2026 in 3D",
+    "url": "https://kmd-labs.github.io/el-nino/",
+    "description": "Interactive 3D globe of El Niño and La Niña: real NOAA sea surface temperatures from 2024 to today, winds, the Walker circulation and rainfall impacts worldwide.",
+    "image": "https://kmd-labs.github.io/el-nino/assets/og-image.png",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Any web browser with WebGL",
+    "inLanguage": [
+      "en",
+      "pl",
+      "es"
+    ],
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "El Niño–Southern Oscillation (ENSO)",
+      "sameAs": "https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation"
+    },
+    "isBasedOn": [
+      {
+        "@type": "Dataset",
+        "name": "NOAA OISST v2.1 sea surface temperature",
+        "url": "https://www.ncei.noaa.gov/products/optimum-interpolation-sst"
+      },
+      {
+        "@type": "Dataset",
+        "name": "Open-Meteo weather data",
+        "url": "https://open-meteo.com/"
+      }
+    ],
+    "author": {
+      "@type": "Organization",
+      "name": "KMD Labs",
+      "url": "https://kmd-labs.github.io/el-nino/?page=about",
+      "member": [
+        {
+          "@type": "Person",
+          "name": "Adrian Kulik",
+          "sameAs": [
+            "https://www.linkedin.com/in/adrian-kulik",
+            "https://github.com/adriankulik"
+          ]
+        },
+        {
+          "@type": "Person",
+          "name": "Leszek Michalak",
+          "sameAs": [
+            "https://www.linkedin.com/in/leszek-michalak-422745b6/"
+          ]
+        },
+        {
+          "@type": "Person",
+          "name": "Marcin Derewońko",
+          "sameAs": [
+            "https://linkedin.com/in/mmder"
+          ]
+        }
+      ]
+    }
+  }
+  </script>
+
   <!-- Link previews (LinkedIn, Facebook, Slack…): absolute URLs, the crawlers don't run the app -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="KMD Labs">
@@ -35,5 +111,24 @@
 </head>
 <body>
   <app-root></app-root>
+
+  <!-- Readable text for visitors and crawlers that don't run JavaScript (the app itself is a WebGL globe) -->
+  <noscript>
+    <main style="max-width: 680px; margin: 0 auto; padding: 48px 20px; font: 16px/1.6 Inter, system-ui, sans-serif; color: #1e293b;">
+      <h1>El Niño 2026 in 3D – interactive ENSO globe</h1>
+      <p><strong>This visualisation needs JavaScript and WebGL.</strong> Please enable JavaScript to explore the globe.</p>
+      <p>Watch El Niño and La Niña unfold on an interactive 3D globe. Real NOAA sea surface temperatures from November 2024 to today show the 2026 El Niño building up across the equatorial Pacific, with a forecast for December 2026.</p>
+      <h2>What you can explore</h2>
+      <ul>
+        <li><strong>Water temperature and anomalies</strong> on the globe, with the Niño 3.4 region and the Indian Ocean Dipole, plus winds and waves.</li>
+        <li><strong>The Walker circulation and the thermocline</strong> in a cross-section along the equator, step by step.</li>
+        <li><strong>Impacts worldwide</strong>: where El Niño and La Niña bring droughts, fires and floods, with documented historical events and their sources.</li>
+        <li>A glossary of key terms, in English, Polish and Spanish.</li>
+      </ul>
+      <h2>Data sources</h2>
+      <p>NOAA OISST v2.1 sea surface temperatures, Open-Meteo weather, the NOAA CPC ENSO outlook, and rainfall impact maps from WMO, the EU Joint Research Centre and the JMA Tokyo Climate Center.</p>
+      <p>Made by KMD Labs – <a href="?page=about">meet the team</a>.</p>
+    </main>
+  </noscript>
 </body>
 </html>

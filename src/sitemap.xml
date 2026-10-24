@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap for the project site. robots.txt can only live at the domain root (kmd-labs.github.io/robots.txt,
+  another repo), so submit this file in Google Search Console: https://kmd-labs.github.io/el-nino/sitemap.xml
+  English is the plain URL; each URL lists its language alternates, and the app sets a matching
+  <link rel="canonical"> and hreflang links (SeoService).
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/"/>
+  </url>
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/?lang=pl</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/"/>
+  </url>
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/?lang=es</loc>
+    <changefreq>daily</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/"/>
+  </url>
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/?page=about</loc>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+  </url>
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/?lang=pl&amp;page=about</loc>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+  </url>
+  <url>
+    <loc>https://kmd-labs.github.io/el-nino/?lang=es&amp;page=about</loc>
+    <changefreq>monthly</changefreq>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://kmd-labs.github.io/el-nino/?lang=pl&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://kmd-labs.github.io/el-nino/?lang=es&amp;page=about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kmd-labs.github.io/el-nino/?page=about"/>
+  </url>
+</urlset>

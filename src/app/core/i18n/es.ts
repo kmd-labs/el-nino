@@ -168,6 +168,8 @@ export const ES: Dict = {
   splashError: 'No se pudieron cargar algunos datos; empezamos con las capas disponibles.',
 
   about: {
+    docTitle: 'Sobre nosotros – KMD Labs, el equipo detrás de El Niño 2026 en 3D',
+    metaDescription: 'Conoce a KMD Labs, un equipo de tres personas que crea visualizaciones interactivas de datos: ingeniería de datos, aprendizaje automático, gráficos 3D y cartografía. Abiertos a nuevos proyectos.',
     cta: 'Abiertos a nuevos proyectos',
     openAbout: 'Sobre KMD',
     title: 'Sobre nosotros',

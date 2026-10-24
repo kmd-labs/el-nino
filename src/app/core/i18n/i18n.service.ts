@@ -26,10 +26,9 @@ export class I18nService {
     effect(() => {
       const currentLang = this.lang();
       const d = this.t();
+      // document.title, meta description and canonical: SeoService
       if (typeof document !== 'undefined') {
         document.documentElement.lang = d.htmlLang;
-        document.title = d.docTitle;
-        document.querySelector('meta[name="description"]')?.setAttribute('content', d.metaDescription);
       }
       this.persistLang(currentLang);
     });

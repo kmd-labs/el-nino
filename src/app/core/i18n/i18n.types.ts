@@ -53,6 +53,8 @@ export interface PersonText {
 
 /** "About us" page and the header entry points to it. */
 export interface AboutText {
+  docTitle: string;
+  metaDescription: string;
   cta: string;
   openAbout: string;
   title: string;
