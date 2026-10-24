@@ -440,8 +440,16 @@ export class CurrentWeatherService {
     let waterTemp: number | null = null;
     let airTemp: number | null = null;
 
+    if (this.isForecast(s)) {
+      return { waterTemp, airTemp };
+    }
+
     const pair = this.getKeyframePairMeta(s);
     const kf = pair ? (pair.t < 0.5 ? pair.kfA : pair.kfB) : null;
+    if (kf?.forecast) {
+      return { waterTemp, airTemp };
+    }
+
     const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
 
     // 1. Water SST from 0.5° NOAA OISST v2.1 keyframe grid (no spatial or temporal interpolation)

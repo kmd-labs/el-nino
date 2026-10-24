@@ -193,4 +193,25 @@ describe('CurrentWeatherService', () => {
     expect(novSample.airTemp).toBeCloseTo(4.9, 1);
     expect(junSample.airTemp).toBeCloseTo(15.0, 1);
   });
+
+  it('returns null for water and air temperature when in forecast', () => {
+    service['meta'].set({
+      source: 'test',
+      sourceUrl: '',
+      sstSourceUrl: '',
+      fetchedAt: '',
+      grid: { step: 0.5, nLat: 360, nLon: 720, lat0: -89.75, lon0: -179.75 },
+      totalFrames: 2,
+      binFile: '',
+      keyframes: [
+        { index: 0, id: 'now', date: '2026-10-14', s: 1.4, nino34: 3.4, now: true },
+        { index: 1, id: 'forecast', date: '2026-12-16', s: 2.6, nino34: 4.5, forecast: true }
+      ]
+    });
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(165);
+
+    const forecastSample = service.samplePointAt(0, 0, 2.0);
+    expect(forecastSample.waterTemp).toBeNull();
+    expect(forecastSample.airTemp).toBeNull();
+  });
 });
