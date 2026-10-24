@@ -100,10 +100,6 @@
 
   &__cta-text {
     white-space: nowrap;
-
-    &--mobile {
-      display: none;
-    }
   }
 
   &__share,
@@ -179,28 +175,21 @@
     }
 
     &__brand {
-      padding: 3px 6px 3px 8px;
+      padding: 0;
       height: 38px;
-      gap: 6px;
+      gap: 0;
     }
 
-    &__cta-text {
-      &--desktop {
-        display: none;
-      }
-
-      &--mobile {
-        display: inline;
-        font-size: font-size("xxs");
-      }
+    &__logo {
+      margin: 0;
+      padding: 0 10px;
+      height: 100%;
+      border-radius: radius("pill");
     }
 
+    &__divider,
     &__cta-btn {
-      padding: 3px 6px;
-      height: 30px;
-      min-width: auto;
-      justify-content: center;
-      gap: 4px;
+      display: none;
     }
 
     &__share,
