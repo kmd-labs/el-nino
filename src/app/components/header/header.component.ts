@@ -17,7 +17,6 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { ViewMode } from '../../core/models/enso.model';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
-import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { SettingsPopupComponent } from '../settings-popup/settings-popup.component';
@@ -30,7 +29,6 @@ import { SharePopupComponent } from '../share-popup/share-popup.component';
     CommonModule,
     DropdownComponent,
     ButtonComponent,
-    TooltipDirective,
     LucideAngularModule
   ],
   templateUrl: './header.component.html',
