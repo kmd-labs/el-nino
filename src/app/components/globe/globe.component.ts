@@ -637,10 +637,17 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private async loadRelief() {
     try {
       const resp = await fetch('assets/data/relief.bin.gz');
-      if (!resp.ok || !resp.body) return;
-      if (typeof DecompressionStream === 'undefined') return;
-      const stream = resp.body.pipeThrough(new DecompressionStream('gzip'));
-      const buf = await new Response(stream).arrayBuffer();
+      if (!resp.ok) return;
+      let buf = await resp.arrayBuffer();
+
+      // Both the dev server and GitHub Pages send `Content-Encoding: gzip` for a .gz file, so the
+      // browser has already unwrapped it. Only gunzip when the magic bytes are still there.
+      const magic = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+      if (magic[0] === 0x1f && magic[1] === 0x8b) {
+        if (typeof DecompressionStream === 'undefined') return;
+        const stream = new Response(buf).body!.pipeThrough(new DecompressionStream('gzip'));
+        buf = await new Response(stream).arrayBuffer();
+      }
 
       const head = new DataView(buf);
       // 'KMDR', then u16 width, u16 height, u8 base, u8 version

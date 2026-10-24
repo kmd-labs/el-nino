@@ -25,9 +25,13 @@ const OUT_FILE = resolve(ROOT, 'src/assets/data/relief.bin.gz');
 
 const SRC_URL = 'https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip';
 
-/** Output grid. 2048 x 1024 is ~11 arc-minutes: every major range reads, ~0.4 MB gzipped. */
-const OUT_W = 2048;
-const OUT_H = 1024;
+/**
+ * Output grid. The land canvas is 4096 x 2048 on anything with an 8k max texture size, so
+ * matching it 1:1 keeps the relief crisp when the globe is zoomed in — upscaling it there was
+ * visibly soft. ~1.6 MB gzipped; devices that fall back to a 2048 canvas just downscale it.
+ */
+const OUT_W = 4096;
+const OUT_H = 2048;
 
 /** `KMDR`, then u16 width, u16 height, u8 base, u8 version. */
 const MAGIC = 0x4b4d4452;

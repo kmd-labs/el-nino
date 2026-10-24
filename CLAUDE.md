@@ -122,9 +122,10 @@ while `status()` is not `ready` the globe shows neutral grey and falls back to t
 
 `scripts/fetch-relief.mjs` (`npm run fetch:relief`) turns the Natural Earth 50m shaded-relief raster into
 `src/assets/data/relief.bin.gz` — a 10-byte header (`KMDR`, u16 width, u16 height, u8 base, u8 version)
-followed by raw equirectangular greyscale, 2048 x 1024, ~0.4 MB. Natural Earth ships the source as an
-*uncompressed* 8-bit TIFF, one strip per row, so the script needs no image library. The relief never
-changes, so unlike the two fetches above this one is **not** in CI — run it by hand if the asset is ever lost.
+followed by raw equirectangular greyscale at 4096 x 2048, ~1.6 MB — the same size as the land canvas on
+anything with an 8k max texture size, so the relief stays crisp when the globe is zoomed in. Natural Earth
+ships the source as an *uncompressed* 8-bit TIFF, one strip per row, so the script needs no image library.
+The relief never changes, so unlike the two fetches above this one is **not** in CI.
 
 `GlobeComponent.reliefLayer()` multiplies it into the `globe-land-fill` token: each pixel is the token colour
 scaled by how far the relief sits above or below `base` (the flat/sea-level value the script records), so
