@@ -3,29 +3,37 @@
 <header class="header">
   <div class="header__left">
     <!-- 1. Brand Pill: Logo & Contact CTA -->
-    <div class="header__brand glass-panel">
-      <button
-        type="button"
-        class="header__logo"
-        [attr.aria-label]="t.about.openAbout"
-        [appTooltip]="t.about.openAbout"
-        (click)="page.openAbout()">
-        <img
-          class="header__logo-img"
-          src="assets/design-system/logo/kmd-black-orange.svg"
-          alt="" />
-      </button>
+    <div class="header__brand-wrap">
+      <div
+        class="header__brand glass-panel"
+        [class.header__brand--expanded]="mobileBrandExpanded()"
+        (mouseenter)="onBrandHover(true)"
+        (mouseleave)="onBrandHover(false)">
+        <button
+          type="button"
+          class="header__logo"
+          [attr.aria-label]="t.about.openAbout"
+          [appTooltip]="t.about.openAbout"
+          (click)="onLogoClick($event)">
+          <img
+            class="header__logo-img"
+            src="assets/design-system/logo/kmd-black-orange.svg"
+            alt="KMD" />
+        </button>
 
-      <span class="header__divider" aria-hidden="true"></span>
-      <button
-        type="button"
-        class="header__cta-btn"
-        [attr.aria-label]="t.about.cta"
-        [appTooltip]="t.about.cta"
-        (click)="page.openAbout()">
-        <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
-        <span class="header__cta-text">{{ t.about.cta }}</span>
-      </button>
+        <div class="header__rollout">
+          <span class="header__divider" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="header__cta-btn"
+            [attr.aria-label]="t.about.cta"
+            [appTooltip]="t.about.cta"
+            (click)="onCtaClick($event)">
+            <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
+            <span class="header__cta-text">{{ t.about.cta }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 2. Standalone Share Button -->

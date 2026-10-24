@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   LucideAngularModule,
@@ -46,6 +46,38 @@ export class HeaderComponent {
   readonly shareIcon = Share2;
   readonly ctaIcon = Handshake;
   readonly settingsIcon = Settings;
+
+  readonly mobileBrandExpanded = signal(false);
+
+  onBrandHover(entering: boolean) {
+    if (this.bp.mobile()) {
+      this.mobileBrandExpanded.set(entering);
+    }
+  }
+
+  onLogoClick(e: MouseEvent) {
+    if (this.bp.mobile()) {
+      if (!this.mobileBrandExpanded()) {
+        e.stopPropagation();
+        this.mobileBrandExpanded.set(true);
+        return;
+      }
+    }
+    this.page.openAbout();
+  }
+
+  onCtaClick(e: MouseEvent) {
+    this.mobileBrandExpanded.set(false);
+    this.page.openAbout();
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent) {
+    if (!this.mobileBrandExpanded()) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.header__brand')) return;
+    this.mobileBrandExpanded.set(false);
+  }
 
   openSharePopup() {
     this.popup.open({

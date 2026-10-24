@@ -22,6 +22,11 @@
     flex: none;
   }
 
+  &__brand-wrap {
+    display: inline-flex;
+    align-items: center;
+  }
+
   &__brand {
     display: inline-flex;
     align-items: center;
@@ -29,6 +34,12 @@
     height: 42px;
     padding: 4px 8px 4px 10px;
     border-radius: radius("pill");
+  }
+
+  &__rollout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
 
   &__logo {
@@ -174,22 +185,86 @@
       flex-wrap: nowrap;
     }
 
-    &__brand {
-      padding: 0;
+    &__brand-wrap {
+      position: relative;
+      width: 44px;
       height: 38px;
+      flex: none;
+    }
+
+    &__brand {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 38px;
+      padding: 0 4px 0 8px;
       gap: 0;
+      max-width: 44px;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 10;
+      transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  padding 0.3s ease,
+                  gap 0.3s ease,
+                  box-shadow 0.3s ease;
+
+      &--expanded {
+        max-width: min(calc(100vw - 24px), 320px);
+        padding: 0 8px 0 8px;
+        gap: 6px;
+        z-index: 50;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        overflow: visible;
+      }
     }
 
     &__logo {
       margin: 0;
-      padding: 0 10px;
+      padding: 0 6px 0 2px;
       height: 100%;
       border-radius: radius("pill");
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
     }
 
-    &__divider,
+    &__rollout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateX(-8px);
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    &__brand--expanded &__rollout {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    &__divider {
+      display: block;
+      width: 1px;
+      height: 14px;
+      background: color("line-strong");
+      flex: none;
+    }
+
     &__cta-btn {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 30px;
+      padding: 3px 6px;
+      border-radius: radius("pill");
+      font-size: font-size("xxs");
+      white-space: nowrap;
+      flex: none;
     }
 
     &__share,
