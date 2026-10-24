@@ -134,6 +134,21 @@ coastline**, so the ocean keeps its SST. The tinted layer is rebuilt only when t
 frame. Note the land material is emissive (`color: black`, `emissive: white`, `emissiveMap: landTex`) — the
 land ignores scene lighting entirely, which is why relief has to be baked into the texture rather than lit.
 
+`scripts/fetch-elevation.mjs` (`npm run fetch:elevation`) adds the vertical exaggeration on top of that.
+ETOPO2v2c ships a raw little-endian int16 grid (10800 x 5400, no header), so reading it is a cast; the
+script flattens bathymetry to sea level **per sample before averaging** — the ocean must not drag the coast
+below the sphere — and writes `src/assets/data/elevation.png`, an 8-bit greyscale PNG at 2048 x 1024
+(~0.3 MB). PNG because `displacementMap` is a GPU texture: nothing reads these pixels on the CPU, so the
+browser’s own decoder does the work and no normals need recomputing (the emissive land ignores them anyway).
+
+Heights are normalised against a fixed `MAX_ELEV_M` ceiling rather than the grid maximum, so the runtime
+derives `displacementScale` as `R * (ELEV_CEILING_M / EARTH_RADIUS_M) * ELEV_EXAGGERATION` with no metadata
+fetch — **keep `ELEV_CEILING_M` in `GlobeComponent` and `MAX_ELEV_M` in the script equal.** Exaggeration is
+`10`: real relief is 0.14% of the radius, which at `R = 5` is less than the 0.015 gap between the land and
+ocean spheres, so unexaggerated terrain is literally invisible. The land sphere is subdivided to 1024 x 512
+(512 x 256 under `isAtMost('mobile')`) — at the original 128 x 64 a segment spans ~2.8 degrees and no height
+map can show. Note the tallest peaks then poke through the impacts overlay at `R * 1.0045`.
+
 ### i18n is positional — the main footgun
 
 `core/i18n/i18n.types.ts` `Dict` is the contract; `en.ts`, `pl.ts`, `es.ts` must all implement it (add the key

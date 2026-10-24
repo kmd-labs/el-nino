@@ -9,6 +9,7 @@
     "fetch:weather": "node scripts/fetch-current-weather.mjs",
     "fetch:history": "node scripts/fetch-enso-history.mjs",
     "fetch:relief": "node scripts/fetch-relief.mjs",
+    "fetch:elevation": "node scripts/fetch-elevation.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false --browsers=ChromeHeadlessCI"
   },

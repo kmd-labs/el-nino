@@ -112,6 +112,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private readonly RELIEF_STRENGTH = 0.55;
   /** Deviation from `base` that reaches full strength. */
   private readonly RELIEF_RANGE = 46;
+  /** Metres that map to white in elevation.png — must match MAX_ELEV_M in fetch-elevation.mjs. */
+  private readonly ELEV_CEILING_M = 9000;
+  private readonly EARTH_RADIUS_M = 6371000;
+  /** Real relief is 0.14% of the radius — invisible on a globe without exaggerating it. */
+  private readonly ELEV_EXAGGERATION = 10;
   /** Niño 3.4 / dipole boxes are drawn on the land layer (hidden in the live view) */
   private landBoxes = true;
   private maskBuiltFor: any = null;
@@ -597,8 +602,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.landTex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
     this.landMat = new THREE.MeshLambertMaterial({ map: this.landTex, transparent: true, depthWrite: false });
+    // Displacement needs vertices to move: 128 x 64 is ~2.8 degrees a segment, far too coarse.
+    const landSeg = isAtMost('mobile') ? 512 : 1024;
     const landMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(this.math.R * 1.003, 128, 64),
+      new THREE.SphereGeometry(this.math.R * 1.003, landSeg, landSeg / 2),
       this.landMat
     );
     this.scene.add(landMesh);
@@ -628,6 +635,24 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     };
     loadLand();
     this.loadRelief();
+    this.loadElevation();
+  }
+
+  /**
+   * Feeds the height map to `displacementMap`, standing the continents off the sphere.
+   * Nothing reads these pixels on the CPU — the vertex shader samples the texture — so the
+   * browser's own PNG decoder does the work. Bathymetry is zero in the map, so the ocean
+   * half of this sphere stays exactly where it was.
+   */
+  private loadElevation() {
+    new THREE.TextureLoader().load('assets/data/elevation.png', tex => {
+      if (!this.landMat) return;
+      tex.colorSpace = THREE.NoColorSpace; // height data, not colour
+      this.landMat.displacementMap = tex;
+      this.landMat.displacementScale =
+        this.math.R * (this.ELEV_CEILING_M / this.EARTH_RADIUS_M) * this.ELEV_EXAGGERATION;
+      this.landMat.needsUpdate = true;
+    }, undefined, () => console.warn('Could not load elevation data'));
   }
 
   /**
