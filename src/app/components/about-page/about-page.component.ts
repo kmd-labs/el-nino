@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ArrowLeft, Github, Linkedin } from 'lucide-angular';
+import { LucideAngularModule, ArrowLeft, ExternalLink, Github, Linkedin } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { PageService } from '../../core/services/page.service';
 import { TEAM } from '../../core/constants/team';
@@ -21,6 +21,7 @@ export class AboutPageComponent implements AfterViewInit {
   readonly backIcon = ArrowLeft;
   readonly linkedinIcon = Linkedin;
   readonly githubIcon = Github;
+  readonly refIcon = ExternalLink;
 
   @ViewChild('backBtn') private backBtn?: ElementRef<HTMLButtonElement>;
 

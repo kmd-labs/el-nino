@@ -59,7 +59,10 @@ export interface AboutText {
   openAbout: string;
   title: string;
   kicker: string;
-  lead: string;
+  /** Hero paragraphs, rendered in order. */
+  leads: string[];
+  /** External references shown as pills under the hero text. */
+  refs: { label: string; href: string; title: string; aria: string }[];
   back: string;
   tasksLabel: string;
   photoSoon: string;

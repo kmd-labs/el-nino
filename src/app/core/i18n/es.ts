@@ -174,8 +174,26 @@ export const ES: Dict = {
     cta: 'Abiertos a nuevos proyectos',
     openAbout: 'Sobre KMD',
     title: 'Sobre nosotros',
-    kicker: 'Visualización interactiva de datos',
-    lead: 'KMD es un equipo de tres personas que convierte datos científicos en visualizaciones interactivas. Combinamos ingeniería de datos, aprendizaje automático, gráficos 3D y cartografía: desde la obtención y limpieza de los datos hasta un modelo que se puede girar en el navegador. El globo de El Niño es nuestro proyecto que muestra cómo un solo fenómeno del Pacífico cambia el tiempo en todo el mundo. Buscamos nuevos proyectos: si tienes datos que merece la pena mostrar, escríbenos en LinkedIn.',
+    kicker: 'laboratory',
+    leads: [
+      'KMD Labs es un equipo de tres personas surgido de Viadrus AI: el primer equipo polaco que ganó la final europea del hackathon CASSINI organizado por la Agencia de la UE para el Programa Espacial (EUSPA). La solución ganadora empleaba datos satelitales para detectar de forma temprana fugas en las redes de abastecimiento de agua.',
+      'Tras la final, Adrian, Leszek y Marcin decidieron unir la capacidad de cálculo de sus neuronas. Aunque cada uno viene de un ámbito distinto, comparten la pasión por la geoinformática, los datos satelitales, la detección de anomalías, el aprendizaje automático y el desarrollo de software.',
+      'KMD Labs cree que divulgar la geoinformática y la tecnología espacial es tan importante como desarrollarlas. Los datos satelitales ayudan a resolver problemas reales del medio ambiente, las ciudades y las infraestructuras, pero en Polonia siguen faltando especialistas capaces de convertirlos en soluciones prácticas.'
+    ],
+    refs: [
+      {
+        label: '11.º hackathon CASSINI – crónica de la CE',
+        href: 'https://defence-industry-space.ec.europa.eu/orbit-water-tap-11th-cassini-hackathon-2026-05-08_en',
+        title: 'defence-industry-space.ec.europa.eu – From Orbit to the Water Tap: 11th CASSINI Hackathon',
+        aria: 'Crónica de la Comisión Europea sobre el 11.º hackathon CASSINI'
+      },
+      {
+        label: 'CASSINI Hackathons – portafolio',
+        href: 'https://www.cassini.eu/hackathons/portfolio',
+        title: 'cassini.eu/hackathons/portfolio – Meet the Winners',
+        aria: 'CASSINI Hackathons – portafolio de equipos ganadores'
+      }
+    ],
     back: 'Volver al globo',
     tasksLabel: 'Áreas',
     photoSoon: 'Foto próximamente',

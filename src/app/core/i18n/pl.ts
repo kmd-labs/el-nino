@@ -174,8 +174,26 @@ export const PL: Dict = {
     cta: 'Jesteśmy otwarci na projekty',
     openAbout: 'O KMD',
     title: 'O nas',
-    kicker: 'Interaktywne wizualizacje danych',
-    lead: 'KMD to trzyosobowy zespół, który zamienia dane naukowe w interaktywne wizualizacje. Łączymy inżynierię danych, uczenie maszynowe, grafikę 3D i kartografię – od pozyskania i oczyszczenia danych po model, który można obracać w przeglądarce. Globus El Niño to nasz projekt pokazujący, jak jedno zjawisko na Pacyfiku zmienia pogodę na całym świecie. Szukamy kolejnych projektów: jeśli masz dane, które warto pokazać, napisz do któregoś z nas na LinkedIn.',
+    kicker: 'laboratory',
+    leads: [
+      'KMD Labs to trzyosobowy zespół wywodzący się z Viadrus AI – pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję UE ds. Programu Kosmicznego (EUSPA). Zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowej.',
+      'Adrian, Leszek i Marcin postanowili po finale połączyć moc obliczeniową swoich zwojów mózgowych. Choć każdy z nich ma inny background, łączy ich pasja do geoinformatyki, danych satelitarnych, detekcji anomalii, uczenia maszynowego i tworzenia oprogramowania.',
+      'KMD Labs wierzy, że popularyzacja geoinformatyki i technologii kosmicznych jest równie ważna jak ich rozwijanie. Dane satelitarne pomagają rozwiązywać realne problemy środowiska, miast i infrastruktury, ale w Polsce wciąż brakuje specjalistów, którzy potrafią przekuć je w praktyczne rozwiązania.'
+    ],
+    refs: [
+      {
+        label: '11. hackathon CASSINI – relacja KE',
+        href: 'https://defence-industry-space.ec.europa.eu/orbit-water-tap-11th-cassini-hackathon-2026-05-08_en',
+        title: 'defence-industry-space.ec.europa.eu – From Orbit to the Water Tap: 11th CASSINI Hackathon',
+        aria: 'Relacja Komisji Europejskiej z 11. hackathonu CASSINI'
+      },
+      {
+        label: 'CASSINI Hackathons – portfolio',
+        href: 'https://www.cassini.eu/hackathons/portfolio',
+        title: 'cassini.eu/hackathons/portfolio – Meet the Winners',
+        aria: 'CASSINI Hackathons – portfolio zwycięskich zespołów'
+      }
+    ],
     back: 'Wróć do globu',
     tasksLabel: 'Zadania',
     photoSoon: 'Zdjęcie wkrótce',
