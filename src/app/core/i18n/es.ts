@@ -166,7 +166,7 @@ export const ES: Dict = {
   splashError: 'No se pudieron cargar algunos datos; empezamos con las capas disponibles.',
 
   about: {
-    cta: 'Colabora con nosotros',
+    cta: 'Abiertos a nuevos proyectos',
     openAbout: 'Sobre KMD',
     title: 'Sobre nosotros',
     kicker: 'Visualización interactiva de datos',

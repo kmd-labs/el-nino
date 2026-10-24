@@ -166,7 +166,7 @@ export const EN: Dict = {
   splashError: 'Some data could not be loaded — starting with the available layers.',
 
   about: {
-    cta: 'Work with us',
+    cta: 'Open to new projects',
     openAbout: 'About KMD',
     title: 'About us',
     kicker: 'Interactive data visualisation',

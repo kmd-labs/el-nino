@@ -88,6 +88,11 @@
     align-items: center;
     padding: 4px;
     border-radius: radius("pill");
+    animation: panelSlideIn transition("slow") both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 
   &__cta-icon {

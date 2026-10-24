@@ -31,14 +31,15 @@
       </app-dropdown>
     </div>
 
-
     <!-- 3. Call to action: opens the About page -->
-    <div class="header__cta glass-panel">
-      <app-button variant="ghost" (btnClick)="page.openAbout()">
-        <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="15"></lucide-icon>
-        <span>{{ t.about.cta }}</span>
-      </app-button>
-    </div>
+    @if (showCta()) {
+      <div class="header__cta glass-panel">
+        <app-button variant="ghost" (btnClick)="page.openAbout()">
+          <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="15"></lucide-icon>
+          <span>{{ t.about.cta }}</span>
+        </app-button>
+      </div>
+    }
 
     @if (!state.mapLoaded()) {
       <div class="header__loading glass-panel" [class.header__loading--error]="state.mapError()">

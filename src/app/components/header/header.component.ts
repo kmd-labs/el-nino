@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   LucideAngularModule,
@@ -25,6 +25,8 @@ import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 
+const CTA_DELAY_MS = 20000;
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -38,7 +40,7 @@ import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   bp = inject(BreakpointService);
@@ -52,6 +54,20 @@ export class HeaderComponent {
   readonly checkIcon = Check;
   readonly ctaIcon = Handshake;
   readonly copied = signal(false);
+  /** The CTA appears a while after the globe starts, so it doesn't compete with the first impression. */
+  readonly showCta = signal(false);
+  private ctaTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    effect(() => {
+      if (!this.state.experienceStarted() || this.ctaTimer !== null) return;
+      this.ctaTimer = setTimeout(() => this.showCta.set(true), CTA_DELAY_MS);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.ctaTimer !== null) clearTimeout(this.ctaTimer);
+  }
 
   @ViewChild('sharePill') private sharePill?: ElementRef<HTMLElement>;
 

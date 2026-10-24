@@ -166,7 +166,7 @@ export const PL: Dict = {
   splashError: 'Nie udało się wczytać części danych — startujemy z dostępnymi warstwami.',
 
   about: {
-    cta: 'Szukamy projektów',
+    cta: 'Jesteśmy otwarci na projekty',
     openAbout: 'O KMD',
     title: 'O nas',
     kicker: 'Interaktywne wizualizacje danych',
