@@ -7,7 +7,7 @@
       <div class="about__brand glass-panel">
         <img class="about__brand-logo" src="assets/design-system/logo/kmd-black-orange.svg" alt="KMD" />
         <span class="about__divider" aria-hidden="true"></span>
-        <span class="about__brand-name">{{ a.title }}</span>
+        <span class="about__brand-name" id="about-title">{{ a.title }}</span>
       </div>
 
       <button #backBtn type="button" class="about__back glass-panel" [attr.aria-label]="a.back" (click)="page.closeAbout()">
@@ -19,11 +19,29 @@
 
   <div class="about__page">
     <div class="about__content">
-      <section class="hero glass-panel glass-panel--heavy" aria-labelledby="about-title">
+      <section class="hero glass-panel glass-panel--heavy">
         <img class="hero__logo" src="assets/design-system/logo/kmd-black-orange.svg" alt="KMD" />
         <p class="hero__kicker">{{ a.kicker }}</p>
-        <h2 class="hero__title" id="about-title">{{ a.title }}</h2>
-        <p class="hero__lead">{{ a.lead }}</p>
+
+        @for (lead of a.leads; track $index) {
+          <p class="hero__lead">{{ lead }}</p>
+        }
+
+        <div class="hero__refs">
+          @for (ref of a.refs; track ref.href) {
+            <a
+              class="hero__ref"
+              [href]="ref.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              [title]="ref.title"
+              [attr.aria-label]="ref.aria"
+            >
+              <lucide-icon [img]="refIcon" [size]="12"></lucide-icon>
+              <span>{{ ref.label }}</span>
+            </a>
+          }
+        </div>
       </section>
 
       <div class="people">

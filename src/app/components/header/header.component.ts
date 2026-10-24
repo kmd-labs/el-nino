@@ -7,7 +7,8 @@ import {
   CloudRain,
   Share2,
   Handshake,
-  Settings
+  Settings,
+  ChartLine
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PageService } from '../../core/services/page.service';
@@ -85,7 +86,8 @@ export class HeaderComponent {
     return [
       { value: 'globe', label: t.viewAnom, icon: Thermometer },
       { value: 'walker', label: t.viewWalker, icon: Wind },
-      { value: 'impacts', label: t.viewImpacts, icon: CloudRain }
+      { value: 'impacts', label: t.viewImpacts, icon: CloudRain },
+      { value: 'cycles', label: t.viewCycles, icon: ChartLine }
     ];
   });
 

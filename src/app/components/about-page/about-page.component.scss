@@ -1,7 +1,5 @@
 @use "variables" as *;
 
-// The design-system type scale ends at xl (22px), too small for the heading of a content page
-$fs-display: clamp(1.75rem, 4.5vw, 2.625rem);
 $fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
 
 .about {
@@ -142,22 +140,22 @@ $fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
   color: color("accent");
 }
 
-.hero__title {
-  margin: clamp(10px, 2vw, 16px) 0 0;
-  font-size: $fs-display;
-  font-weight: font-weight("bold");
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: color("text-bright");
-  text-wrap: balance;
-}
-
 .hero__lead {
   margin: clamp(14px, 2.5vw, 20px) auto 0;
   max-width: 64ch;
   font-size: font-size("md");
   line-height: 1.7;
   color: color("text-desc");
+  text-align: left;
+}
+
+// source pills, in the same 64ch column as the lead so they range with the text
+.hero__refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 64ch;
+  margin: clamp(14px, 2.5vw, 20px) auto 0;
 }
 
 // ─── people ───
@@ -251,7 +249,8 @@ $fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
   gap: 6px;
 }
 
-.person__link {
+.person__link,
+.hero__ref {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -380,10 +379,6 @@ $fs-person: clamp(1.125rem, 2.2vw, 1.5rem);
 
   .about__back-label {
     display: none;
-  }
-
-  .hero__lead {
-    text-align: left;
   }
 
   .person__photo {

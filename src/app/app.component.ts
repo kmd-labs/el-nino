@@ -6,6 +6,7 @@ import { SplashHostComponent } from './components/splash/splash-host.component';
 import { MapDockComponent } from './components/map-dock/map-dock.component';
 import { WalkerViewComponent } from './components/walker-view/walker-view.component';
 import { AboutPageComponent } from './components/about-page/about-page.component';
+import { CyclesViewComponent } from './components/cycles-view/cycles-view.component';
 import { PopupComponent } from '@kmd/design-system/ui/popup/popup.component';
 import { TooltipComponent } from '@kmd/design-system/ui/tooltip/tooltip.component';
 import { I18nService } from './core/i18n/i18n.service';
@@ -13,6 +14,7 @@ import { EnsoStateService } from './core/services/enso-state.service';
 import { ShareLinkService } from './core/services/share-link.service';
 import { PageService } from './core/services/page.service';
 import { SeoService } from './core/services/seo.service';
+import { EnsoHistoryService } from './core/services/enso-history.service';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +27,7 @@ import { SeoService } from './core/services/seo.service';
     MapDockComponent,
     WalkerViewComponent,
     AboutPageComponent,
+    CyclesViewComponent,
     PopupComponent,
     TooltipComponent
   ],
@@ -38,4 +41,10 @@ export class AppComponent {
   /** Created eagerly so a shared link is applied before the intro starts. */
   private shareLink = inject(ShareLinkService);
   private seo = inject(SeoService);
+  private history = inject(EnsoHistoryService);
+
+  constructor() {
+    // Needed by the dock's peak-probability readout, not just by the cycles view.
+    this.history.load();
+  }
 }

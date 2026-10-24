@@ -30,7 +30,8 @@ export const PL: Dict = {
   ensoLabel: 'Faza ENSO',
   strengthAria: 'Siła ENSO',
   probText: 'Szansa szczytu 2026:',
-  probTitle: 'Bardzo przybliżony szacunek dla szczytu sezonu (paź–gru 2026) na podstawie prognozy NOAA CPC z 8.10.2026',
+  probTitle: 'Udział składowych prognozy analogowej, których szczyt paź–gru sięga pokazanej wartości — pięć sezonów z przeszłości '
+    + 'dopasowanych do obecnej trajektorii rekordu NOAA CPC Niño 3.4 (1950–dziś). Szacunek zgrubny, nie model dynamiczny.',
   probSource: 'NOAA CPC',
   playStart: 'Cykl 4-letni',
   playStop: 'Zatrzymaj',
@@ -186,8 +187,26 @@ export const PL: Dict = {
     cta: 'Jesteśmy otwarci na projekty',
     openAbout: 'O KMD',
     title: 'O nas',
-    kicker: 'Interaktywne wizualizacje danych',
-    lead: 'KMD to trzyosobowy zespół, który zamienia dane naukowe w interaktywne wizualizacje. Łączymy inżynierię danych, uczenie maszynowe, grafikę 3D i kartografię – od pozyskania i oczyszczenia danych po model, który można obracać w przeglądarce. Globus El Niño to nasz projekt pokazujący, jak jedno zjawisko na Pacyfiku zmienia pogodę na całym świecie. Szukamy kolejnych projektów: jeśli masz dane, które warto pokazać, napisz do któregoś z nas na LinkedIn.',
+    kicker: 'laboratory',
+    leads: [
+      'KMD Labs to trzyosobowy zespół wywodzący się z Viadrus AI – pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję UE ds. Programu Kosmicznego (EUSPA). Zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowej.',
+      'Adrian, Leszek i Marcin postanowili po finale połączyć moc obliczeniową swoich zwojów mózgowych. Choć każdy z nich ma inny background, łączy ich pasja do geoinformatyki, danych satelitarnych, detekcji anomalii, uczenia maszynowego i tworzenia oprogramowania.',
+      'KMD Labs wierzy, że popularyzacja geoinformatyki i technologii kosmicznych jest równie ważna jak ich rozwijanie. Dane satelitarne pomagają rozwiązywać realne problemy środowiska, miast i infrastruktury, ale w Polsce wciąż brakuje specjalistów, którzy potrafią przekuć je w praktyczne rozwiązania.'
+    ],
+    refs: [
+      {
+        label: '11. hackathon CASSINI – relacja KE',
+        href: 'https://defence-industry-space.ec.europa.eu/orbit-water-tap-11th-cassini-hackathon-2026-05-08_en',
+        title: 'defence-industry-space.ec.europa.eu – From Orbit to the Water Tap: 11th CASSINI Hackathon',
+        aria: 'Relacja Komisji Europejskiej z 11. hackathonu CASSINI'
+      },
+      {
+        label: 'CASSINI Hackathons – portfolio',
+        href: 'https://www.cassini.eu/hackathons/portfolio',
+        title: 'cassini.eu/hackathons/portfolio – Meet the Winners',
+        aria: 'CASSINI Hackathons – portfolio zwycięskich zespołów'
+      }
+    ],
     back: 'Wróć do globu',
     tasksLabel: 'Zadania',
     photoSoon: 'Zdjęcie wkrótce',
@@ -208,6 +227,44 @@ export const PL: Dict = {
         tasks: ['Geoinformatyka', 'Przetwarzanie danych', 'Analiza danych źródłowych', 'Algorytmy', 'Geowizualizacje']
       }
     ]
+  },
+
+  viewCycles: 'Poprzednie cykle',
+  cyclesAria: 'Poprzednie cykle ENSO i prognoza analogowa',
+  cyclesTitle: 'Wszystkie zdarzenia ENSO od 1950 roku',
+  cyclesNote: 'Każda linia to jedno zdarzenie: indeks Niño 3.4 (ONI, średnia krocząca z 3 miesięcy) w ciągu dwóch lat '
+    + 'kalendarzowych. Sezony, na których opiera się prognoza, są wyróżnione; obecne zdarzenie to gruba linia.',
+  cyclesBarrier: 'Prognoza analogowa to baza statystyczna, nie model dynamiczny. Pięć składowych wybranych z dziesięciu '
+    + 'porównywalnych zdarzeń to realna niepewność, a trafność gwałtownie spada, gdy horyzont przekracza wiosenną barierę predykcyjności.',
+  cyclesLegendPast: 'Zdarzenia z przeszłości',
+  cyclesLegendAnalog: 'Użyte analogi',
+  cyclesLegendCurrent: 'Obecne zdarzenie',
+  cyclesLegendForecast: 'Prognoza (p10–p90)',
+  cyclesAxisOni: 'ONI (°C)',
+  cyclesYearN: n => `rok ${n}`,
+  cyclesCatalogue: 'Najsilniejsze zdarzenia El Niño',
+  cyclesColSeason: 'Sezon',
+  cyclesColPeak: 'Szczyt',
+  cyclesColTier: 'Klasa',
+  cyclesColLength: 'Czas',
+  cyclesMonthsShort: n => `${n} mies.`,
+  cyclesOngoing: 'w toku',
+  cyclesProvisional: date => `prowizorycznie · tydzień do ${date}`,
+  cyclesAnalogTitle: 'Najbliższe analogi',
+  cyclesAnalogNote: (window, members) =>
+    `Dopasowanie po ostatnich ${window} miesiącach indeksu; ${members} najlepszych sezonów, każdy przesunięty tak, by zaczynał od dzisiejszego poziomu.`,
+  cyclesAnalogMatch: 'zgodność',
+  cyclesAnalogWeight: 'waga',
+  cyclesForecastPeak: (lo, hi, window) =>
+    `Prognozowany szczyt ${window}: ${lo >= 0 ? '+' : '−'}${Math.abs(lo).toFixed(1)} do ${hi >= 0 ? '+' : '−'}${Math.abs(hi).toFixed(1)} °C`,
+  cyclesRecordNote: (first, last) => `NOAA CPC, miesięczny Niño 3.4, ${first} – ${last}`,
+  cyclesLoading: 'Wczytywanie danych historycznych…',
+  cyclesError: 'Dane historyczne są niedostępne.',
+  tier: {
+    super: 'Super',
+    strong: 'Silne',
+    moderate: 'Umiarkowane',
+    weak: 'Słabe'
   },
 
   glTitle: 'Słownik istotnych terminów',

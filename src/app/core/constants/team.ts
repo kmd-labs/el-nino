@@ -25,7 +25,7 @@ export const TEAM: TeamMember[] = [
   {
     firstName: 'Marcin',
     lastName: 'Derewońko',
-    photo: null,
+    photo: 'assets/team/marcin-derewonko.jpg',
     linkedin: 'https://linkedin.com/in/mmder'
   }
 ];

@@ -6,6 +6,9 @@
   @if (state.view() === 'walker') {
     <app-walker-view></app-walker-view>
   }
+  @if (state.view() === 'cycles') {
+    <app-cycles-view></app-cycles-view>
+  }
   <app-map-dock></app-map-dock>
   <app-popup [closeAriaLabel]="i18n.t().close"></app-popup>
   <app-tooltip></app-tooltip>

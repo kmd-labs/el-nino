@@ -14,7 +14,7 @@ export type ShareMode = 'date' | 'state';
 /** Same range as the strength slider in the map dock. */
 const STRENGTH_MIN = -2;
 const STRENGTH_MAX = 3;
-const VIEWS: ViewMode[] = ['globe', 'walker', 'impacts'];
+const VIEWS: ViewMode[] = ['globe', 'walker', 'impacts', 'cycles'];
 /** Older view names from the issue proposal, both meaning the temperature globe. */
 const VIEW_ALIASES: Record<string, ViewMode> = { sst: 'globe', anom: 'globe' };
 const NOW_STRENGTH = PRESETS.find(p => p.now)?.strength ?? 1.4;
