@@ -81,7 +81,6 @@ export class PageService {
     this.popup.open({
       id: ABOUT,
       title: computed(() => this.i18n.t().about.title),
-      subtitle: computed(() => this.i18n.t().about.kicker),
       component: AboutPageComponent,
       size: 'lg',
       actions: [

@@ -102,7 +102,7 @@
   }
 }
 
-.popup-dialog:has(.about-popup) {
-  max-width: min(780px, calc(100vw - 32px));
-  max-height: min(88vh, 760px);
+.popup-dialog:has(.about-page, .about-popup) {
+  max-width: min(880px, calc(100vw - 32px));
+  max-height: min(90vh, 820px);
 }
