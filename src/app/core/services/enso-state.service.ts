@@ -8,8 +8,8 @@ const EARLIEST_STRENGTH = -1.8;
 const NOW_STRENGTH = 1.4;
 /** The automatic intro on page load. */
 const INTRO_DURATION_S = 12;
-/** Play pressed by the user, at 1×: twice as long as the intro so the changes can be followed. */
-const PLAY_DURATION_S = 24;
+/** Play pressed by the user, at 1×: three times as long as the intro so the changes can be followed. */
+const PLAY_DURATION_S = 36;
 export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 @Injectable({

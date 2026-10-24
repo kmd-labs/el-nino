@@ -87,20 +87,20 @@ describe('EnsoStateService', () => {
     return elapsed;
   };
 
-  it('should play twice as slow as the intro after the user presses play, scaled by the speed', () => {
+  it('should play three times as slow as the intro after the user presses play, scaled by the speed', () => {
     service.beginExperience();
     playThrough();
 
     service.startPlaying();
-    expect(playThrough()).toBeCloseTo(24, 0);
+    expect(playThrough()).toBeCloseTo(36, 0);
 
     service.setPlaybackSpeed(2);
     service.startPlaying();
-    expect(playThrough()).toBeCloseTo(12, 0);
+    expect(playThrough()).toBeCloseTo(18, 0);
 
     service.setPlaybackSpeed(0.5);
     service.startPlaying();
-    expect(playThrough()).toBeCloseTo(48, 0);
+    expect(playThrough()).toBeCloseTo(72, 0);
   });
 
   it('should keep the playhead when the speed changes mid-play', () => {
