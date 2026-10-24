@@ -3,34 +3,36 @@
 <header class="header" [class.header--popup-open]="isPopupOpen()">
   <div class="header__left">
     <!-- 1. Brand Pill: Logo & Contact CTA -->
-    <div
-      class="header__brand glass-panel"
-      [class.header__brand--expanded]="isBrandExpanded()"
-      (mouseenter)="onBrandHover(true)"
-      (mouseleave)="onBrandHover(false)"
-      (click)="onBrandClick($event)">
-      <button
-        type="button"
-        class="header__brand-btn"
-        [attr.aria-label]="t.about.openAbout + ' – ' + t.about.cta"
-        [appTooltip]="t.about.openAbout">
-        <span class="header__logo">
-          <img
-            class="header__logo-img"
-            src="assets/design-system/logo/kmd-black-orange.svg"
-            alt="KMD"
-            width="40"
-            height="16" />
-        </span>
-
-        <span class="header__brand-expand">
-          <span class="header__divider" aria-hidden="true"></span>
-          <span class="header__cta">
-            <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
-            <span class="header__cta-text">{{ t.about.cta }}</span>
+    <div class="header__brand-wrap">
+      <div
+        class="header__brand glass-panel"
+        [class.header__brand--expanded]="isBrandExpanded()"
+        (mouseenter)="onBrandHover(true)"
+        (mouseleave)="onBrandHover(false)"
+        (click)="onBrandClick($event)">
+        <button
+          type="button"
+          class="header__brand-btn"
+          [attr.aria-label]="t.about.openAbout + ' – ' + t.about.cta"
+          [appTooltip]="t.about.openAbout">
+          <span class="header__logo">
+            <img
+              class="header__logo-img"
+              src="assets/design-system/logo/kmd-black-orange.svg"
+              alt="KMD"
+              width="40"
+              height="16" />
           </span>
-        </span>
-      </button>
+
+          <span class="header__brand-expand">
+            <span class="header__divider" aria-hidden="true"></span>
+            <span class="header__cta">
+              <lucide-icon class="header__cta-icon" [img]="ctaIcon" [size]="14"></lucide-icon>
+              <span class="header__cta-text">{{ t.about.cta }}</span>
+            </span>
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- 2. Standalone Share Button -->

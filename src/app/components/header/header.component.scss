@@ -38,6 +38,12 @@
     z-index: 2;
   }
 
+  &__brand-wrap {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+  }
+
   &__brand {
     display: inline-flex;
     align-items: center;
@@ -57,7 +63,7 @@
   &__brand-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     height: 34px;
     padding: 0 10px 0 8px;
     border-radius: radius("pill");
@@ -92,7 +98,7 @@
     justify-content: center;
     flex: none;
     line-height: 0;
-    padding: 0 2px;
+    padding: 0;
     margin: 0;
   }
 
@@ -110,7 +116,8 @@
   &__brand-expand {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    margin-left: 6px;
     flex: none;
   }
 
@@ -217,30 +224,51 @@
       gap: 6px;
       flex-wrap: nowrap;
       min-width: 0;
+      position: relative;
+    }
+
+    &__brand-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+      width: 53px;
+      height: 38px;
     }
 
     &__brand {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
       height: 38px;
       padding: 3px;
-      transition: box-shadow 0.3s ease;
+      width: max-content;
+      max-width: 53px;
+      overflow: hidden;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.3s ease;
 
       &--expanded {
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        max-width: 250px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
       }
     }
 
     &__brand-btn {
       height: 32px;
-      padding: 0 6px;
-      gap: 6px;
+      padding: 0 5px;
+      gap: 0;
     }
 
     &__brand--expanded &__brand-btn {
-      padding: 0 8px 0 6px;
+      padding: 0 8px 0 5px;
     }
 
     &__logo {
-      padding: 0 2px;
+      padding: 0;
     }
 
     &__logo-img {
@@ -252,17 +280,20 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      margin-left: 0;
       max-width: 0;
       opacity: 0;
       overflow: hidden;
       pointer-events: none;
       white-space: nowrap;
       transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                   opacity 0.25s ease;
     }
 
     &__brand--expanded &__brand-expand {
-      max-width: 240px;
+      margin-left: 5px;
+      max-width: 220px;
       opacity: 1;
       pointer-events: auto;
     }

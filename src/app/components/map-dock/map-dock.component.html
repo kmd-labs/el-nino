@@ -75,9 +75,11 @@
             variant="default"
             align="right"
             direction="up"
+            [icon]="speedIcon"
+            [iconOnly]="true"
             [options]="speedOptions()"
             [value]="state.playbackSpeed()"
-            [ariaLabel]="t.playbackSpeed"
+            [ariaLabel]="t.playbackSpeed + ' (' + state.playbackSpeed() + 'x)'"
             (valueChange)="state.setPlaybackSpeed($event)">
           </app-dropdown>
           <app-button
