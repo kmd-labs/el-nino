@@ -218,15 +218,15 @@ export const EN: Dict = {
     people: [
       {
         bio: 'An environmental engineer by training and an AI engineer by choice. My adventure with code began in 2019 with three.js and generative art, which led to building my own augmented reality (AR) solutions. Today I focus on artificial intelligence and machine learning, connecting technology with solving real problems – as shown by winning the 11th edition of the CASSINI hackathon. Beyond coding I contribute to open source, play games, make music and take photos.',
-        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'AI', 'ML']
+        tasks: ['Fullstack development', '3D graphics', 'DevOps', 'UX/UI', 'Artificial intelligence', 'Machine learning']
       },
       {
         bio: 'Master of Administration from the University of Wrocław. Professionally I work as a data engineer at a large FMCG company. Besides managing databases I specialise in anomaly detection, data quality control and process automation. In the Viadrus AI project I brought the whole team together and was responsible for data acquisition. I worked with Marcin before at the same financial institution – as an intern I asked him a great many questions. I like proving that the impossible is possible after all. In my free time I photograph and paint landscapes and I am into maps and strategy games.',
         tasks: ['Data engineering', 'Machine learning', 'Data analytics', 'Data acquisition', 'Data quality']
       },
       {
-        bio: 'Graduate of Marine Geography at the Faculty of Earth Sciences, University of Szczecin, and of Geoinformation at the Faculty of Geographical and Geological Sciences, Adam Mickiewicz University in Poznań. I specialise in multimedia cartography and geovisualisation. In the Viadrus AI project I was responsible for geoinformatics, processing and analysing the source data, and algorithms. I currently work as a product manager at a financial institution, on ERP system projects.',
-        tasks: ['Geoinformatics', 'Data processing', 'Source data analysis', 'Algorithms', 'Geovisualisation']
+        bio: 'I am a graduate of Marine Geography at the Faculty of Earth Sciences, University of Szczecin; of Geoinformation at the Faculty of Geographical and Geological Sciences, Adam Mickiewicz University in Poznań; and of Artificial Intelligence in Corporate Finance and Controlling at Kozminski University. For 12 years I have worked as a functional consultant for ERP-class systems. After hours I build systems that detect anomalies in financial and satellite data using machine learning. Creating geovisualisations is another great passion of mine. I have been developing my artificial intelligence skills for 4 years. I believe the future belongs to domain experts who can use AI effectively as a tool in their everyday work. Outside work I am into strength training, board games, Magic: The Gathering and gardening.',
+        tasks: ['Geoinformatics', 'Geovisualisation', 'Anomaly detection', 'Machine learning', 'Artificial intelligence']
       }
     ]
   },

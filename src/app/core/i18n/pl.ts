@@ -218,15 +218,15 @@ export const PL: Dict = {
     people: [
       {
         bio: 'Z wykształcenia magister inżynier środowiska, z wyboru AI Engineer. Moja przygoda z kodem zaczęła się w 2019 roku od three.js i sztuki generatywnej, co zaowocowało tworzeniem autorskich rozwiązań w AR (rzeczywistości rozszerzonej). Dziś skupiam się na sztucznej inteligencji i uczeniu maszynowym, łącząc technologię z realnym rozwiązywaniem problemów, czego dowodem jest zwycięstwo w 11. edycji hackathonu CASSINI. Poza kodowaniem działam w open source, gram, tworzę muzykę i fotografuję.',
-        tasks: ['Fullstack engineer', '3D generalist', 'DevOps', 'UX/UI', 'AI', 'ML']
+        tasks: ['Programowanie fullstack', 'Grafika 3D', 'DevOps', 'UX/UI', 'Sztuczna inteligencja', 'Uczenie maszynowe']
       },
       {
         bio: 'Magister Administracji Uniwersytetu Wrocławskiego. Zawodowo pracuję jako Data Engineer w dużej firmie z branży FMCG. Oprócz zarządzania bazami danych specjalizuję się w wykrywaniu anomalii, kontroli jakości danych i automatyzacji procesów. W projekcie Viadrus AI zebrałem cały zespół i odpowiadałem za pozyskanie danych. Z Marcinem pracowałem wcześniej w tej samej instytucji finansowej – jako stażysta zadawałem mu bardzo dużo pytań. Lubię udowadniać, że niemożliwe jednak jest możliwe. W wolnym czasie fotografuję i maluję krajobrazy, interesuję się mapami i grami strategicznymi.',
-        tasks: ['Inżynieria danych', 'Machine Learning', 'Analityka danych', 'Pozyskiwanie danych', 'Jakość danych']
+        tasks: ['Inżynieria danych', 'Uczenie maszynowe', 'Analityka danych', 'Pozyskiwanie danych', 'Jakość danych']
       },
       {
-        bio: 'Absolwent Geografii Morza na Wydziale Nauk o Ziemi Uniwersytetu Szczecińskiego oraz Geoinformacji na Wydziale Nauk Geograficznych i Geologicznych Uniwersytetu im. Adama Mickiewicza w Poznaniu. Specjalizuję się w kartografii multimedialnej i geowizualizacjach. W projekcie Viadrus AI odpowiadałem za geoinformatykę, przetwarzanie i analizę danych źródłowych oraz algorytmy. Obecnie pracuję jako Product Manager w instytucji finansowej, gdzie zajmuję się projektami z obszaru systemów ERP.',
-        tasks: ['Geoinformatyka', 'Przetwarzanie danych', 'Analiza danych źródłowych', 'Algorytmy', 'Geowizualizacje']
+        bio: 'Jestem absolwentem Geografii Morza na Wydziale Nauk o Ziemi Uniwersytetu Szczecińskiego, Geoinformacji na Wydziale Nauk Geograficznych i Geologicznych Uniwersytetu im. Adama Mickiewicza w Poznaniu oraz Sztucznej Inteligencji w Finansach i Controllingu Przedsiębiorstw na Akademii Leona Koźmińskiego. Od 12 lat pracuję jako konsultant funkcjonalny systemów klasy ERP. Po godzinach tworzę systemy do detekcji anomalii w danych finansowych i satelitarnych przy użyciu uczenia maszynowego. Moją wielką pasją jest również tworzenie geowizualizacji. Swoje umiejętności w zakresie sztucznej inteligencji rozwijam od 4 lat. Wierzę, że przyszłość należy do ekspertów domenowych, którzy potrafią skutecznie wykorzystywać AI jako narzędzie w swojej codziennej pracy. Prywatnie pasjonuję się treningiem siłowym, grami planszowymi, Magic: The Gathering oraz ogrodnictwem.',
+        tasks: ['Geoinformatyka', 'Geowizualizacje', 'Detekcja anomalii', 'Uczenie maszynowe', 'Sztuczna inteligencja']
       }
     ]
   },
