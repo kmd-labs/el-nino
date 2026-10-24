@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { DisplayMode, EnsoPhase, ImpactLocationMeta, PhaseInfo, ViewMode } from '../models/enso.model';
 import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../constants/enso-data';
 import { EnsoMathService } from './enso-math.service';
+import { EnsoHistoryService } from './enso-history.service';
 import { I18nService } from '../i18n/i18n.service';
 
 const EARLIEST_STRENGTH = -1.8;
@@ -17,6 +18,7 @@ export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 })
 export class EnsoStateService {
   private math = inject(EnsoMathService);
+  private history = inject(EnsoHistoryService);
   private i18n = inject(I18nService);
   /** Position of the running playback, 0–1 (eased into strength in updateCycle). */
   private playProgress = 0;
@@ -29,8 +31,8 @@ export class EnsoStateService {
   readonly sCur = signal<number>(EARLIEST_STRENGTH);
   readonly displayMode = signal<DisplayMode>('sst');
   readonly view = signal<ViewMode>('globe');
-  /** Views that replace the globe with a flat cross-section (the globe stays hidden and paused). */
-  readonly crossSectionView = computed(() => this.view() === 'walker');
+  /** Views that replace the globe with a flat cross-section or chart (the globe stays hidden and paused). */
+  readonly crossSectionView = computed(() => this.view() === 'walker' || this.view() === 'cycles');
   readonly showAtmosphere = signal<boolean>(true);
   readonly showEvents = signal<boolean>(true);
   readonly autoRotate = signal<boolean>(true);
@@ -92,16 +94,16 @@ export class EnsoStateService {
   });
 
   /**
-   * Rough chance that the 2026 ENSO peak (Oct–Dec, Niño 3.4) falls in the slider's range.
+   * Chance that this season's ENSO peak (Oct–Dec, Niño 3.4) reaches the value the slider shows,
+   * taken from the analog ensemble in `enso-history.json`. Five weighted members cannot support
+   * more precision than a step of 5%, hence the rounding and the leading "~".
    */
   readonly prob2026 = computed<string>(() => {
-    const n = this.math.nino34(this.sTarget());
-    if (n >= 2.5) return '~83%';
-    if (n >= 2.0) return '~10%';
-    if (n >= 1.5) return '~4%';
-    if (n >= 1.0) return '~2%';
-    if (n >= 0.5) return '~1%';
-    return '<1%';
+    const p = this.history.peakProbability(this.math.nino34(this.sTarget()));
+    if (p === null) return '—';
+    if (p >= 0.95) return '>95%';
+    if (p <= 0.05) return '<5%';
+    return `~${Math.round(p * 20) * 5}%`;
   });
 
   prepareExperience() {
@@ -181,7 +183,7 @@ export class EnsoStateService {
   setView(v: ViewMode) {
     if (v === this.view()) return;
     this.view.set(v);
-    if (v === 'walker') {
+    if (this.crossSectionView()) {
       this.selectedLocation.set(null);
     }
   }

@@ -10,7 +10,8 @@ import {
   Share2,
   Check,
   CalendarDays,
-  Handshake
+  Handshake,
+  ChartLine
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { ShareLinkService, ShareMode } from '../../core/services/share-link.service';
@@ -92,7 +93,8 @@ export class HeaderComponent implements OnDestroy {
     return [
       { value: 'globe', label: t.viewAnom, icon: Thermometer },
       { value: 'walker', label: t.viewWalker, icon: Wind },
-      { value: 'impacts', label: t.viewImpacts, icon: CloudRain }
+      { value: 'impacts', label: t.viewImpacts, icon: CloudRain },
+      { value: 'cycles', label: t.viewCycles, icon: ChartLine }
     ];
   });
 

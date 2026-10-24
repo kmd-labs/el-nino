@@ -23,7 +23,8 @@ export const ES: Dict = {
   ensoLabel: 'Fase ENSO',
   strengthAria: 'Intensidad de ENSO',
   probText: 'Probabilidad pico 2026:',
-  probTitle: 'Estimación muy aproximada para el pico de la temporada (oct–dic 2026) según el pronóstico de NOAA CPC del 8.10.2026',
+  probTitle: 'Proporción del conjunto de analogías cuyo pico oct–dic alcanza el valor mostrado — cinco temporadas pasadas '
+    + 'ajustadas a la trayectoria actual del registro NOAA CPC Niño 3.4 (1950–hoy). Una estimación aproximada, no un modelo dinámico.',
   probSource: 'NOAA CPC',
   playStart: 'Ciclo 4 años',
   playStop: 'Detener',
@@ -173,8 +174,26 @@ export const ES: Dict = {
     cta: 'Abiertos a nuevos proyectos',
     openAbout: 'Sobre KMD',
     title: 'Sobre nosotros',
-    kicker: 'Visualización interactiva de datos',
-    lead: 'KMD es un equipo de tres personas que convierte datos científicos en visualizaciones interactivas. Combinamos ingeniería de datos, aprendizaje automático, gráficos 3D y cartografía: desde la obtención y limpieza de los datos hasta un modelo que se puede girar en el navegador. El globo de El Niño es nuestro proyecto que muestra cómo un solo fenómeno del Pacífico cambia el tiempo en todo el mundo. Buscamos nuevos proyectos: si tienes datos que merece la pena mostrar, escríbenos en LinkedIn.',
+    kicker: 'laboratory',
+    leads: [
+      'KMD Labs es un equipo de tres personas surgido de Viadrus AI: el primer equipo polaco que ganó la final europea del hackathon CASSINI organizado por la Agencia de la UE para el Programa Espacial (EUSPA). La solución ganadora empleaba datos satelitales para detectar de forma temprana fugas en las redes de abastecimiento de agua.',
+      'Tras la final, Adrian, Leszek y Marcin decidieron unir la capacidad de cálculo de sus neuronas. Aunque cada uno viene de un ámbito distinto, comparten la pasión por la geoinformática, los datos satelitales, la detección de anomalías, el aprendizaje automático y el desarrollo de software.',
+      'KMD Labs cree que divulgar la geoinformática y la tecnología espacial es tan importante como desarrollarlas. Los datos satelitales ayudan a resolver problemas reales del medio ambiente, las ciudades y las infraestructuras, pero en Polonia siguen faltando especialistas capaces de convertirlos en soluciones prácticas.'
+    ],
+    refs: [
+      {
+        label: '11.º hackathon CASSINI – crónica de la CE',
+        href: 'https://defence-industry-space.ec.europa.eu/orbit-water-tap-11th-cassini-hackathon-2026-05-08_en',
+        title: 'defence-industry-space.ec.europa.eu – From Orbit to the Water Tap: 11th CASSINI Hackathon',
+        aria: 'Crónica de la Comisión Europea sobre el 11.º hackathon CASSINI'
+      },
+      {
+        label: 'CASSINI Hackathons – portafolio',
+        href: 'https://www.cassini.eu/hackathons/portfolio',
+        title: 'cassini.eu/hackathons/portfolio – Meet the Winners',
+        aria: 'CASSINI Hackathons – portafolio de equipos ganadores'
+      }
+    ],
     back: 'Volver al globo',
     tasksLabel: 'Áreas',
     photoSoon: 'Foto próximamente',
@@ -195,6 +214,45 @@ export const ES: Dict = {
         tasks: ['Geoinformática', 'Procesamiento de datos', 'Análisis de datos de origen', 'Algoritmos', 'Geovisualización']
       }
     ]
+  },
+
+  viewCycles: 'Ciclos anteriores',
+  cyclesAria: 'Ciclos ENSO anteriores y el pronóstico por analogías',
+  cyclesTitle: 'Todos los eventos ENSO desde 1950',
+  cyclesNote: 'Cada línea es un evento: el índice Niño 3.4 (ONI, media móvil de 3 meses) a lo largo de dos años '
+    + 'calendario. Las temporadas en que se basa el pronóstico están resaltadas; el evento actual es la línea gruesa.',
+  cyclesBarrier: 'Un pronóstico por analogías es una base estadística, no un modelo dinámico. Cinco miembros extraídos de un '
+    + 'registro de diez eventos comparables conllevan una incertidumbre real, y la destreza cae bruscamente cuando el horizonte '
+    + 'cruza la barrera de predictibilidad de primavera.',
+  cyclesLegendPast: 'Eventos pasados',
+  cyclesLegendAnalog: 'Analogías usadas',
+  cyclesLegendCurrent: 'Evento actual',
+  cyclesLegendForecast: 'Pronóstico (p10–p90)',
+  cyclesAxisOni: 'ONI (°C)',
+  cyclesYearN: n => `año ${n}`,
+  cyclesCatalogue: 'Eventos El Niño más fuertes',
+  cyclesColSeason: 'Temporada',
+  cyclesColPeak: 'Pico',
+  cyclesColTier: 'Clase',
+  cyclesColLength: 'Duración',
+  cyclesMonthsShort: n => `${n} meses`,
+  cyclesOngoing: 'en curso',
+  cyclesProvisional: date => `provisional · semana hasta ${date}`,
+  cyclesAnalogTitle: 'Analogías más cercanas',
+  cyclesAnalogNote: (window, members) =>
+    `Ajuste según los últimos ${window} meses del índice; las ${members} mejores temporadas, cada una desplazada para continuar desde el nivel actual.`,
+  cyclesAnalogMatch: 'ajuste',
+  cyclesAnalogWeight: 'peso',
+  cyclesForecastPeak: (lo, hi, window) =>
+    `Pico previsto ${window}: ${lo >= 0 ? '+' : '−'}${Math.abs(lo).toFixed(1)} a ${hi >= 0 ? '+' : '−'}${Math.abs(hi).toFixed(1)} °C`,
+  cyclesRecordNote: (first, last) => `NOAA CPC, Niño 3.4 mensual, ${first} – ${last}`,
+  cyclesLoading: 'Cargando el registro histórico…',
+  cyclesError: 'El registro histórico no está disponible.',
+  tier: {
+    super: 'Super',
+    strong: 'Fuerte',
+    moderate: 'Moderado',
+    weak: 'Débil'
   },
 
   glTitle: 'Glosario de términos clave',

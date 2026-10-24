@@ -59,7 +59,10 @@ export interface AboutText {
   openAbout: string;
   title: string;
   kicker: string;
-  lead: string;
+  /** Hero paragraphs, rendered in order. */
+  leads: string[];
+  /** External references shown as pills under the hero text. */
+  refs: { label: string; href: string; title: string; aria: string }[];
   back: string;
   tasksLabel: string;
   photoSoon: string;
@@ -220,6 +223,36 @@ export interface Dict {
   splashError: string;
 
   about: AboutText;
+
+  // previous-cycles view
+  viewCycles: string;
+  cyclesAria: string;
+  cyclesTitle: string;
+  cyclesNote: string;
+  cyclesBarrier: string;
+  cyclesLegendPast: string;
+  cyclesLegendAnalog: string;
+  cyclesLegendCurrent: string;
+  cyclesLegendForecast: string;
+  cyclesAxisOni: string;
+  cyclesYearN: (n: number) => string;
+  cyclesCatalogue: string;
+  cyclesColSeason: string;
+  cyclesColPeak: string;
+  cyclesColTier: string;
+  cyclesColLength: string;
+  cyclesMonthsShort: (n: number) => string;
+  cyclesOngoing: string;
+  cyclesProvisional: (date: string) => string;
+  cyclesAnalogTitle: string;
+  cyclesAnalogNote: (window: number, members: number) => string;
+  cyclesAnalogMatch: string;
+  cyclesAnalogWeight: string;
+  cyclesForecastPeak: (lo: number, hi: number, window: string) => string;
+  cyclesRecordNote: (first: string, last: string) => string;
+  cyclesLoading: string;
+  cyclesError: string;
+  tier: Record<'super' | 'strong' | 'moderate' | 'weak', string>;
 
   // glossary
   glTitle: string;
