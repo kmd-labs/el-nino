@@ -50,7 +50,7 @@ export class ShareLinkService {
     effect(() => {
       const view = this.state.view();
       const strength = this.state.sTarget();
-      if (!this.state.experienceReady() || this.state.isPlaying()) return;
+      if (!this.state.experienceStarted() || this.state.isPlaying()) return;
       if (this.syncTimer !== null) clearTimeout(this.syncTimer);
       if (this.linked && this.linked.view === view && this.linked.strength === strength) return;
       this.linked = null;

@@ -29,6 +29,8 @@ export class EnsoStateService {
   readonly autoRotate = signal<boolean>(true);
   readonly isPlaying = signal<boolean>(true);
   readonly experienceReady = signal<boolean>(false);
+  /** True once the splash has handed over and the intro (if any) has started. */
+  readonly experienceStarted = signal<boolean>(false);
   readonly sceneReady = signal<boolean>(false);
   readonly cycleT = signal<number>(0);
   /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
@@ -103,6 +105,8 @@ export class EnsoStateService {
 
   beginExperience() {
     this.prepareExperience();
+    if (this.experienceStarted()) return;
+    this.experienceStarted.set(true);
     if (!this.isPlaying() && !this.skipIntro) this.startPlaying();
   }
 

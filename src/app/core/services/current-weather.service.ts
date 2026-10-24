@@ -237,8 +237,9 @@ export class CurrentWeatherService {
   }
 
   getKeyframePair(s: number): KeyframePair | null {
-    if (!this.sstBin) return null;
-    return this.getKeyframePairMeta(s);
+    // Read meta() first so computeds depending on this re-run once the data arrives
+    const pair = this.getKeyframePairMeta(s);
+    return this.sstBin ? pair : null;
   }
 
   private getKeyframePairMeta(s: number): KeyframePair | null {
