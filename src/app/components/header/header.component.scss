@@ -149,6 +149,10 @@
     &__share {
       padding: 3px;
       height: 38px;
+
+      ::ng-deep .dropdown__chevron {
+        display: none;
+      }
     }
 
     &__view {

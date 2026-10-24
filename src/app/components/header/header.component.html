@@ -36,15 +36,16 @@
 
   <!-- 3. Standalone View / Anomaly Mode Dropdown -->
   <div class="header__right">
-    <div class="header__share glass-panel">
-      <app-button
+    <div #sharePill class="header__share glass-panel">
+      <app-dropdown
         variant="ghost"
+        align="right"
         [iconOnly]="true"
+        [icon]="copied() ? checkIcon : shareIcon"
+        [options]="shareOptions()"
         [ariaLabel]="t.shareLink"
-        [titleText]="t.shareLink"
-        (btnClick)="onShare($event)">
-        <lucide-icon [img]="copied() ? checkIcon : shareIcon" [size]="15"></lucide-icon>
-      </app-button>
+        (valueChange)="onShare($event)">
+      </app-dropdown>
     </div>
     <div class="header__view glass-panel">
       <app-dropdown

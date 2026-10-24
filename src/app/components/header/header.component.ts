@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   LucideAngularModule,
@@ -8,17 +8,17 @@ import {
   Wind,
   CloudRain,
   Share2,
-  Check
+  Check,
+  CalendarDays
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
-import { ShareLinkService } from '../../core/services/share-link.service';
+import { ShareLinkService, ShareMode } from '../../core/services/share-link.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/i18n.types';
 import { DisplayMode, ViewMode } from '../../core/models/enso.model';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
-import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 
 @Component({
@@ -27,7 +27,6 @@ import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
   imports: [
     CommonModule,
     DropdownComponent,
-    ButtonComponent,
     LucideAngularModule
   ],
   templateUrl: './header.component.html',
@@ -45,6 +44,22 @@ export class HeaderComponent {
   readonly shareIcon = Share2;
   readonly checkIcon = Check;
   readonly copied = signal(false);
+
+  @ViewChild('sharePill') private sharePill?: ElementRef<HTMLElement>;
+
+  /** Share either the day shown on the timeline or the ENSO state; the day needs the timeline data. */
+  readonly shareOptions = computed<DropdownOption<ShareMode>[]>(() => {
+    const t = this.i18n.t();
+    const opts: DropdownOption<ShareMode>[] = [];
+    const date = this.shareLink.currentDate();
+    if (date) {
+      const label = new Intl.DateTimeFormat(t.htmlLang, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+        .format(new Date(`${date}T12:00:00Z`));
+      opts.push({ value: 'date', label: t.shareDate, badge: label, icon: CalendarDays });
+    }
+    opts.push({ value: 'state', label: t.shareState, badge: this.state.category().name, icon: Activity });
+    return opts;
+  });
 
   readonly currentView = computed<string>(() => this.state.view());
 
@@ -79,10 +94,9 @@ export class HeaderComponent {
   }
 
   /** Native share sheet on touch devices, clipboard elsewhere. */
-  async onShare(event: MouseEvent) {
+  async onShare(mode: ShareMode) {
     const t = this.i18n.t();
-    const url = this.shareLink.buildUrl();
-    const anchor = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const url = this.shareLink.buildUrl(mode);
     const touch = window.matchMedia('(pointer: coarse)').matches;
 
     if (touch && navigator.share) {
@@ -101,7 +115,10 @@ export class HeaderComponent {
       ok = false;
     }
     this.copied.set(ok);
-    this.tooltip.show(ok ? t.linkCopied : t.linkCopyFailed, anchor.left + anchor.width / 2, anchor.bottom + 8, 'bottom', 1800);
+    const anchor = this.sharePill?.nativeElement.getBoundingClientRect();
+    if (anchor) {
+      this.tooltip.show(ok ? t.linkCopied : t.linkCopyFailed, anchor.left + anchor.width / 2, anchor.bottom + 8, 'bottom', 1800);
+    }
     if (this.copiedTimer !== null) clearTimeout(this.copiedTimer);
     this.copiedTimer = setTimeout(() => this.copied.set(false), 1800);
   }

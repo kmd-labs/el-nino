@@ -276,6 +276,27 @@ export class CurrentWeatherService {
     return a + (b - a) * pair.t;
   }
 
+  /** Day (YYYY-MM-DD, UTC) shown for strength s, matching the date pill. */
+  dateIsoAt(s: number): string | null {
+    const ms = this.interpolatedDateMs(s);
+    return ms == null ? null : new Date(ms).toISOString().slice(0, 10);
+  }
+
+  /** Inverse of interpolatedDateMs: strength for a day, clamped to the timeline range. */
+  strengthForDate(iso: string): number | null {
+    const kfs = this.meta()?.keyframes;
+    const ms = Date.parse(`${iso}T12:00:00Z`);
+    if (!kfs?.length || !Number.isFinite(ms)) return null;
+    const at = (i: number) => Date.parse(`${kfs[i].date}T12:00:00Z`);
+    if (ms <= at(0)) return kfs[0].s;
+    for (let i = 0; i < kfs.length - 1; i++) {
+      const a = at(i);
+      const b = at(i + 1);
+      if (ms <= b) return kfs[i].s + (kfs[i + 1].s - kfs[i].s) * (b > a ? (ms - a) / (b - a) : 0);
+    }
+    return kfs[kfs.length - 1].s;
+  }
+
   isForecast(s: number): boolean {
     const nowKf = this.meta()?.keyframes.find(k => k.now);
     const ms = this.interpolatedDateMs(s);

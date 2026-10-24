@@ -106,11 +106,11 @@ export class EnsoStateService {
     if (!this.isPlaying() && !this.skipIntro) this.startPlaying();
   }
 
-  /** Applies a view and strength from a shared link before the experience starts. */
-  applySharedState(view: ViewMode | null, strength: number | null) {
+  /** Applies a view and/or strength from a shared link; a linked moment skips the intro animation. */
+  applySharedState(view: ViewMode | null, strength: number | null, skipIntro = strength !== null) {
+    if (skipIntro) this.skipIntro = true;
     if (view) this.view.set(view);
     if (strength !== null) {
-      this.skipIntro = true;
       this.sTarget.set(strength);
       this.sCur.set(strength);
     }

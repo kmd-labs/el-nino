@@ -44,7 +44,9 @@ export const EN: Dict = {
   hintPins: (count, phase) => `${count} locations with documented impacts of ${phase}. Click any pin on the globe to inspect the event data and source.`,
 
   chooseView: 'View',
-  shareLink: 'Share a link to this view',
+  shareLink: 'Share a link',
+  shareDate: 'Link to this date',
+  shareState: 'Link to this ENSO state',
   linkCopied: 'Link copied',
   linkCopyFailed: 'Could not copy – use the address bar',
   viewTemp: 'Water temperature',
