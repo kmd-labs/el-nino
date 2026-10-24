@@ -66,7 +66,7 @@ export const EN: Dict = {
   linkCopyFailed: 'Could not copy – use the address bar',
   viewTemp: 'Water temperature',
   viewAnom: 'Water temperature',
-  viewWalker: 'Walker Cell & Thermocline',
+  viewWalker: 'Walker cell',
   viewImpacts: 'Impacts',
   viewCurrent: 'Current situation',
   sstOnDateTitle: 'Mean sea-surface temperature in the Niño 3.4 box for the selected date',

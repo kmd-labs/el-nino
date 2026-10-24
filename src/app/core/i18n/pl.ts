@@ -66,7 +66,7 @@ export const PL: Dict = {
   linkCopyFailed: 'Nie udało się skopiować – użyj paska adresu',
   viewTemp: 'Temperatura wody',
   viewAnom: 'Temperatura wody',
-  viewWalker: 'Komórka Walkera i termoklina',
+  viewWalker: 'Komórka Walkera',
   viewImpacts: 'Skutki',
   viewCurrent: 'Sytuacja obecnie',
   sstOnDateTitle: 'Średnia temperatura powierzchni oceanu w prostokącie Niño 3.4 dla wybranej daty',

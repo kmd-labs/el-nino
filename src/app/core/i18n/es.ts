@@ -66,7 +66,7 @@ export const ES: Dict = {
   linkCopyFailed: 'No se pudo copiar: usa la barra de direcciones',
   viewTemp: 'Temperatura del agua',
   viewAnom: 'Temperatura del agua',
-  viewWalker: 'Celda Walker y termoclina',
+  viewWalker: 'Celda Walker',
   viewImpacts: 'Impactos',
   viewCurrent: 'Situación actual',
   sstOnDateTitle: 'Temperatura media de la superficie del mar en el recuadro Niño 3.4 para la fecha seleccionada',
