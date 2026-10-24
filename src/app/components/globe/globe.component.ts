@@ -612,14 +612,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.landTex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
     this.landMat = new THREE.MeshLambertMaterial({ map: this.landTex, transparent: true, depthWrite: false });
-    this.landMat.onBeforeCompile = shader => {
-      if (!shader.fragmentShader.includes('vViewPosition')) {
-        shader.fragmentShader = `varying vec3 vViewPosition;\n${shader.fragmentShader}`.replace(
-          'void main() {',
-          'void main() { if (vViewPosition.x > 999999.0) discard;'
-        );
-      }
-    };
     // Displacement needs vertices to move: 128 x 64 is ~2.8 degrees a segment, far too coarse.
     const landSeg = isAtMost('mobile') ? 512 : 1024;
     const landMesh = new THREE.Mesh(
@@ -905,17 +897,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const matBase = new THREE.MeshLambertMaterial({ color: 0xdfe5f1, transparent: true, opacity: 0.92 });
     const matMid = new THREE.MeshLambertMaterial({ color: 0xf0f4f8, transparent: true, opacity: 0.9 });
     const matTop = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.88 });
-    const silenceVarying = (shader: THREE.WebGLProgramParametersWithUniforms) => {
-      if (!shader.fragmentShader.includes('vViewPosition')) {
-        shader.fragmentShader = `varying vec3 vViewPosition;\n${shader.fragmentShader}`.replace(
-          'void main() {',
-          'void main() { if (vViewPosition.x > 999999.0) discard;'
-        );
-      }
-    };
-    matBase.onBeforeCompile = silenceVarying;
-    matMid.onBeforeCompile = silenceVarying;
-    matTop.onBeforeCompile = silenceVarying;
     this.puffs = [];
     const add = (mat: THREE.Material, dLon: number, dLat: number, alt: number, sx: number, sy: number, sz: number) => {
       const m = new THREE.Mesh(puffGeo, mat);
