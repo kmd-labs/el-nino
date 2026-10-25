@@ -11,7 +11,9 @@
               <span>{{ s.name }}</span>
               <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
             </a>
-            <span class="sources-popup__license">{{ s.license }}</span>
+            <div class="sources-popup__badges">
+              <span class="sources-popup__badge">{{ s.license }}</span>
+            </div>
           </div>
           <p class="sources-popup__desc">{{ s.desc }}</p>
         </article>
@@ -28,7 +30,11 @@
         <article class="sources-popup__card">
           <div class="sources-popup__card-header">
             <h4 class="sources-popup__mlabel">{{ m.label }}</h4>
-            <span class="sources-popup__license">{{ m.area }}</span>
+            <div class="sources-popup__badges">
+              @for (tag of splitTags(m.area); track tag) {
+                <span class="sources-popup__badge">{{ tag }}</span>
+              }
+            </div>
           </div>
           <p class="sources-popup__desc">{{ m.text }}</p>
         </article>

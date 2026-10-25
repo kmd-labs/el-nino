@@ -2,9 +2,9 @@
 
 <div class="dock-wrap">
   <div #dockRef class="dock glass-panel">
-    <!-- Row 1: Date (first), Latest, El Niño state name -->
-    <div class="dock__row dock__row--status" role="group" [attr.aria-label]="state.category().name">
-      <div class="dock__header-group">
+    <!-- Dock Top: 1 row on Desktop & Mobile Landscape; 2 rows on Mobile Portrait -->
+    <div class="dock__top">
+      <div class="dock__status-group" role="group" [attr.aria-label]="state.category().name">
         @if (activeDateLabel()) {
           <div class="dock__date-pill" role="status">
             <span class="dock__date-val">{{ activeDateLabel() }}</span>
@@ -30,18 +30,17 @@
           <span class="dock__phase-name">{{ state.category().name }}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Row 2: Niño 3.4 Readout (left), Legend & Glossary (right) -->
-    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
-      <div class="dock__header-group">
+      <div class="dock__readout-group" role="group" [attr.aria-label]="t.readoutTitle">
         <div class="dock__readout">
           <span class="dock__readout-label">{{ t.readoutTitle }}</span>
           <span class="dock__readout-val">{{ formattedNino() }}</span>
         </div>
-      </div>
 
-      <app-legend-panel></app-legend-panel>
+        <span class="dock__divider" aria-hidden="true"></span>
+
+        <app-legend-panel></app-legend-panel>
+      </div>
     </div>
 
     <!-- Row 2: the timeline, full width -->

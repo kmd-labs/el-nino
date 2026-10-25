@@ -21,6 +21,11 @@ export class SourcesPopupComponent {
   readonly externalLinkIcon = ExternalLink;
   readonly arrowIcon = ArrowRight;
 
+  /** Splits area descriptors into distinct badge tags for clean wrapping. */
+  splitTags(area: string): string[] {
+    return area ? area.split(' · ') : [];
+  }
+
   /** "Meet the team": the About page opens under the popup, so close the popup first. */
   openAbout() {
     this.popup.close();
