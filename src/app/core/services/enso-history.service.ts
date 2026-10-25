@@ -139,7 +139,7 @@ export class EnsoHistoryService {
     if (this.status() !== 'idle') return;
     this.status.set('loading');
 
-    fetch('assets/data/enso-history.json', { cache: 'no-cache' })
+    fetch('assets/data/enso-history.json')
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<EnsoHistory>;

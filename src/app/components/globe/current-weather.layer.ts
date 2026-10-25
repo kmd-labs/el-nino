@@ -39,6 +39,9 @@ export class CurrentWeatherLayer {
   private seeded = false;
   private lastS = 1.4;
 
+  private readonly wDecay: Float32Array;
+  private readonly vDecay: Float32Array;
+
   constructor(
     private math: EnsoMathService,
     private weather: CurrentWeatherService,
@@ -53,6 +56,15 @@ export class CurrentWeatherLayer {
     this.TRAIL = 260;
     this.NV = 650;
     this.V_TRAIL = 350;
+
+    this.wDecay = new Float32Array(this.TRAIL);
+    for (let k = 0; k < this.TRAIL; k++) {
+      this.wDecay[k] = (1 - k / (this.TRAIL - 1)) ** 0.75;
+    }
+    this.vDecay = new Float32Array(this.V_TRAIL);
+    for (let k = 0; k < this.V_TRAIL; k++) {
+      this.vDecay[k] = (1 - k / (this.V_TRAIL - 1)) ** 0.70;
+    }
 
     this.wLon = new Float32Array(this.NW);
     this.wLat = new Float32Array(this.NW);
@@ -142,11 +154,13 @@ export class CurrentWeatherLayer {
         this.spawnWave(i, s);
         this.vAge[i] = Math.random() * this.vLife[i];
       }
-      // Fast warm-up so trails are immediately full length on first render
+      // Fast warm-up: advance particle histories without rebuilding GPU buffers on each step
       for (let step = 0; step < 120; step++) {
-        this.updateWind(0.03, s);
-        this.updateWaves(0.03, s);
+        this.stepWind(0.03, s);
+        this.stepWaves(0.03, s);
       }
+      this.buildWindGeometry();
+      this.buildWaveGeometry();
       this.seeded = true;
     }
 
@@ -161,8 +175,10 @@ export class CurrentWeatherLayer {
       this.lastS = s;
     }
 
-    this.updateWind(dt, s);
-    this.updateWaves(dt, s);
+    this.stepWind(dt, s);
+    this.buildWindGeometry();
+    this.stepWaves(dt, s);
+    this.buildWaveGeometry();
   }
 
   private adaptTrailsToTimeline(s: number, dS: number) {
@@ -205,11 +221,10 @@ export class CurrentWeatherLayer {
     }
   }
 
-  private updateWind(dt: number, s: number) {
+  private stepWind(dt: number, s: number) {
     const R = this.math.R * 1.013;
     const T = this.TRAIL;
     const degPerMs = 0.55;
-    let w = 0;
 
     for (let i = 0; i < this.NW; i++) {
       this.wAge[i] += dt;
@@ -220,9 +235,6 @@ export class CurrentWeatherLayer {
       } else {
         this.wLon[i] += this.wind.u * degPerMs * dt / Math.max(0.25, Math.cos(lat0 * this.math.DEG));
         this.wLat[i] += this.wind.v * degPerMs * dt;
-        // Longitude is normalised only so sampling stays in range. The trail holds
-        // Cartesian points, where the date line is just another meridian — never flush
-        // the history here or the streak blinks out and regrows at ±180°.
         if (this.wLon[i] > 180) this.wLon[i] -= 360;
         if (this.wLon[i] < -180) this.wLon[i] += 360;
         const o = i * T * 3;
@@ -232,7 +244,13 @@ export class CurrentWeatherLayer {
         this.wHist[o + 1] = this.p.y;
         this.wHist[o + 2] = this.p.z;
       }
+    }
+  }
 
+  private buildWindGeometry() {
+    const T = this.TRAIL;
+    let w = 0;
+    for (let i = 0; i < this.NW; i++) {
       const speed = Math.hypot(this.wind.u, this.wind.v);
       const k = Math.min(1, speed / 16);
       const r = this.cWind.r + (this.cStrong.r - this.cWind.r) * k * k;
@@ -245,10 +263,12 @@ export class CurrentWeatherLayer {
       for (let sIdx = 0; sIdx < T - 1; sIdx++) {
         for (let j = 0; j < 6; j++) this.wPos[w * 3 + j] = this.wHist[o + sIdx * 3 + j];
         const c = w * 4;
+        const a1 = a * this.wDecay[sIdx];
+        const a2 = a * this.wDecay[sIdx + 1];
         this.wCol[c] = r; this.wCol[c + 1] = g; this.wCol[c + 2] = b;
-        this.wCol[c + 3] = a * (1 - sIdx / (T - 1)) ** 0.75;
+        this.wCol[c + 3] = a1;
         this.wCol[c + 4] = r; this.wCol[c + 5] = g; this.wCol[c + 6] = b;
-        this.wCol[c + 7] = a * (1 - (sIdx + 1) / (T - 1)) ** 0.75;
+        this.wCol[c + 7] = a2;
         w += 2;
       }
     }
@@ -256,12 +276,11 @@ export class CurrentWeatherLayer {
     this.wGeo.attributes['color'].needsUpdate = true;
   }
 
-  private updateWaves(dt: number, s: number) {
+  private stepWaves(dt: number, s: number) {
     const R = this.math.R * 1.011;
     const D = this.math.DEG;
     const VT = this.V_TRAIL;
     const degPerMs = 1.2;
-    let vPtr = 0;
 
     for (let i = 0; i < this.NV; i++) {
       this.vAge[i] += dt;
@@ -270,17 +289,7 @@ export class CurrentWeatherLayer {
         this.spawnWave(i, s);
         ok = this.weather.waves(this.vLon[i], this.vLat[i], s, this.wave);
       }
-
-      const numSegs = VT - 1;
-      const numVerts = numSegs * 2;
-
-      if (!ok) {
-        const c = vPtr * 4;
-        const totalCol = numVerts * 4;
-        for (let j = 0; j < totalCol; j++) this.vCol[c + j] = 0;
-        vPtr += numVerts;
-        continue;
-      }
+      if (!ok) continue;
 
       const { period, dx, dy } = this.wave;
       const lat0 = this.vLat[i];
@@ -288,7 +297,6 @@ export class CurrentWeatherLayer {
       const speed = 0.9 + 0.14 * Math.min(period, 16);
       this.vLon[i] += dx * speed * degPerMs * dt / cosLat;
       this.vLat[i] += dy * speed * degPerMs * dt;
-      // Same as the wind: wrap the sampling longitude, keep the Cartesian trail intact.
       if (this.vLon[i] > 180) this.vLon[i] -= 360;
       if (this.vLon[i] < -180) this.vLon[i] += 360;
 
@@ -298,21 +306,28 @@ export class CurrentWeatherLayer {
       this.vHist[o] = this.p.x;
       this.vHist[o + 1] = this.p.y;
       this.vHist[o + 2] = this.p.z;
+    }
+  }
 
+  private buildWaveGeometry() {
+    const VT = this.V_TRAIL;
+    let vPtr = 0;
+    const r = this.cWaveCur.r;
+    const g = this.cWaveCur.g;
+    const b = this.cWaveCur.b;
+
+    for (let i = 0; i < this.NV; i++) {
       const life = this.vAge[i] / this.vLife[i];
       const a = Math.sin(Math.PI * life) * 0.38;
-      const r = this.cWaveCur.r;
-      const g = this.cWaveCur.g;
-      const b = this.cWaveCur.b;
+      const o = i * VT * 3;
 
-      // Pure streamline showcasing water flow direction: VT - 1 segments
       for (let sIdx = 0; sIdx < VT - 1; sIdx++) {
         for (let j = 0; j < 6; j++) {
           this.vPos[vPtr * 3 + j] = this.vHist[o + sIdx * 3 + j];
         }
         const c = vPtr * 4;
-        const a1 = a * (1 - sIdx / (VT - 1)) ** 0.70;
-        const a2 = a * (1 - (sIdx + 1) / (VT - 1)) ** 0.70;
+        const a1 = a * this.vDecay[sIdx];
+        const a2 = a * this.vDecay[sIdx + 1];
         this.vCol[c] = r; this.vCol[c + 1] = g; this.vCol[c + 2] = b; this.vCol[c + 3] = a1;
         this.vCol[c + 4] = r; this.vCol[c + 5] = g; this.vCol[c + 6] = b; this.vCol[c + 7] = a2;
         vPtr += 2;

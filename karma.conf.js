@@ -1,9 +1,18 @@
 module.exports = async function (config) {
+  const fs = require('fs');
   try {
     const { default: puppeteer } = await import('puppeteer');
     process.env.CHROME_BIN = puppeteer.executablePath();
   } catch {
-    process.env.CHROME_BIN = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+    if (!process.env.CHROME_BIN) {
+      if (fs.existsSync('/usr/bin/chromium')) {
+        process.env.CHROME_BIN = '/usr/bin/chromium';
+      } else if (fs.existsSync('/usr/bin/google-chrome')) {
+        process.env.CHROME_BIN = '/usr/bin/google-chrome';
+      } else {
+        process.env.CHROME_BIN = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+      }
+    }
   }
   config.set({
     basePath: "",

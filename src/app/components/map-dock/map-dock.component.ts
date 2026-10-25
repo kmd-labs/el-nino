@@ -131,11 +131,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly sourceUrl = computed(
     () => this.weather.meta()?.sstSourceUrl ?? 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst'
   );
-
-  readonly activeSst = computed(() => this.weather.nino34Sst(this.state.sCur()));
-
-  readonly daily = computed(() => this.weather.dailyWeatherOn(this.state.sCur()));
-
   readonly isForecast = computed(() => this.weather.isForecast(this.state.sCur()));
 
   readonly dataReady = computed(() => this.weather.status() === 'ready');
@@ -205,16 +200,20 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     }));
   });
 
-  readonly dateMarkers = computed<DateMarker[]>(() => {
-    const t = this.i18n.t();
+  readonly activeDateMarkerId = computed<string>(() => {
     const sCur = this.state.sCur();
+    const active = this.milestones().find(m => Math.abs(sCur - m.value) < 0.22);
+    return active ? `m-${active.id}` : '';
+  });
+
+  readonly dateMarkers = computed<Omit<DateMarker, 'active'>[]>(() => {
+    const t = this.i18n.t();
     return this.milestones().map(m => ({
       id: `m-${m.id}`,
       value: m.value,
       label: this.localeDate.transform(new Date(`${m.dateIso}T12:00:00Z`), 'monthYear'),
       subLabel: m.forecast ? t.timelineForecast : undefined,
-      hot: m.hot,
-      active: Math.abs(sCur - m.value) < 0.22
+      hot: m.hot
     }));
   });
 

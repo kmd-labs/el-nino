@@ -5,10 +5,10 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 
-const MIN_VISIBLE_MS = 2200;
-const REVEAL_HOLD_MS = 500;
-const MAX_WAIT_MS = 12000;
-const FADE_MS = 620;
+const MIN_VISIBLE_MS = 750;
+const REVEAL_HOLD_MS = 150;
+const MAX_WAIT_MS = 10000;
+const FADE_MS = 380;
 
 @Component({
   selector: 'app-splash-host',

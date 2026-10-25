@@ -248,11 +248,19 @@ export class EnsoStateService {
   updateInterpolatedStrength(dt: number) {
     if (!this.experienceReady()) return;
     if (this.isPlaying()) {
-      this.sCur.set(this.sTarget());
+      if (this.sCur() !== this.sTarget()) {
+        this.sCur.set(this.sTarget());
+      }
       return;
     }
     const cur = this.sCur();
     const target = this.sTarget();
+    if (Math.abs(target - cur) < 1e-4) {
+      if (cur !== target) {
+        this.sCur.set(target);
+      }
+      return;
+    }
     const next = cur + (target - cur) * Math.min(1, dt * 5.0);
     this.sCur.set(next);
   }

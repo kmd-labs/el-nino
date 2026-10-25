@@ -118,6 +118,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private math = inject(EnsoMathService);
   private weather = inject(CurrentWeatherService);
 
+  constructor() {
+    effect(() => {
+      this.i18n.lang();
+      this.lblSize.clear();
+    });
+  }
+
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
@@ -155,10 +162,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private readonly GW = 720;
   private readonly GH = 360;
   private readonly NG = 720 * 360;
-  private CLIM!: Float32Array;
-  private BP!: Float32Array;
-  private BC!: Float32Array;
-  private BN!: Float32Array;
+  private lastUploadedKfA = -1;
+  private lastUploadedKfB = -1;
+  private lastUploadedT = -1;
+  private lastCamPos = new THREE.Vector3();
+  private lastLabelS = 999;
   private texData!: Uint8Array;
   private sstTex!: THREE.DataTexture;
 
@@ -331,6 +339,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private uiResizeObs: ResizeObserver | null = null;
 
+  private onVisibilityChange = () => {
+    if (typeof document !== 'undefined' && !document.hidden) {
+      this.timer.update();
+    }
+  };
+
   ngAfterViewInit() {
     this.ngZone.runOutsideAngular(() => {
       this.initThree();
@@ -344,11 +358,17 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.applyThemeVisuals();
       this.handleResize();
       this.initUiResizeObserver();
+      if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
+      }
       this.animate();
     });
   }
 
   ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
     this.uiResizeObs?.disconnect();
     if (this.animId !== null) {
       cancelAnimationFrame(this.animId);
@@ -474,49 +494,44 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
 
-    // 12 shared materials (tint × opacity level) instead of one per sprite
+    // Batched particle system: 1 draw call instead of 200 individual sprite draw calls
+    const count = 180;
+    const pGeo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const v = new THREE.Vector3();
     const tints = ['primary-200', 'info-200', 'primary-100', 'warning-100'];
     const fallbacks = ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
-    const opacities = [0.16, 0.24, 0.32];
-    const mats = tints.flatMap((t, i) => opacities.map(o => new THREE.SpriteMaterial({
-      map: tex,
-      color: new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])),
-      transparent: true,
-      opacity: o,
-      depthWrite: false,
-      fog: false
-    })));
+    const colors = tints.map((t, i) => new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])));
 
-    const bokeh = new THREE.Group();
-    const v = new THREE.Vector3();
-    for (let i = 0; i < 200; i++) {
-      const sp = new THREE.Sprite(mats[Math.floor(Math.random() * mats.length)]);
-      sp.position.copy(v.randomDirection().multiplyScalar(60 + Math.random() * 90));
-      const s = 10 + Math.random() * 22;
-      sp.scale.set(s, s, 1);
-      bokeh.add(sp);
+    for (let i = 0; i < count; i++) {
+      v.randomDirection().multiplyScalar(60 + Math.random() * 90);
+      pos[i * 3] = v.x;
+      pos[i * 3 + 1] = v.y;
+      pos[i * 3 + 2] = v.z;
+      const c = colors[i % colors.length];
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
     }
-    this.scene.add(bokeh);
+
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+    const pMat = new THREE.PointsMaterial({
+      map: tex,
+      size: 26,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.24,
+      depthWrite: false
+    });
+    const points = new THREE.Points(pGeo, pMat);
+    this.scene.add(points);
   }
 
   private initSstData() {
-    this.CLIM = new Float32Array(this.NG);
-    this.BP = new Float32Array(this.NG);
-    this.BC = new Float32Array(this.NG);
-    this.BN = new Float32Array(this.NG);
-
-    for (let r = 0; r < this.GH; r++) {
-      const lat = -90 + (r + 0.5) * 180 / this.GH;
-      for (let c = 0; c < this.GW; c++) {
-        const lon = ((-180 + (c + 0.5) * 360 / this.GW) + 360) % 360;
-        const i = r * this.GW + c;
-        this.CLIM[i] = this.math.clim(lon, lat);
-        this.BP[i] = this.math.basisP(lon, lat);
-        this.BC[i] = this.math.basisC(lon, lat);
-        this.BN[i] = this.math.basisN(lon, lat);
-      }
-    }
-
     this.texData = new Uint8Array(this.NG * 4);
     this.sstTex = new THREE.DataTexture(this.texData, this.GW, this.GH, THREE.RGBAFormat);
     this.sstTex.colorSpace = THREE.SRGBColorSpace;
@@ -553,6 +568,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sc = 255 / (hi - lo);
     const pair = this.weather.getKeyframePair(s);
     const bin = this.weather.sstBin;
+    const lowBin = this.weather.sstLowBin;
 
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
     const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
@@ -588,6 +604,47 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         }
         this.texData[o + 3] = 255;
       }
+    } else if (pair && lowBin) {
+      // Fast progressive preview mapping (180x90 blocks into 720x360)
+      const lowW = 180;
+      const lowH = 90;
+      const lowNG = lowW * lowH;
+      const offsetA = pair.indexA * lowNG;
+      const offsetB = pair.indexB * lowNG;
+      const t = pair.t;
+
+      for (let lr = 0; lr < lowH; lr++) {
+        for (let lc = 0; lc < lowW; lc++) {
+          const li = lr * lowW + lc;
+          const va = lowBin[offsetA + li];
+          const vb = lowBin[offsetB + li];
+          let r = gr, g = gg, b = gb;
+          if (va !== 255 && vb !== 255) {
+            const vByte = va + (vb - va) * t;
+            const v = vByte * 0.2 - 5.0;
+            const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
+            if (dim) {
+              r = Math.round(245 * 0.62 + lut[k] * 0.38);
+              g = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
+              b = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
+            } else {
+              r = lut[k];
+              g = lut[k + 1];
+              b = lut[k + 2];
+            }
+          }
+          for (let dr = 0; dr < 4; dr++) {
+            const rowOffset = (lr * 4 + dr) * this.GW * 4;
+            for (let dc = 0; dc < 4; dc++) {
+              const o = rowOffset + (lc * 4 + dc) * 4;
+              this.texData[o] = r;
+              this.texData[o + 1] = g;
+              this.texData[o + 2] = b;
+              this.texData[o + 3] = 255;
+            }
+          }
+        }
+      }
     } else {
       // Clean neutral grey while dataset is streaming
       for (let i = 0; i < this.NG; i++) {
@@ -612,8 +669,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.landTex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
     this.landMat = new THREE.MeshLambertMaterial({ map: this.landTex, transparent: true, depthWrite: false });
-    // Displacement needs vertices to move: 128 x 64 is ~2.8 degrees a segment, far too coarse.
-    const landSeg = isAtMost('mobile') ? 512 : 1024;
+    // Displacement needs vertices to move: 384x192 on desktop and 256x128 on mobile
+    // is plenty to resolve continental elevation without choking low-end GPUs.
+    const landSeg = isAtMost('mobile') ? 256 : 384;
     const landMesh = new THREE.Mesh(
       new THREE.SphereGeometry(this.math.R * 1.003, landSeg, landSeg / 2),
       this.landMat
@@ -622,7 +680,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     this.drawLand(null);
 
-    // Fetch land topology
+    // Fetch land topology on critical path, defer elevation and relief to background
     const loadLand = async () => {
       try {
         let resp = await fetch('assets/data/land-50m.json');
@@ -636,6 +694,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         this.ngZone.run(() => {
           this.state.mapLoaded.set(true);
         });
+
+        // Background terrain enhancement
+        setTimeout(() => {
+          this.loadRelief();
+          this.loadElevation();
+        }, 120);
       } catch (err) {
         console.warn('Could not load land data:', err);
         this.ngZone.run(() => {
@@ -644,18 +708,15 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       }
     };
     loadLand();
-    this.loadRelief();
-    this.loadElevation();
   }
 
   /**
    * Feeds the height map to `displacementMap`, standing the continents off the sphere.
-   * Nothing reads these pixels on the CPU — the vertex shader samples the texture — so the
-   * browser's own PNG decoder does the work. Bathymetry is zero in the map, so the ocean
-   * half of this sphere stays exactly where it was.
    */
   private loadElevation() {
-    new THREE.TextureLoader().load('assets/data/elevation.png', tex => {
+    const isMobile = isAtMost('mobile');
+    const elevFile = isMobile ? 'assets/data/elevation-1k.png' : 'assets/data/elevation.png';
+    new THREE.TextureLoader().load(elevFile, tex => {
       if (!this.landMat) return;
       tex.colorSpace = THREE.NoColorSpace; // height data, not colour
       this.landMat.displacementMap = tex;
@@ -666,12 +727,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Loads the packed shaded-relief raster. Failing is harmless: the land simply stays
-   * the flat token fill it was before.
+   * Loads the packed shaded-relief raster (2k on mobile, 4k on desktop).
    */
   private async loadRelief() {
     try {
-      const resp = await fetch('assets/data/relief.bin.gz');
+      const isMobile = isAtMost('mobile');
+      const reliefFile = isMobile ? 'assets/data/relief-2k.bin.gz' : 'assets/data/relief.bin.gz';
+      const resp = await fetch(reliefFile);
       if (!resp.ok) return;
       let buf = await resp.arrayBuffer();
 
@@ -1420,8 +1482,11 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private updateAtm(s: number, dt: number, t: number) {
     const xc = this.math.convLon(s);
-    this.updateWind(s, dt, t, xc);
-    this.updateWaves(s, dt, xc);
+    // Only compute analytic wind and waves if real observational weather layer is not ready
+    if (this.weather.status() !== 'ready') {
+      this.updateWind(s, dt, t, xc);
+      this.updateWaves(s, dt, xc);
+    }
 
     // towers grow taller with a stronger anomaly; puffs breathe slowly
     const hs = 0.85 + 0.15 * Math.min(1, Math.abs(s));
@@ -1556,10 +1621,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private layoutLabels() {
     const q = this.lblQueue;
     this.lblQueue = [];
-    // read sizes before writing styles (re-measured now and then, e.g. after a language change)
-    const remeasure = this.lblFrame++ % 30 === 0;
+    // Measure only when not cached (cache is cleared on language change)
     for (const l of q) {
-      if (remeasure || !this.lblSize.has(l.el)) {
+      if (!this.lblSize.has(l.el)) {
         this.lblSize.set(l.el, { w: l.el.offsetWidth, h: l.el.offsetHeight });
       }
     }
@@ -1806,6 +1870,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private animate = () => {
     this.animId = requestAnimationFrame(this.animate);
 
+    // Skip all processing when browser tab is hidden in background
+    if (typeof document !== 'undefined' && document.hidden) return;
+
     this.timer.update();
     const dt = Math.min(this.timer.getDelta(), 0.05);
     const t = this.timer.getElapsed();
@@ -1820,9 +1887,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const s = this.state.sCur();
     const impacts = this.state.view() === 'impacts';
     const weatherReady = this.weather.status() === 'ready';
+    const hiRes = this.weather.highResReady();
 
-    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${Math.round(s * 100)}`;
-    if (Math.abs(s - this.lastS) > 0.004 || textureKey !== this.lastMode) {
+    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${hiRes ? 'hi' : 'low'}:${Math.round(s * 80)}`;
+    if (Math.abs(s - this.lastS) > 0.012 || textureKey !== this.lastMode) {
       this.recolorTexture(s, impacts);
       this.lastS = s;
       this.lastMode = textureKey;
@@ -1860,10 +1928,18 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.update();
     this.camDir.copy(this.camera.position).normalize();
 
-    this.updatePins(t, dt);
-    this.updateLabels(s);
-    this.updateImpacts(s, dt);
-    this.layoutLabels();
+    // Only update labels, pins, and DOM transforms when camera or strength has changed
+    const camMoved = this.camera.position.distanceToSquared(this.lastCamPos) > 1e-5;
+    const sChanged = Math.abs(s - this.lastLabelS) > 0.005;
+
+    if (camMoved || sChanged || this.hoverPin || this.inspectedPoint()) {
+      this.updatePins(t, dt);
+      this.updateLabels(s);
+      this.updateImpacts(s, dt);
+      this.layoutLabels();
+      this.lastLabelS = s;
+      this.lastCamPos.copy(this.camera.position);
+    }
 
     if (this.inspectedPoint()) {
       this.updateInspectTooltip();

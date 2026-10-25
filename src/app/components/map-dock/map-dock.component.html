@@ -55,7 +55,7 @@
         @for (dm of dateMarkers(); track dm.id) {
           <div
             class="dock__timeline-date"
-            [class.dock__timeline-date--active]="dm.active"
+            [class.dock__timeline-date--active]="activeDateMarkerId() === dm.id"
             [class.dock__timeline-date--hot]="dm.hot"
             [style.left.%]="markerPct(dm.value)"
             role="button"
