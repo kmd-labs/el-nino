@@ -26,6 +26,36 @@
       visibility: hidden;
       pointer-events: none;
     }
+
+    .header__brand-expand {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 5px;
+      margin-left: 5px;
+      max-width: none;
+      opacity: 1 !important;
+      overflow: visible;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+
+    .header__brand-btn {
+      padding: 0 8px 0 6px !important;
+    }
+
+    .header__divider {
+      display: block !important;
+      height: 14px;
+    }
+
+    .header__cta {
+      display: inline-flex !important;
+      gap: 4px;
+    }
+
+    .header__cta-text {
+      font-size: font-size("xxs");
+    }
   }
 
   &__left {

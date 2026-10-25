@@ -12,6 +12,7 @@
   flex-wrap: nowrap;
   white-space: nowrap;
   flex: none;
+  position: relative;
 
   &__legend {
     flex: none;
@@ -167,13 +168,26 @@
     }
 
     &__legend {
-      ::ng-deep .btn {
-        padding: 4px 8px;
-        height: 28px;
-        min-height: 28px;
-        font-size: font-size("xxs");
-        line-height: 1.25;
-        gap: 4px;
+      position: static;
+
+      ::ng-deep {
+        .dropdown {
+          position: static;
+        }
+
+        .dropdown__menu {
+          left: auto;
+          right: 0;
+        }
+
+        .btn {
+          padding: 4px 8px;
+          height: 28px;
+          min-height: 28px;
+          font-size: font-size("xxs");
+          line-height: 1.25;
+          gap: 4px;
+        }
       }
     }
 
@@ -206,13 +220,26 @@
     }
 
     &__legend {
-      ::ng-deep .btn {
-        padding: 4px 8px;
-        height: 28px;
-        min-height: 28px;
-        font-size: font-size("xxs");
-        line-height: 1.25;
-        gap: 4px;
+      position: static;
+
+      ::ng-deep {
+        .dropdown {
+          position: static;
+        }
+
+        .dropdown__menu {
+          left: auto;
+          right: 0;
+        }
+
+        .btn {
+          padding: 4px 8px;
+          height: 28px;
+          min-height: 28px;
+          font-size: font-size("xxs");
+          line-height: 1.25;
+          gap: 4px;
+        }
       }
     }
 

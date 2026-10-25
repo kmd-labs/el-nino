@@ -46,7 +46,7 @@ export class HeaderComponent {
   readonly settingsIcon = Settings;
 
   /** Whether any popup dialog is currently active */
-  readonly isPopupOpen = computed(() => this.popup.config() !== null);
+  readonly isPopupOpen = computed(() => this.popup.config() !== null || this.page.about());
 
   /**
    * The brand pill is always expanded across all viewports (desktop, tablet, and mobile).
