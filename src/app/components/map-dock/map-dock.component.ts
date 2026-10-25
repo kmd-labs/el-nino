@@ -21,6 +21,11 @@ import {
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { EnsoPhase } from '../../core/models/enso.model';
 import { PRESETS } from '../../core/constants/enso-data';
+import { PHASE_THRESHOLDS } from '../../core/services/enso-math.service';
+
+/** Mirrors the range handed to <app-timeline-slider> in the template. */
+const SLIDER_MIN = -2;
+const SLIDER_MAX = 3;
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
@@ -136,6 +141,35 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly dataReady = computed(() => this.weather.status() === 'ready');
 
   /**
+   * Where the observed Niño 3.4 crossed ±0.5 °C, as a gradient painted over the rail.
+   *
+   * The rail's own gradient runs cold → warm exactly once, which reads as a one-way story, while
+   * the record behind it crossed the phase thresholds several times between the first frame and
+   * today. The marks sit at the midpoint between the two frames that straddle a crossing; the
+   * forecast frame is left out, since nothing was observed there.
+   */
+  readonly phaseTicks = computed<string | null>(() => {
+    const kfs = this.weather.meta()?.keyframes;
+    if (!kfs || kfs.length < 2) return null;
+
+    const band = (v: number) => (v >= PHASE_THRESHOLDS.nino ? 1 : v <= PHASE_THRESHOLDS.nina ? -1 : 0);
+    const SPAN = SLIDER_MAX - SLIDER_MIN;
+    const HALF_W = 0.2; // half a tick, in % of the rail
+    const stops: string[] = [];
+
+    for (let i = 1; i < kfs.length; i++) {
+      if (kfs[i].forecast || kfs[i - 1].forecast) continue;
+      if (band(kfs[i].nino34) === band(kfs[i - 1].nino34)) continue;
+      const pct = ((kfs[i].s + kfs[i - 1].s) / 2 - SLIDER_MIN) / SPAN * 100;
+      const a = Math.max(0, pct - HALF_W);
+      const b = Math.min(100, pct + HALF_W);
+      stops.push(`transparent ${a.toFixed(2)}%`, `currentColor ${a.toFixed(2)}%`, `currentColor ${b.toFixed(2)}%`, `transparent ${b.toFixed(2)}%`);
+    }
+
+    return stops.length ? `linear-gradient(90deg, ${stops.join(', ')})` : null;
+  });
+
+  /**
    * The slider's anchors: the four phases where the record actually shows them, plus
    * NOW. Both marker rows read this one list, so a date can never drift away from the
    * pill underneath it.
@@ -184,20 +218,47 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return items.sort((x, y) => x.value - y.value);
   });
 
+  /**
+   * The four phase pills, in a row of their own under the header rule rather than pinned to their
+   * place on the slider. Which one is lit follows the observed anomaly — the record, not the handle,
+   * and not the model ramp, which already reads as La Niña on the week the Neutral pill points at.
+   */
+  readonly phasePills = computed(() => {
+    const t = this.i18n.t();
+    const dataPhase = this.state.phase();
+    return this.milestones()
+      .filter(m => m.ph !== null)
+      .map(m => ({
+        id: m.id,
+        value: m.value,
+        label: t.phase[m.ph!],
+        date: this.localeDate.transform(new Date(`${m.dateIso}T12:00:00Z`), 'monthYear'),
+        sub: m.forecast ? t.timelineForecast : null,
+        hot: m.hot,
+        active: m.ph === dataPhase
+      }))
+      .map(p => ({ ...p, tip: p.sub ? `${p.sub} · ${p.date}` : p.date }));
+  });
+
+  /** NOW as a pill of its own, sitting in the row with the phases. */
+  readonly nowPill = computed(() => {
+    const m = this.milestones().find(x => x.ph === null);
+    if (!m) return null;
+    return {
+      value: m.value,
+      label: this.i18n.t().timelineNow,
+      tip: this.localeDate.transform(new Date(`${m.dateIso}T12:00:00Z`), 'monthYear'),
+      active: this.isNow()
+    };
+  });
+
+  /** The rail still carries the NOW node, so the spot stays marked on the axis itself. */
   readonly timelineMarkers = computed<TimelineMarker[]>(() => {
     const t = this.i18n.t();
-    // Light the pill the record agrees with. Matching on the model ramp instead would
-    // leave the Neutral pill dark on the very week it points at, because 0.918 · s
-    // already reads as La Niña by then.
-    const dataPhase = this.state.phase();
     const atNow = this.isNow();
-    return this.milestones().map(m => ({
-      id: m.id,
-      value: m.value,
-      label: m.ph ? t.phase[m.ph] : t.timelineNow,
-      hot: m.hot,
-      active: m.ph ? m.ph === dataPhase && !atNow : atNow
-    }));
+    return this.milestones()
+      .filter(m => m.ph === null)
+      .map(m => ({ id: m.id, value: m.value, label: t.timelineNow, hot: m.hot, active: atNow }));
   });
 
   readonly activeDateMarkerId = computed<string>(() => {
@@ -208,7 +269,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   readonly dateMarkers = computed<Omit<DateMarker, 'active'>[]>(() => {
     const t = this.i18n.t();
-    return this.milestones().map(m => ({
+    return this.milestones().filter(m => m.ph === null).map(m => ({
       id: `m-${m.id}`,
       value: m.value,
       label: this.localeDate.transform(new Date(`${m.dateIso}T12:00:00Z`), 'monthYear'),

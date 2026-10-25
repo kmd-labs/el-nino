@@ -1,5 +1,10 @@
 @use "variables" as *;
 
+// The date strip above the rail; the phase pills are pushed down by exactly this much so they
+// end up level with the NOW marker.
+$dates-h: 32px;
+$dates-gap: 4px;
+
 .dock-wrap {
   position: fixed;
   left: 16px;
@@ -187,12 +192,22 @@
       width: 100%;
     }
 
+    // Every pill lives here, left-aligned, directly under the header rule; the timeline below
+    // keeps the full width of the dock.
+    &--phases {
+      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid color("line");
+    }
+
     &--enso {
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      padding-top: 10px;
-      border-top: 1px solid color("line");
+      padding-top: 8px;
       gap: 0;
 
       // Extend top stems from the Niño buttons so they connect directly into the slider rail / nodes
@@ -223,11 +238,26 @@
     }
   }
 
+  &__phase ::ng-deep .btn {
+    white-space: nowrap;
+  }
+
+
+  &__timeline {
+    min-width: 0;
+
+    // The NOW pill sits in the row above now, so the design system's chip row has nothing left
+    // to show. The node it draws on the rail stays — that is what marks the spot on the axis.
+    ::ng-deep .timeline-slider__events {
+      display: none;
+    }
+  }
+
   &__timeline-dates {
     position: relative;
     width: calc(100% - 42px);
-    height: 32px;
-    margin-bottom: 4px;
+    height: $dates-h;
+    margin-bottom: $dates-gap;
   }
 
   &__timeline-date {
@@ -377,43 +407,37 @@
     }
 
     &__row--enso {
-      padding-top: 4px;
+      padding-top: 6px;
     }
 
-    // The design system lays the marker pills out as a fixed four columns at this
-    // width. How many there are is decided by the record, so follow the count and
-    // let the longest label take two lines rather than drop onto its own row.
-    &__row--enso ::ng-deep .timeline-slider {
-      &__events {
-        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-        grid-auto-flow: column;
-      }
-
-      &__event .btn {
-        padding: 4px 3px;
-        font-size: 9px;
-        line-height: 1.1;
-        white-space: normal;
-      }
-    }
-
-    &__timeline-dates {
-      width: 100%;
-      height: auto;
-      display: grid;
-      // One column per marker: the count follows the record, not a fixed four.
-      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-      grid-auto-flow: column;
+    &__row--phases {
+      justify-content: center;
       gap: 4px;
-      margin-bottom: 4px;
+    }
+
+    // the date above the rail stays pinned to the NOW node
+    &__timeline-dates {
+      position: relative;
+      display: block;
+      width: calc(100% - 42px);
+      height: 18px;
+      margin-bottom: 2px;
       margin-top: 0;
     }
 
     &__timeline-date {
-      position: static;
-      transform: none;
-      width: 100%;
+      position: absolute;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: max-content;
       text-align: center;
+    }
+
+    // four phase pills in one row at this width: let them shrink rather than wrap
+    &__phase ::ng-deep .btn {
+      padding: 4px 6px;
+      font-size: 10px;
+      white-space: nowrap;
     }
   }
 }
@@ -605,6 +629,25 @@
       transform: none;
       width: 100%;
       text-align: center;
+    }
+  }
+}
+
+// Marks on the timeline rail where the observed Niño 3.4 crossed ±0.5 °C. The gradient itself is
+// built in the component (phaseTicks) and handed over as --phase-ticks; `currentColor` keeps the
+// mark colour here, on the token. Reaching into the design-system rail is deliberate: the slider
+// takes no tick input, and without the variable the pseudo-element simply paints nothing.
+app-timeline-slider {
+  ::ng-deep .timeline-slider__rail {
+    color: color("text-bright");
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.55;
+      background-image: var(--phase-ticks, none);
     }
   }
 }

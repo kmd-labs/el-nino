@@ -74,28 +74,48 @@ describe('MapDockComponent slider anchors', () => {
       ['super', '2026-12-16', 4.2]
     ]);
 
-    const dates = dock.dateMarkers();
-    expect(dates.map(d => d.id)).toEqual(['m-nina', 'm-neu', 'm-nino', 'm-now', 'm-super']);
-    expect(dates.map(d => d.value)).toEqual([-1.4, -0.6, 0.6, 1.4, 2.6]);
-    expect(dates.map(d => d.label)).toEqual([
+    const pills = dock.phasePills();
+    expect(pills.map(p => p.id)).toEqual(['nina', 'neu', 'nino', 'super']);
+    expect(pills.map(p => p.value)).toEqual([-1.4, -0.6, 0.6, 2.6]);
+    expect(pills.map(p => p.date)).toEqual([
       month('2024-12-18'),
       month('2025-04-16'),
       month('2025-10-22'),
-      month('2026-10-21'),
       month('2026-12-16')
     ]);
+
+    // The rail itself carries NOW alone now that the phases have their own row.
+    const dates = dock.dateMarkers();
+    expect(dates.map(d => d.id)).toEqual(['m-now']);
+    expect(dates[0].label).toBe(month('2026-10-21'));
   });
 
-  it('carries NOW as an extra marker and flags only the forecast', () => {
+  it('keeps NOW on the rail and flags the forecast on the super pill', () => {
     const { dock, i18n } = setup(RECORD);
 
-    const pills = dock.timelineMarkers();
-    expect(pills.map(p => p.id)).toEqual(['nina', 'neu', 'nino', 'now', 'super']);
-    expect(pills.find(p => p.id === 'now')!.label).toBe(i18n.t().timelineNow);
+    const markers = dock.timelineMarkers();
+    expect(markers.map(m => m.id)).toEqual(['now']);
+    expect(markers[0].label).toBe(i18n.t().timelineNow);
+    expect(markers[0].value).toBe(1.4);
 
-    const dates = dock.dateMarkers();
-    expect(dates.filter(d => d.subLabel).map(d => d.id)).toEqual(['m-super']);
-    expect(dates.find(d => d.id === 'm-now')!.subLabel).toBeUndefined();
+    const pills = dock.phasePills();
+    expect(pills.filter(p => p.sub).map(p => p.id)).toEqual(['super']);
+    expect(pills.find(p => p.id === 'super')!.sub).toBe(i18n.t().timelineForecast);
+  });
+
+  it('lights the pill the anomaly is in, not the one the handle has gone past', () => {
+    const { dock, state } = setup(RECORD);
+    const lit = () => dock.phasePills().filter(p => p.active).map(p => p.id);
+
+    state.sCur.set(-1.4); // the record reads -1.2 here
+    expect(lit()).toEqual(['nina']);
+
+    // The handle moved right, but the record warmed back to +0.1 — so does the lit pill.
+    state.sCur.set(-0.6);
+    expect(lit()).toEqual(['neu']);
+
+    state.sCur.set(1); // +2.3
+    expect(lit()).toEqual(['super']);
   });
 
   it('anchors mid-run rather than on the threshold it just crossed', () => {
@@ -148,26 +168,30 @@ describe('MapDockComponent slider anchors', () => {
     const sup = weather.phaseAnchors().find(a => a.ph === 'super')!;
     expect(sup.date).toBe('2026-12-16');
     expect(sup.s).toBe(2.6);
-    expect(new Set(dock.dateMarkers().map(d => d.value)).size).toBe(dock.dateMarkers().length);
+    const rows = [...dock.phasePills(), ...dock.timelineMarkers()].map(m => m.value);
+    expect(new Set(rows).size).toBe(rows.length);
   });
 
-  it('keeps the two rows on the same values, so a date cannot drift off its pill', () => {
+  it('splits the anchors between the pill row and the rail without dropping one', () => {
     const { dock } = setup(RECORD);
-    expect(dock.dateMarkers().map(d => d.value)).toEqual(dock.timelineMarkers().map(p => p.value));
+    const values = [...dock.phasePills().map(p => p.value), ...dock.timelineMarkers().map(m => m.value)];
+    expect(values.sort((a, b) => a - b)).toEqual([-1.4, -0.6, 0.6, 1.4, 2.6]);
+    // the date above the rail still belongs to the marker underneath it
+    expect(dock.dateMarkers().map(d => d.value)).toEqual(dock.timelineMarkers().map(m => m.value));
   });
 
   it('follows the data when the record changes instead of freezing on a literal', () => {
     const base = setup(RECORD);
-    const ninaBefore = base.dock.dateMarkers().find(d => d.id === 'm-nina')!;
+    const ninaBefore = base.dock.phasePills().find(p => p.id === 'nina')!;
     expect(ninaBefore.value).toBe(-1.4);
 
     TestBed.resetTestingModule();
     const shifted = setup(SHIFTED);
-    const ninaAfter = shifted.dock.dateMarkers().find(d => d.id === 'm-nina')!;
+    const ninaAfter = shifted.dock.phasePills().find(p => p.id === 'nina')!;
 
     // The cold peak moved one frame later, so the La Niña anchor moved with it.
     expect(shifted.weather.phaseAnchors().find(a => a.ph === 'nina')!.date).toBe('2025-02-12');
     expect(ninaAfter.value).toBe(-1);
-    expect(ninaAfter.label).toBe(shifted.month('2025-02-12'));
+    expect(ninaAfter.date).toBe(shifted.month('2025-02-12'));
   });
 });

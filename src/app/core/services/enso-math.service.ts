@@ -186,6 +186,15 @@ export class EnsoMathService {
     return this.boxMean(50, 70, -10, 10, s) - this.boxMean(90, 110, -10, 0, s);
   }
 
+  /**
+   * The amplitude whose modelled Niño 3.4 equals `v`. `anom()` is linear in `s`, so one sample
+   * inverts the whole thing; used to turn an observed index back into a model state.
+   */
+  sForNino34(v: number): number {
+    const perUnit = this.nino34(1);
+    return perUnit === 0 ? 0 : v / perUnit;
+  }
+
   nino34(s: number): number {
     let sum = 0;
     let n = 0;
