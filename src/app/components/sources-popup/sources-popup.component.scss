@@ -22,6 +22,19 @@
     color: color("text-dim");
   }
 
+  &__subtitle {
+    margin: -4px 0 2px;
+    font-size: font-size("xs");
+    color: color("text-desc");
+  }
+
+  &__mlabel {
+    margin: 0;
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    color: color("text-bright");
+  }
+
   &__list {
     display: flex;
     flex-direction: column;

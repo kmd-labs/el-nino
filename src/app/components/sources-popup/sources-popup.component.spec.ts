@@ -19,10 +19,11 @@ describe('SourcesPopupComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders data sources list and attribution', () => {
+  it('renders data sources list, methodology, and attribution', () => {
     const el: HTMLElement = fixture.nativeElement;
     const cards = el.querySelectorAll('.sources-popup__card');
     expect(cards.length).toBeGreaterThan(0);
+    expect(el.querySelector('#sources-methodology-title')).toBeTruthy();
     expect(el.querySelector('.sources-popup__built')).toBeTruthy();
   });
 });

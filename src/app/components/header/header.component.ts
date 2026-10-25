@@ -45,46 +45,16 @@ export class HeaderComponent {
   readonly ctaIcon = Handshake;
   readonly settingsIcon = Settings;
 
-  readonly mobileExpanded = signal(false);
-
   /** Whether any popup dialog is currently active */
   readonly isPopupOpen = computed(() => this.popup.config() !== null);
 
   /**
-   * The brand pill is always expanded on desktop/tablet, and always expanded
-   * whenever a popup modal is open (so KMD logo and CTA are visible above the backdrop).
-   * On mobile during normal browsing, it collapses and expands on tap/hover.
+   * The brand pill is always expanded across all viewports (desktop, tablet, and mobile).
    */
-  readonly isBrandExpanded = computed(() => {
-    if (!this.bp.mobile() && !this.bp.mobileLandscape()) return true;
-    if (this.isPopupOpen()) return true;
-    return this.mobileExpanded();
-  });
+  readonly isBrandExpanded = computed(() => true);
 
-  onBrandClick(event: MouseEvent) {
-    if ((this.bp.mobile() || this.bp.mobileLandscape()) && !this.isPopupOpen()) {
-      if (!this.mobileExpanded()) {
-        event.stopPropagation();
-        this.mobileExpanded.set(true);
-        return;
-      }
-    }
-    this.mobileExpanded.set(false);
+  onBrandClick() {
     this.openAbout();
-  }
-
-  onBrandHover(entering: boolean) {
-    if ((this.bp.mobile() || this.bp.mobileLandscape()) && !this.isPopupOpen()) {
-      this.mobileExpanded.set(entering);
-    }
-  }
-
-  @HostListener('document:pointerdown', ['$event'])
-  onDocumentPointerDown(event: PointerEvent) {
-    if (!this.mobileExpanded() || this.isPopupOpen()) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('.header__brand')) return;
-    this.mobileExpanded.set(false);
   }
 
   openAbout() {

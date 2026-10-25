@@ -19,6 +19,23 @@
     </div>
   </section>
 
+  <!-- Methodology & Measurement Standards -->
+  <section class="sources-popup__section" aria-labelledby="sources-methodology-title">
+    <h3 class="sources-popup__title" id="sources-methodology-title">{{ t.methodology.title }}</h3>
+    <p class="sources-popup__subtitle">{{ t.methodology.subtitle }}</p>
+    <div class="sources-popup__list">
+      @for (m of t.methodology.items; track m.label) {
+        <article class="sources-popup__card">
+          <div class="sources-popup__card-header">
+            <h4 class="sources-popup__mlabel">{{ m.label }}</h4>
+            <span class="sources-popup__license">{{ m.area }}</span>
+          </div>
+          <p class="sources-popup__desc">{{ m.text }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
   <!-- Built by KMD Labs (Attribution) -->
   <section class="sources-popup__built" aria-labelledby="sources-built-title">
     <h3 class="sources-popup__title" id="sources-built-title">{{ t.built.title }}</h3>

@@ -302,6 +302,7 @@ export interface Dict {
   built: BuiltText;
   sourcesTitle: string;
   dataSources: string;
+  dataSourcesTitle: string;
   dataSourcesSubtitle: string;
   sourcesList: SourceItem[];
 

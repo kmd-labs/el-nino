@@ -82,7 +82,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     const h = Math.ceil(rect.height || el.offsetHeight);
     const w = Math.ceil(rect.width || el.offsetWidth);
     const fromBottom = Math.ceil(window.innerHeight - rect.top);
-    const gap = window.innerWidth <= 640 ? 10 : 16;
+    const gap = window.innerWidth <= 640 || window.innerHeight <= 500 ? 8 : 16;
     const clearance = Math.max(fromBottom + gap, h + gap * 2);
 
     document.documentElement.style.setProperty('--dock-h', `${h}px`);

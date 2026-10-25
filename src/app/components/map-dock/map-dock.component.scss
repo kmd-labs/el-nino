@@ -480,18 +480,19 @@
 
 @include respond-to("mobile-landscape") {
   .dock-wrap {
-    left: 50%;
-    right: max(var(--dock-offset-x), env(safe-area-inset-right, 8px));
+    left: 0;
+    right: 0;
+    top: auto;
     bottom: var(--dock-offset-bottom);
-    top: 50px;
-    align-items: stretch;
+    align-items: flex-end;
     justify-content: center;
+    padding-left: max(var(--dock-offset-x), env(safe-area-inset-left, 8px));
+    padding-right: max(var(--dock-offset-x), env(safe-area-inset-right, 8px));
   }
 
   .dock {
-    width: 100%;
-    max-width: 440px;
-    margin-left: auto;
+    width: min(100%, 720px);
+    margin: 0 auto;
     padding: 6px 10px 8px;
     gap: 6px;
 

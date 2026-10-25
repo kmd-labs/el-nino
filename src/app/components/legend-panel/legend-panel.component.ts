@@ -71,7 +71,7 @@ export class LegendPanelComponent {
   openSourcesPopup() {
     this.popup.open({
       id: 'sources',
-      title: computed(() => this.i18n.t().sourcesTitle),
+      title: computed(() => this.i18n.t().dataSourcesTitle),
       subtitle: computed(() => this.i18n.t().dataSourcesSubtitle),
       component: SourcesPopupComponent,
       size: 'lg',

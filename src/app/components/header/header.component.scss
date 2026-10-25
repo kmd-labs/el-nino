@@ -243,39 +243,26 @@
       display: inline-flex;
       align-items: center;
       flex: none;
-      width: 53px;
-      height: 38px;
     }
 
     &__brand {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
       height: 38px;
       padding: 3px;
-      width: max-content;
-      max-width: 53px;
-      overflow: hidden;
+      width: auto;
+      max-width: none;
+      overflow: visible;
       box-sizing: border-box;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  box-shadow 0.3s ease;
-
-      &--expanded {
-        max-width: 250px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
-      }
     }
 
     &__brand-btn {
       height: 32px;
-      padding: 0 5px;
+      padding: 0 8px 0 6px;
       gap: 0;
-    }
-
-    &__brand--expanded &__brand-btn {
-      padding: 0 8px 0 5px;
     }
 
     &__logo {
@@ -290,23 +277,13 @@
     &__brand-expand {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      margin-left: 0;
-      max-width: 0;
-      opacity: 0;
-      overflow: hidden;
-      pointer-events: none;
-      white-space: nowrap;
-      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.25s ease;
-    }
-
-    &__brand--expanded &__brand-expand {
+      gap: 5px;
       margin-left: 5px;
-      max-width: 220px;
+      max-width: none;
       opacity: 1;
+      overflow: visible;
       pointer-events: auto;
+      white-space: nowrap;
     }
 
     &__divider {
@@ -322,13 +299,17 @@
     }
 
     &__actions {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
+      flex: none;
     }
 
     &__share,
     &__settings {
       padding: 3px;
       height: 38px;
+      flex: none;
     }
 
     &__right {
@@ -339,7 +320,7 @@
     }
 
     &__view {
-      width: 140px;
+      width: 148px;
       height: 38px;
       padding: 3px;
       flex-shrink: 0;
@@ -378,12 +359,13 @@
     top: 8px;
     left: max(8px, env(safe-area-inset-left, 8px));
     right: max(8px, env(safe-area-inset-right, 8px));
-    align-items: flex-start;
+    align-items: center;
 
     &__left {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
       gap: 6px;
+      flex-wrap: nowrap;
     }
 
     &__brand-wrap {
@@ -391,38 +373,25 @@
       display: inline-flex;
       align-items: center;
       flex: none;
-      width: 48px;
-      height: 34px;
     }
 
     &__brand {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
       height: 34px;
       padding: 3px;
-      width: max-content;
-      max-width: 48px;
-      overflow: hidden;
+      width: auto;
+      max-width: none;
+      overflow: visible;
       box-sizing: border-box;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  box-shadow 0.3s ease;
-
-      &--expanded {
-        max-width: 240px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
-      }
     }
 
     &__brand-btn {
       height: 28px;
-      padding: 0 4px;
-    }
-
-    &__brand--expanded &__brand-btn {
-      padding: 0 8px 0 4px;
+      padding: 0 8px 0 5px;
     }
 
     &__logo-img {
@@ -434,22 +403,12 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      margin-left: 0;
-      max-width: 0;
-      opacity: 0;
-      overflow: hidden;
-      pointer-events: none;
-      white-space: nowrap;
-      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.25s ease;
-    }
-
-    &__brand--expanded &__brand-expand {
       margin-left: 5px;
-      max-width: 200px;
+      max-width: none;
       opacity: 1;
+      overflow: visible;
       pointer-events: auto;
+      white-space: nowrap;
     }
 
     &__divider {
@@ -465,16 +424,18 @@
     }
 
     &__actions {
-      display: flex;
+      display: inline-flex;
       flex-direction: row;
       align-items: center;
       gap: 6px;
+      flex: none;
     }
 
     &__share,
     &__settings {
       padding: 2px;
-      height: 32px;
+      height: 34px;
+      flex: none;
 
       ::ng-deep .btn {
         width: 28px;
@@ -490,32 +451,40 @@
     }
 
     &__right {
-      align-self: flex-start;
+      align-self: center;
       margin-left: auto;
     }
 
     &__view {
-      width: 136px;
+      width: 210px;
       height: 34px;
       padding: 2px;
+      flex-shrink: 0;
 
       ::ng-deep {
         .btn {
-          padding: 3px 6px;
+          padding: 3px 8px;
           height: 28px;
           min-height: 28px;
-          font-size: font-size("xxs");
-          gap: 4px;
+          font-size: font-size("xs");
+          gap: 6px;
+        }
+
+        .dropdown__trigger-label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .dropdown__menu {
-          min-width: 150px;
+          min-width: 190px;
           max-width: calc(100vw - 16px);
         }
 
         .dropdown__item {
-          padding: 5px 8px;
-          font-size: font-size("xxs");
+          padding: 6px 10px;
+          font-size: font-size("xs");
+          gap: 6px;
         }
       }
     }

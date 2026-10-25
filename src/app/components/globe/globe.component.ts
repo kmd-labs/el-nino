@@ -425,7 +425,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const isPortrait = window.innerWidth / window.innerHeight < 0.9;
     const isLand = isMobileLandscape();
     const zoomOut = 1 / 0.9;
-    this.math.pos(-165, 12, (isPortrait ? 26 : isLand ? 15 : 16) * zoomOut, this.camera.position);
+    this.math.pos(-165, 12, (isPortrait ? 26 : isLand ? 11.5 : 16) * zoomOut, this.camera.position);
     this.controls.update();
 
     // Glow / uniform drop shadow shader & soft bokeh background
@@ -1593,8 +1593,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const screenPad = 10;
     const isLand = isMobileLandscape();
     const minTop = isLand ? 46 : 64; // Below header pills
-    const maxTop = isLand ? window.innerHeight - 30 : window.innerHeight - 130; // Above dock
-    const maxScreenRight = isLand ? window.innerWidth * 0.48 : window.innerWidth;
+    const maxTop = isLand ? window.innerHeight - 85 : window.innerHeight - 130; // Above dock
+    const maxScreenRight = window.innerWidth;
     for (const l of q) {
       const { w, h } = this.lblSize.get(l.el)!;
       const rawLeft = l.x - w / 2;
@@ -1685,13 +1685,13 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     options?: { html?: SafeHtml | string; noWrap?: boolean; interactive?: boolean; closable?: boolean; onClose?: () => void }
   ) {
     const isLand = isMobileLandscape();
-    const maxBoundW = isLand ? window.innerWidth * 0.48 : window.innerWidth;
+    const maxBoundW = window.innerWidth;
     const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (maxBoundW - 32) / 2);
     const safeX = Math.max(halfW + 12, Math.min(maxBoundW - halfW - 12, sx));
     const placement = sy < 120 ? 'bottom' : 'top';
     const safeY = placement === 'bottom'
       ? Math.max(isLand ? 48 : 68, sy + 18)
-      : Math.min(isLand ? window.innerHeight - 30 : window.innerHeight - 130, sy - 16);
+      : Math.min(isLand ? window.innerHeight - 85 : window.innerHeight - 130, sy - 16);
     this.tooltip.show(name, safeX, safeY, placement, duration, options);
   }
 
@@ -1818,11 +1818,17 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.camera.aspect = w / h;
 
     if (isLand) {
-      // In mobile landscape, split screen: move globe to the left half (offsetX moves viewport)
-      // Positive fullX shift in setViewOffset offsets projection center to the left
-      const offsetX = w * 0.23;
-      this.camera.setViewOffset(w, h, offsetX, 0, w, h);
-      this.controls.minDistance = 7.0;
+      // In mobile landscape: globe is centered vertically between header and bottom dock,
+      // and positioned slightly to the right to leave comfortable visual balance with header buttons.
+      const dockEl = document.querySelector('.dock-wrap');
+      const headerEl = document.querySelector('.header');
+      const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : 42;
+      const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 85;
+      const offsetY = (bottomOccupied - topOccupied) / 2;
+      // Negative offsetX in setViewOffset shifts the projected scene to the right
+      const offsetX = -Math.round(w * 0.06);
+      this.camera.setViewOffset(w, h, offsetX, offsetY, w, h);
+      this.controls.minDistance = 6.5;
     } else {
       // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
       const headerEl = document.querySelector(portrait ? '.header' : '.header__left');

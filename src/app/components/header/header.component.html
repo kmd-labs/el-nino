@@ -6,10 +6,7 @@
     <div class="header__brand-wrap">
       <div
         class="header__brand glass-panel"
-        [class.header__brand--expanded]="isBrandExpanded()"
-        (mouseenter)="onBrandHover(true)"
-        (mouseleave)="onBrandHover(false)"
-        (click)="onBrandClick($event)">
+        (click)="onBrandClick()">
         <button
           type="button"
           class="header__brand-btn"
