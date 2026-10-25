@@ -261,7 +261,7 @@
 
     &__brand-btn {
       height: 32px;
-      padding: 0 8px 0 6px;
+      padding: 0 8px;
       gap: 0;
     }
 
@@ -275,27 +275,7 @@
     }
 
     &__brand-expand {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-left: 5px;
-      max-width: none;
-      opacity: 1;
-      overflow: visible;
-      pointer-events: auto;
-      white-space: nowrap;
-    }
-
-    &__divider {
-      height: 14px;
-    }
-
-    &__cta {
-      gap: 4px;
-    }
-
-    &__cta-text {
-      font-size: font-size("xxs");
+      display: none;
     }
 
     &__actions {
@@ -391,7 +371,8 @@
 
     &__brand-btn {
       height: 28px;
-      padding: 0 8px;
+      padding: 0 8px 0 6px;
+      gap: 0;
     }
 
     &__logo-img {
@@ -400,7 +381,27 @@
     }
 
     &__brand-expand {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 5px;
+      max-width: none;
+      opacity: 1;
+      overflow: visible;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+
+    &__divider {
+      height: 13px;
+    }
+
+    &__cta {
+      gap: 4px;
+    }
+
+    &__cta-text {
+      font-size: font-size("xxs");
     }
 
     &__actions {

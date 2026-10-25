@@ -337,6 +337,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private lastS = 999;
   private lastMode = '';
+  private lastLayoutMode: 'portrait' | 'landscape' | 'desktop' | null = null;
 
   private uiResizeObs: ResizeObserver | null = null;
 
@@ -428,10 +429,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     headLight.position.set(2, 3, 5);
     this.camera.add(headLight);
 
-    const isPortrait = window.innerWidth / window.innerHeight < 0.9;
     const isLand = isMobileLandscape();
+    const portrait = !isLand && (window.innerWidth / window.innerHeight < 0.9 || isAtMost('mobile'));
     const zoomOut = 1 / 0.9;
-    this.math.pos(-165, 12, (isPortrait ? 26 : isLand ? 11.5 : 16) * zoomOut, this.camera.position);
+    this.lastLayoutMode = isLand ? 'landscape' : portrait ? 'portrait' : 'desktop';
+    this.math.pos(-165, 12, (portrait ? 26 : isLand ? 8.5 : 16) * zoomOut, this.camera.position);
+    this.controls.minDistance = isLand ? 5.8 : (portrait ? 11 : 7.5);
     this.controls.update();
 
     // Glow / uniform drop shadow shader & soft bokeh background
@@ -1838,6 +1841,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const h = window.innerHeight;
     const isLand = isMobileLandscape();
     const portrait = !isLand && (w / h < 0.9 || isAtMost('mobile'));
+    const layoutMode: 'portrait' | 'landscape' | 'desktop' = isLand ? 'landscape' : portrait ? 'portrait' : 'desktop';
+
+    if (this.lastLayoutMode && this.lastLayoutMode !== layoutMode) {
+      const zoomOut = 1 / 0.9;
+      const targetDist = (portrait ? 26 : isLand ? 8.5 : 16) * zoomOut;
+      this.camera.position.setLength(targetDist);
+    }
+    this.lastLayoutMode = layoutMode;
 
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -1851,9 +1862,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
     const offsetY = (bottomOccupied - topOccupied) / 2;
     this.camera.setViewOffset(w, h, 0, offsetY, w, h);
-    this.controls.minDistance = isLand ? 6.5 : (portrait ? 11 : 7.5);
+    this.controls.minDistance = isLand ? 5.8 : (portrait ? 11 : 7.5);
 
     this.camera.updateProjectionMatrix();
+    this.controls.update();
   }
 
   private animate = () => {
