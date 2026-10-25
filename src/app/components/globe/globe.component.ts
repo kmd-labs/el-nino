@@ -1817,30 +1817,16 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
 
-    if (isLand) {
-      // In mobile landscape: globe is centered vertically between header and bottom dock,
-      // and positioned slightly to the right to leave comfortable visual balance with header buttons.
-      const dockEl = document.querySelector('.dock-wrap');
-      const headerEl = document.querySelector('.header');
-      const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : 42;
-      const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 85;
-      const offsetY = (bottomOccupied - topOccupied) / 2;
-      // Negative offsetX in setViewOffset shifts the projected scene to the right
-      const offsetX = -Math.round(w * 0.06);
-      this.camera.setViewOffset(w, h, offsetX, offsetY, w, h);
-      this.controls.minDistance = 6.5;
-    } else {
-      // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
-      const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
-      const dockEl = document.querySelector('.dock-wrap');
-      const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : 52);
-      const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 130;
+    // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
+    const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
+    const dockEl = document.querySelector('.dock-wrap');
+    const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : isLand ? 42 : 52);
+    const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : (isLand ? 85 : 130);
 
-      // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
-      const offsetY = (bottomOccupied - topOccupied) / 2;
-      this.camera.setViewOffset(w, h, 0, offsetY, w, h);
-      this.controls.minDistance = portrait ? 11 : 7.5;
-    }
+    // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
+    const offsetY = (bottomOccupied - topOccupied) / 2;
+    this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+    this.controls.minDistance = isLand ? 6.5 : (portrait ? 11 : 7.5);
 
     this.camera.updateProjectionMatrix();
   }
