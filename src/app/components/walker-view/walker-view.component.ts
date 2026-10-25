@@ -15,6 +15,7 @@ import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'luc
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { EquatorProfileService } from '../../core/services/equator-profile.service';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
@@ -72,6 +73,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   state = inject(EnsoStateService);
   private weather = inject(CurrentWeatherService);
+  private terrain = inject(EquatorProfileService);
   private math = inject(EnsoMathService);
   private theme = inject(ThemeService);
   i18n = inject(I18nService);
@@ -137,6 +139,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.lastSetS = this.state.sTarget();
+    this.terrain.load();
   }
 
   ngAfterViewInit() {
@@ -430,32 +433,44 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.text(label, x, this.dY(28), 'center', `rgba(255, 210, 160, ${a})`, true);
   }
 
+  /**
+   * The two coasts that bound the section, from one ETOPO2v2c sample per 0.1° along the
+   * equator, at the panel's own scale — `zY` in kilometres above water, `dY` in metres
+   * below. Walk in from each edge until the ground drops past the 300 m the panel shows
+   * and stop: everything between is open ocean, whose floor lies kilometres below the
+   * canvas. On the left that keeps Sumatra, the shallow Sunda Shelf and Borneo, which are
+   * one unbroken shallow complex (the shelf barely reaches 50 m); on the right, the South
+   * American shelf and the Andean crest at 282°E.
+   */
   private drawLand(indonesia: string, andes: string) {
-    const ctx = this.ctx;
-    const ys = this.ys;
-    const landCol = this.theme.getTokenColor('walker-land', '#121a1a');
-    const hills: [number, number][] = [[100, 0], [101, 0.9], [104, 1.5], [107, 0.9], [110, 1.9], [114, 1.1], [118, 2.1], [122, 1.2], [125, 1.5], [128, 0]];
-    ctx.fillStyle = landCol;
-    ctx.beginPath();
-    ctx.moveTo(this.X(100), ys);
-    for (const [lon, z] of hills) ctx.lineTo(this.X(lon), this.zY(z));
-    ctx.closePath();
-    ctx.fill();
-    this.text(indonesia, this.X(101.5), this.zY(2.6), 'left', 'rgba(220, 230, 245, 0.8)');
+    const prof = this.terrain.data();
+    if (!prof?.elev.length) return;
 
-    ctx.fillStyle = landCol;
-    ctx.beginPath();
-    ctx.moveTo(this.X(279), this.yo);
-    ctx.lineTo(this.X(279), ys);
-    ctx.lineTo(this.X(281), this.zY(0.8));
-    ctx.lineTo(this.X(283.5), this.zY(6.2));
-    ctx.lineTo(this.X(285), this.zY(4.6));
-    ctx.lineTo(this.X(287), this.zY(5.3));
-    ctx.lineTo(this.X(290), this.zY(2.5));
-    ctx.lineTo(this.X(290), this.yo);
-    ctx.closePath();
-    ctx.fill();
-    this.text(andes, this.W - 8, this.zY(7), 'right', 'rgba(220, 230, 245, 0.8)');
+    const ctx = this.ctx;
+    const n = prof.elev.length;
+    const lonAt = (i: number) => prof.lon0 + i * prof.step;
+    const yOf = (m: number) => (m > 0 ? this.zY(m / 1000) : this.dY(-m));
+
+    let left = 0;
+    while (left < n && prof.elev[left] >= -SEA_DEPTH) left++;
+    let right = n - 1;
+    while (right >= 0 && prof.elev[right] >= -SEA_DEPTH) right--;
+
+    ctx.fillStyle = this.theme.getTokenColor('walker-land', '#121a1a');
+    const coast = (from: number, to: number) => {
+      if (to < from) return;
+      ctx.beginPath();
+      ctx.moveTo(this.X(lonAt(from)), this.yo);
+      for (let i = from; i <= to; i++) ctx.lineTo(this.X(lonAt(i)), yOf(prof.elev[i]));
+      ctx.lineTo(this.X(lonAt(to)), this.yo);
+      ctx.closePath();
+      ctx.fill();
+    };
+    coast(0, left - 1);
+    coast(right + 1, n - 1);
+
+    this.text(indonesia, this.X(100.5), this.zY(2.2), 'left', 'rgba(220, 230, 245, 0.8)');
+    this.text(andes, this.W - 8, this.zY(5.2), 'right', 'rgba(220, 230, 245, 0.8)');
   }
 
   private drawNinoBox() {

@@ -149,6 +149,23 @@ ocean spheres, so unexaggerated terrain is literally invisible. The land sphere 
 (512 x 256 under `isAtMost('mobile')`) — at the original 128 x 64 a segment spans ~2.8 degrees and no height
 map can show. Note the tallest peaks then poke through the impacts overlay at `R * 1.0045`.
 
+### The ground under the Walker section
+
+`scripts/fetch-equator-profile.mjs` (`npm run fetch:equator`) reuses the ETOPO2v2c download above and writes
+`src/assets/data/equator-profile.json` — 1901 samples of the **single grid row at latitude 0**, 100°E to
+290°E at 0.1°, metres, positive above sea level (~11 KB). One row, not a band: averaging over ±1° flattens
+the features the profile exists to show (Galápagos reads −2459 m on the line but −1501 m over ±1°). Note
+ETOPO's longitude origin is **−180°**, half a world away from the SST grids elsewhere here. Like the two
+fetches above, the terrain never changes, so this one is **not** in CI.
+
+`WalkerViewComponent.drawLand()` draws it at the panel's own scale — `zY` in km above water, `dY` in metres
+below — and keeps only the two coasts that bound the section: it walks in from each edge until the ground
+drops past `SEA_DEPTH` (300 m) and stops there. Everything between is open ocean, whose floor runs 4–6.6 km
+down, twenty times the panel. On the left that keeps one unbroken shallow complex — Sumatra, the Sunda Shelf
+(barely 50 m deep) and Borneo, 100°E to 117.9°E; on the right, the South American shelf from 279.4°E and the
+narrow Andean crest at 282°E (+4150 m). Mid-ocean islands, the Galápagos among them, are left out on purpose.
+The file carries its own `lon0`/`lon1`, so a change to `LON0`/`LON1` clips the profile rather than shifting it.
+
 ### i18n is positional — the main footgun
 
 `core/i18n/i18n.types.ts` `Dict` is the contract; `en.ts`, `pl.ts`, `es.ts` must all implement it (add the key

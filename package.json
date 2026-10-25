@@ -12,7 +12,8 @@
     "fetch:relief": "node scripts/fetch-relief.mjs",
     "fetch:elevation": "node scripts/fetch-elevation.mjs",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --watch=false --browsers=ChromeHeadlessCI"
+    "test": "ng test --watch=false --browsers=ChromeHeadlessCI",
+    "fetch:equator": "node scripts/fetch-equator-profile.mjs"
   },
   "private": true,
   "dependencies": {
