@@ -15,7 +15,8 @@ import {
   Thermometer,
   Waves,
   Wind,
-  Gauge
+  Gauge,
+  ChartLine
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { EnsoPhase } from '../../core/models/enso.model';
@@ -81,6 +82,8 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly airIcon = Thermometer;
   readonly windIcon = Wind;
   readonly speedIcon = Gauge;
+  /** Same glyph the header's view switcher uses for the cycles chart. */
+  readonly cyclesIcon = ChartLine;
 
   /** Playback speed menu options formatted as 0.5x, 1x, 1.5x, 2x, etc. */
   readonly speedOptions = computed<DropdownOption<number>[]>(() => {
@@ -214,6 +217,11 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
       active: Math.abs(sCur - m.value) < 0.22
     }));
   });
+
+  /** The forecast has no measured anomaly, so point at the chart that does project one. */
+  openCycles() {
+    this.state.setView('cycles');
+  }
 
   markerPct(val: number): number {
     const min = -2;

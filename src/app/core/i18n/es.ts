@@ -231,7 +231,7 @@ export const ES: Dict = {
     ]
   },
 
-  viewCycles: 'Ciclos anteriores',
+  viewCycles: 'Ciclos anteriores y predicción',
   cyclesAria: 'Ciclos ENSO anteriores y el pronóstico por analogías',
   cyclesTitle: 'Todos los eventos ENSO desde 1950',
   cyclesNote: 'Cada línea es un evento: el índice Niño 3.4 (ONI, media móvil de 3 meses) a lo largo de dos años '

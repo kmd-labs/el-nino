@@ -231,7 +231,7 @@ export const EN: Dict = {
     ]
   },
 
-  viewCycles: 'Previous cycles',
+  viewCycles: 'Previous cycles and forecast',
   cyclesAria: 'Previous ENSO cycles and the analog forecast',
   cyclesTitle: 'Every ENSO event since 1950',
   cyclesNote: 'Each line is one event: the Niño 3.4 index (ONI, a 3-month running mean) across two calendar years. '

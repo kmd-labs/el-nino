@@ -64,10 +64,29 @@
       }
     }
 
+    // A button: it opens the cycles chart, which is the only place that actually
+    // projects this part of the timeline.
     &--forecast {
       background: rgba(59, 130, 246, 0.1);
       border: 1px solid rgba(59, 130, 246, 0.35);
       color: color("primary-600");
+      font: inherit;
+      font-size: font-size("xxs");
+      font-weight: font-weight("bold");
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background transition("fast"), border-color transition("fast");
+
+      &:hover {
+        background: rgba(59, 130, 246, 0.18);
+        border-color: rgba(59, 130, 246, 0.55);
+      }
+
+      &:focus-visible {
+        outline: 2px solid color("accent");
+        outline-offset: 2px;
+      }
     }
   }
 
@@ -320,6 +339,8 @@
       font-size: 9px;
       gap: 3px;
     }
+
+
 
     &__live-dot {
       width: 5px;

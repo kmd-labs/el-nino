@@ -15,12 +15,15 @@
             <span class="dock__status-text">{{ t.live }}</span>
           </div>
         } @else if (isForecast()) {
-          <div
+          <button
+            type="button"
             class="dock__status-pill dock__status-pill--forecast"
-            role="status"
-            [attr.aria-label]="t.timelineForecast">
+            [appTooltip]="t.viewCycles"
+            [attr.aria-label]="t.cyclesAria"
+            (click)="openCycles()">
             <span class="dock__status-text">{{ t.timelineForecast }}</span>
-          </div>
+            <lucide-icon [img]="cyclesIcon" [size]="11"></lucide-icon>
+          </button>
         }
 
         <div class="dock__readout">
