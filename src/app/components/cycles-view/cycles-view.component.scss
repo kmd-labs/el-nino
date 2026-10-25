@@ -4,30 +4,46 @@
   position: fixed;
   left: 16px;
   right: 16px;
-  top: 112px;
-  bottom: calc(var(--dock-h, 60px) + 24px);
+  top: 72px;
+  bottom: calc(var(--dock-h, 60px) + 16px);
   z-index: 15;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   animation: cyclesIn 0.3s ease-out;
 
   &__head {
-    align-self: center;
+    align-self: stretch;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    max-width: 100%;
-    padding: 8px 14px;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 6px 12px;
     border-radius: radius("card");
-    font-size: font-size("sm");
+    font-size: font-size("xs");
     color: color("text-main");
+  }
+
+  &__head-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  &__head-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
   }
 
   &__title {
     font-weight: font-weight("semibold");
     color: color("text-bright");
+    white-space: nowrap;
   }
 
   &__meta {
@@ -37,14 +53,62 @@
     &--prov {
       color: color("phase-super");
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    font-size: font-size("xxs");
+    color: color("text-dim");
+    white-space: nowrap;
+  }
+
+  &__key {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &::before {
+      content: "";
+      width: 12px;
+      height: 0;
+      border-top-width: 2px;
+      border-top-style: solid;
+    }
+
+    &--past::before {
+      border-top-color: color("phase-nino");
+      opacity: 0.45;
+    }
+
+    &--analog::before {
+      border-top-color: color("accent");
+    }
+
+    &--current::before {
+      border-top-width: 3px;
+      border-top-color: color("phase-super");
+    }
+
+    &--forecast::before {
+      border-top-style: dashed;
+      border-top-color: color("phase-super");
+    }
+  }
+
+  &__btn-text {
+    font-size: font-size("xxs");
+    font-weight: font-weight("medium");
   }
 
   &__body {
     flex: 1;
     min-height: 0;
     display: flex;
-    gap: 10px;
   }
 
   &__box {
@@ -77,19 +141,22 @@
     font-size: font-size("xs");
     color: color("text-dim");
   }
+}
 
-  &__side {
-    width: 268px;
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    overflow-y: auto;
-    @include custom-scrollbar;
+// Modal dialog contents (projected via PopupService)
+.cycles-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
   }
 
   &__panel {
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-radius: radius("card");
 
     h3 {
@@ -107,167 +174,124 @@
     color: color("text-dim");
   }
 
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: font-size("xxs");
-    color: color("text-main");
-
-    th {
-      text-align: left;
-      font-weight: font-weight("medium");
-      color: color("text-dim");
-      padding-bottom: 4px;
-      border-bottom: 1px solid color("line");
-    }
-
-    td {
-      padding: 3px 0;
-      border-bottom: 1px solid color("line");
-    }
-
-    th + th,
-    td + td {
-      padding-left: 8px; // the right-aligned peak column otherwise runs into the tier text
-    }
-
-    .num {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    tr.is-analog td {
-      color: color("accent");
-    }
-
-    tr.is-current td {
-      font-weight: font-weight("semibold");
-      color: color("phase-super");
-    }
-  }
-
-  &__analogs {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-
-    li {
-      display: grid;
-      grid-template-columns: 52px 1fr auto;
-      align-items: center;
-      gap: 6px;
-      font-size: font-size("xxs");
-      color: color("text-main");
-    }
-  }
-
-  &__season {
-    font-variant-numeric: tabular-nums;
-  }
-
-  &__bar {
-    height: 6px;
-    min-width: 2px;
-    border-radius: radius("pill");
-    background: color("accent");
-    opacity: 0.75;
-  }
-
-  &__num {
-    color: color("text-dim");
-    font-variant-numeric: tabular-nums;
-  }
-
-  &__peak {
-    margin: 8px 0 0;
-    font-size: font-size("xxs");
-    font-weight: font-weight("semibold");
-    color: color("phase-super");
-  }
-
   &__foot {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid color("line");
   }
+}
 
-  &__legend {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px 12px;
-    font-size: font-size("xxs");
+.cycles__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: font-size("xxs");
+  color: color("text-main");
+
+  th {
+    text-align: left;
+    font-weight: font-weight("medium");
     color: color("text-dim");
+    padding-bottom: 4px;
+    border-bottom: 1px solid color("line");
   }
 
-  &__key {
+  td {
+    padding: 3px 0;
+    border-bottom: 1px solid color("line");
+  }
+
+  th + th,
+  td + td {
+    padding-left: 8px;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr.is-analog td {
+    color: color("accent");
+  }
+
+  tr.is-current td {
+    font-weight: font-weight("semibold");
+    color: color("phase-super");
+  }
+}
+
+.cycles__analogs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  li {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    font-size: font-size("xxs");
+    color: color("text-main");
+  }
+}
+
+.cycles__season {
+  font-variant-numeric: tabular-nums;
+}
+
+.cycles__bar {
+  height: 6px;
+  min-width: 2px;
+  border-radius: radius("pill");
+  background: color("accent");
+  opacity: 0.75;
+}
+
+.cycles__num {
+  color: color("text-dim");
+  font-variant-numeric: tabular-nums;
+}
+
+.cycles__peak {
+  margin: 8px 0 0;
+  font-size: font-size("xxs");
+  font-weight: font-weight("semibold");
+  color: color("phase-super");
+}
+
+.cycles__record-note,
+.cycles__note {
+  margin: 0;
+  font-size: font-size("xxs");
+  line-height: 1.4;
+  color: color("text-dim");
+
+  &--warn {
+    color: color("text-note");
+  }
+}
+
+.cycles__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 0;
+  font-size: font-size("xxs");
+
+  a {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+    color: color("link-color");
+    text-decoration: none;
 
-    &::before {
-      content: "";
-      width: 14px;
-      height: 0;
-      border-top-width: 2px;
-      border-top-style: solid;
-    }
-
-    &--past::before {
-      border-top-color: color("phase-nino");
-      opacity: 0.45;
-    }
-
-    &--analog::before {
-      border-top-color: color("accent");
-    }
-
-    &--current::before {
-      border-top-width: 3px;
-      border-top-color: color("phase-super");
-    }
-
-    &--forecast::before {
-      border-top-style: dashed;
-      border-top-color: color("phase-super");
-    }
-  }
-
-  &__note {
-    margin: 0;
-    max-width: 78ch;
-    font-size: font-size("xxs");
-    line-height: 1.4;
-    color: color("text-dim");
-    text-align: center;
-
-    &--warn {
-      color: color("text-note");
-    }
-  }
-
-  &__sources {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin: 2px 0 0;
-    font-size: font-size("xxs");
-
-    a {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: color("link-color");
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
+    &:hover {
+      text-decoration: underline;
     }
   }
 }
@@ -287,31 +311,10 @@
   .cycles {
     left: 10px;
     right: 10px;
-    top: 118px;
-    bottom: calc(var(--dock-h, 60px) + 16px);
+    top: 70px;
+    bottom: calc(var(--dock-h, 60px) + 12px);
 
-    &__body {
-      flex-direction: column;
-    }
-
-    &__box {
-      flex: 1 1 58%;
-      min-height: 180px;
-    }
-
-    &__side {
-      width: 100%;
-      flex: 0 1 auto;
-      flex-direction: row;
-      overflow-x: auto;
-      overflow-y: hidden;
-    }
-
-    &__panel {
-      flex: 1 0 240px;
-    }
-
-    &__note--warn {
+    &__legend {
       display: none;
     }
   }
@@ -319,41 +322,40 @@
 
 @include respond-to("mobile") {
   .cycles {
-    // The frame between the header and the dock is far shorter than the content on a phone — the
-    // catalogue alone runs to ~40 rows — so the panel itself scrolls, instead of letting the chart,
-    // the side panels and the footnotes overflow their boxes and overlap each other.
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    padding-bottom: 8px;
-    @include custom-scrollbar;
+    left: 8px;
+    right: 8px;
+    top: 60px;
+    bottom: calc(var(--dock-h, 60px) + 8px);
+
+    &__head {
+      padding: 5px 8px;
+    }
 
     &__meta,
     &__legend {
       display: none;
     }
 
-    &__body {
-      flex: 0 0 auto; // no longer stretches to the frame: each child keeps its own height
+    &__btn-text {
+      display: none;
+    }
+  }
+}
+
+@include respond-to("mobile-landscape") {
+  .cycles {
+    left: 8px;
+    right: 8px;
+    top: 48px;
+    bottom: calc(var(--dock-h, 50px) + 6px);
+
+    &__head {
+      padding: 4px 8px;
     }
 
-    &__box {
-      flex: 0 0 auto;
-      height: 280px; // fixed chart; the ResizeObserver in the component redraws the canvas to it
-    }
-
-    &__side {
-      flex: 0 0 auto;
-      flex-direction: column; // tablet puts the panels in a horizontally scrolling row
-      overflow: visible; // one scroll container for the whole view, no nested scroll areas
-    }
-
-    &__panel {
-      flex: 0 0 auto; // tablet's `flex: 1 0 240px` would squash them once stacked
-    }
-
-    &__foot {
-      flex: 0 0 auto;
+    &__meta,
+    &__legend {
+      display: none;
     }
   }
 }

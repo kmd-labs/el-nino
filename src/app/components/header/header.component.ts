@@ -56,13 +56,13 @@ export class HeaderComponent {
    * On mobile during normal browsing, it collapses and expands on tap/hover.
    */
   readonly isBrandExpanded = computed(() => {
-    if (!this.bp.mobile()) return true;
+    if (!this.bp.mobile() && !this.bp.mobileLandscape()) return true;
     if (this.isPopupOpen()) return true;
     return this.mobileExpanded();
   });
 
   onBrandClick(event: MouseEvent) {
-    if (this.bp.mobile() && !this.isPopupOpen()) {
+    if ((this.bp.mobile() || this.bp.mobileLandscape()) && !this.isPopupOpen()) {
       if (!this.mobileExpanded()) {
         event.stopPropagation();
         this.mobileExpanded.set(true);
@@ -74,7 +74,7 @@ export class HeaderComponent {
   }
 
   onBrandHover(entering: boolean) {
-    if (this.bp.mobile() && !this.isPopupOpen()) {
+    if ((this.bp.mobile() || this.bp.mobileLandscape()) && !this.isPopupOpen()) {
       this.mobileExpanded.set(entering);
     }
   }

@@ -234,6 +234,8 @@ export const ES: Dict = {
   viewCycles: 'Ciclos anteriores y predicción',
   cyclesAria: 'Ciclos ENSO anteriores y el pronóstico por analogías',
   cyclesTitle: 'Todos los eventos ENSO desde 1950',
+  cyclesDetails: 'Datos y analogías',
+  cyclesDetailsTitle: 'Historial de eventos, pronóstico por analogías y metodología',
   cyclesNote: 'Cada línea es un evento: el índice Niño 3.4 (ONI, media móvil de 3 meses) a lo largo de dos años '
     + 'calendario. Las temporadas en que se basa el pronóstico están resaltadas; el evento actual es la línea gruesa.',
   cyclesBarrier: 'Un pronóstico por analogías es una base estadística, no un modelo dinámico. Cinco miembros extraídos de un '

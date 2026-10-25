@@ -11,7 +11,8 @@ import {
   computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play, Info } from 'lucide-angular';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
@@ -63,7 +64,7 @@ const SEA_DEPTH = 300; // m shown below the surface
 @Component({
   selector: 'app-walker-view',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TooltipDirective],
   templateUrl: './walker-view.component.html',
   styleUrl: './walker-view.component.scss'
 })
@@ -83,6 +84,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly chevronRightIcon = ChevronRight;
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
+  readonly infoIcon = Info;
 
   readonly steps = STEPS;
   /** Current walkthrough step; −1 = not started, the view just shows the current ENSO state. */

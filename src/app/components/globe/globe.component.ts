@@ -27,7 +27,7 @@ import { EVENTS_META } from '../../core/constants/enso-data';
 import { RAIN_REGIONS } from '../../core/constants/impacts-data';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { EnsoPhase, ImpactLocationMeta } from '../../core/models/enso.model';
-import { isAtMost } from '@kmd/design-system/utils/breakpoints';
+import { isAtMost, isMobileLandscape } from '@kmd/design-system/utils/breakpoints';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
@@ -423,8 +423,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.camera.add(headLight);
 
     const isPortrait = window.innerWidth / window.innerHeight < 0.9;
+    const isLand = isMobileLandscape();
     const zoomOut = 1 / 0.9;
-    this.math.pos(-165, 12, (isPortrait ? 26 : 16) * zoomOut, this.camera.position);
+    this.math.pos(-165, 12, (isPortrait ? 26 : isLand ? 15 : 16) * zoomOut, this.camera.position);
     this.controls.update();
 
     // Glow / uniform drop shadow shader & soft bokeh background
@@ -1632,12 +1633,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
     const pad = 3;
     const screenPad = 10;
-    const minTop = 64; // Below header pills
-    const maxTop = window.innerHeight - 130; // Above dock
+    const isLand = isMobileLandscape();
+    const minTop = isLand ? 46 : 64; // Below header pills
+    const maxTop = isLand ? window.innerHeight - 30 : window.innerHeight - 130; // Above dock
+    const maxScreenRight = isLand ? window.innerWidth * 0.48 : window.innerWidth;
     for (const l of q) {
       const { w, h } = this.lblSize.get(l.el)!;
       const rawLeft = l.x - w / 2;
-      const left = Math.max(screenPad, Math.min(window.innerWidth - w - screenPad, rawLeft));
+      const left = Math.max(screenPad, Math.min(maxScreenRight - w - screenPad, rawLeft));
       const rawTop = l.y - 1.4 * h;
       let dyOk: number | null = null;
       for (const k of [0, -1, 1, -2, 2, -3]) {
@@ -1723,12 +1726,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     duration?: number,
     options?: { html?: SafeHtml | string; noWrap?: boolean; interactive?: boolean; closable?: boolean; onClose?: () => void }
   ) {
-    const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (window.innerWidth - 32) / 2);
-    const safeX = Math.max(halfW + 12, Math.min(window.innerWidth - halfW - 12, sx));
+    const isLand = isMobileLandscape();
+    const maxBoundW = isLand ? window.innerWidth * 0.48 : window.innerWidth;
+    const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (maxBoundW - 32) / 2);
+    const safeX = Math.max(halfW + 12, Math.min(maxBoundW - halfW - 12, sx));
     const placement = sy < 120 ? 'bottom' : 'top';
     const safeY = placement === 'bottom'
-      ? Math.max(68, sy + 18)
-      : Math.min(window.innerHeight - 130, sy - 16);
+      ? Math.max(isLand ? 48 : 68, sy + 18)
+      : Math.min(isLand ? window.innerHeight - 30 : window.innerHeight - 130, sy - 16);
     this.tooltip.show(name, safeX, safeY, placement, duration, options);
   }
 
@@ -1848,23 +1853,32 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (!this.renderer || !this.camera) return;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const portrait = w / h < 0.9 || isAtMost('mobile');
+    const isLand = isMobileLandscape();
+    const portrait = !isLand && (w / h < 0.9 || isAtMost('mobile'));
 
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
 
-    // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
-    const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
-    const dockEl = document.querySelector('.dock-wrap');
-    const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : 52);
-    const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 130;
+    if (isLand) {
+      // In mobile landscape, split screen: move globe to the left half (offsetX moves viewport)
+      // Positive fullX shift in setViewOffset offsets projection center to the left
+      const offsetX = w * 0.23;
+      this.camera.setViewOffset(w, h, offsetX, 0, w, h);
+      this.controls.minDistance = 7.0;
+    } else {
+      // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
+      const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
+      const dockEl = document.querySelector('.dock-wrap');
+      const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : 52);
+      const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 130;
 
-    // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
-    const offsetY = (bottomOccupied - topOccupied) / 2;
-    this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+      // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
+      const offsetY = (bottomOccupied - topOccupied) / 2;
+      this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+      this.controls.minDistance = portrait ? 11 : 7.5;
+    }
 
     this.camera.updateProjectionMatrix();
-    this.controls.minDistance = portrait ? 11 : 7.5;
   }
 
   private animate = () => {

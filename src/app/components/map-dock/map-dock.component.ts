@@ -231,7 +231,9 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.resizeObs = new ResizeObserver(() => {
       const h = this.wrapRef.nativeElement.offsetHeight;
+      const w = this.wrapRef.nativeElement.offsetWidth;
       document.documentElement.style.setProperty('--dock-h', `${h}px`);
+      document.documentElement.style.setProperty('--dock-w', `${w}px`);
     });
     this.resizeObs.observe(this.wrapRef.nativeElement);
   }

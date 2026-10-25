@@ -234,6 +234,8 @@ export const EN: Dict = {
   viewCycles: 'Previous cycles and forecast',
   cyclesAria: 'Previous ENSO cycles and the analog forecast',
   cyclesTitle: 'Every ENSO event since 1950',
+  cyclesDetails: 'Data & analogs',
+  cyclesDetailsTitle: 'Event history, analog forecast & methodology',
   cyclesNote: 'Each line is one event: the Niño 3.4 index (ONI, a 3-month running mean) across two calendar years. '
     + 'The seasons the forecast leans on are highlighted; the current event is the thick line.',
   cyclesBarrier: 'An analog forecast is a statistical baseline, not a dynamical model. Five members drawn from a record of '

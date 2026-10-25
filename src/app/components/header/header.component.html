@@ -34,28 +34,29 @@
       </div>
     </div>
 
-    <!-- 2. Standalone Share Button -->
-    <div class="header__share glass-panel">
-      <app-button
-        variant="ghost"
-        [iconOnly]="true"
-        [ariaLabel]="t.shareLink"
-        [titleText]="t.shareLink"
-        (btnClick)="openSharePopup()">
-        <lucide-icon [img]="shareIcon" [size]="15"></lucide-icon>
-      </app-button>
-    </div>
+    <!-- 2. Actions: Standalone Share & Settings Buttons -->
+    <div class="header__actions">
+      <div class="header__share glass-panel">
+        <app-button
+          variant="ghost"
+          [iconOnly]="true"
+          [ariaLabel]="t.shareLink"
+          [titleText]="t.shareLink"
+          (btnClick)="openSharePopup()">
+          <lucide-icon [img]="shareIcon" [size]="15"></lucide-icon>
+        </app-button>
+      </div>
 
-    <!-- 3. Standalone Settings Button -->
-    <div class="header__settings glass-panel">
-      <app-button
-        variant="ghost"
-        [iconOnly]="true"
-        [ariaLabel]="t.settingsAria"
-        [titleText]="t.settingsAria"
-        (btnClick)="openSettings()">
-        <lucide-icon [img]="settingsIcon" [size]="15"></lucide-icon>
-      </app-button>
+      <div class="header__settings glass-panel">
+        <app-button
+          variant="ghost"
+          [iconOnly]="true"
+          [ariaLabel]="t.settingsAria"
+          [titleText]="t.settingsAria"
+          (btnClick)="openSettings()">
+          <lucide-icon [img]="settingsIcon" [size]="15"></lucide-icon>
+        </app-button>
+      </div>
     </div>
 
     @if (!state.mapLoaded()) {

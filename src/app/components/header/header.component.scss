@@ -17,6 +17,7 @@
   &--popup-open {
     z-index: 120;
 
+    .header__actions,
     .header__share,
     .header__settings,
     .header__loading,
@@ -147,6 +148,14 @@
     font-weight: font-weight("medium");
     color: color("text-bright");
     white-space: nowrap;
+  }
+
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    transition: opacity transition("fast"), visibility transition("fast");
   }
 
   &__share,
@@ -312,6 +321,10 @@
       font-size: font-size("xxs");
     }
 
+    &__actions {
+      gap: 6px;
+    }
+
     &__share,
     &__settings {
       padding: 3px;
@@ -356,6 +369,153 @@
           padding: 6px 10px;
           font-size: font-size("xxs");
           gap: 6px;
+        }
+      }
+    }
+  }
+
+  @include respond-to("mobile-landscape") {
+    top: 8px;
+    left: max(8px, env(safe-area-inset-left, 8px));
+    right: max(8px, env(safe-area-inset-right, 8px));
+    align-items: flex-start;
+
+    &__left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    &__brand-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+      width: 48px;
+      height: 34px;
+    }
+
+    &__brand {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      height: 34px;
+      padding: 3px;
+      width: max-content;
+      max-width: 48px;
+      overflow: hidden;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.3s ease;
+
+      &--expanded {
+        max-width: 240px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+      }
+    }
+
+    &__brand-btn {
+      height: 28px;
+      padding: 0 4px;
+    }
+
+    &__brand--expanded &__brand-btn {
+      padding: 0 8px 0 4px;
+    }
+
+    &__logo-img {
+      height: 13px;
+      width: 32px;
+    }
+
+    &__brand-expand {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 0;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.25s ease;
+    }
+
+    &__brand--expanded &__brand-expand {
+      margin-left: 5px;
+      max-width: 200px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    &__divider {
+      height: 13px;
+    }
+
+    &__cta {
+      gap: 4px;
+    }
+
+    &__cta-text {
+      font-size: font-size("xxs");
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+    }
+
+    &__share,
+    &__settings {
+      padding: 2px;
+      height: 32px;
+
+      ::ng-deep .btn {
+        width: 28px;
+        height: 28px;
+        min-height: 28px;
+        padding: 0;
+      }
+    }
+
+    &__loading {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    &__right {
+      align-self: flex-start;
+      margin-left: auto;
+    }
+
+    &__view {
+      width: 136px;
+      height: 34px;
+      padding: 2px;
+
+      ::ng-deep {
+        .btn {
+          padding: 3px 6px;
+          height: 28px;
+          min-height: 28px;
+          font-size: font-size("xxs");
+          gap: 4px;
+        }
+
+        .dropdown__menu {
+          min-width: 150px;
+          max-width: calc(100vw - 16px);
+        }
+
+        .dropdown__item {
+          padding: 5px 8px;
+          font-size: font-size("xxs");
         }
       }
     }

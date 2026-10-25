@@ -262,6 +262,8 @@ export interface Dict {
   viewCycles: string;
   cyclesAria: string;
   cyclesTitle: string;
+  cyclesDetails: string;
+  cyclesDetailsTitle: string;
   cyclesNote: string;
   cyclesBarrier: string;
   cyclesLegendPast: string;

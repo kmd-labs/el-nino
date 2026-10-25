@@ -4,29 +4,36 @@
   position: fixed;
   left: 16px;
   right: 16px;
-  top: 112px;
-  bottom: calc(var(--dock-h, 60px) + 24px);
+  top: 72px;
+  bottom: calc(var(--dock-h, 60px) + 16px);
   z-index: 15;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   animation: walkerIn 0.3s ease-out;
 
   &__step {
     align-self: center;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     max-width: 100%;
-    padding: 7px 14px 7px 8px;
+    padding: 4px 6px 4px 6px;
     border-radius: radius("pill");
-    font-size: font-size("sm");
+    font-size: font-size("xs");
     color: color("text-main");
+  }
+
+  &__ctrl {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex: none;
   }
 
   &__badge {
     flex: none;
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: radius("pill");
     background: color("accent");
     color: #ffffff;
@@ -42,8 +49,12 @@
   }
 
   &__title {
-    line-height: 1.35;
-    word-break: break-word;
+    line-height: 1.3;
+    font-weight: font-weight("medium");
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: min(520px, calc(100vw - 220px));
   }
 
   &__box {
@@ -64,37 +75,12 @@
       display: block;
     }
   }
-
-  &__foot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-
-  &__ctrl {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  &__dots {
-    display: flex;
-    gap: 5px;
-    margin-left: 6px;
-  }
-
-  &__cap {
-    font-size: font-size("xxs");
-    color: color("text-dim");
-    text-align: center;
-  }
 }
 
 .wbtn {
   font: inherit;
-  width: 32px;
-  height: 30px;
+  width: 28px;
+  height: 26px;
   border-radius: radius("control");
   border: 1px solid color("line");
   background: color("panel-bg");
@@ -121,26 +107,19 @@
     border-color: color("btn-play-border");
     color: color("accent");
   }
-}
 
-.dot {
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid color("line-strong");
-  background: transparent;
-  cursor: pointer;
-  transition: background transition("fast"), transform transition("fast");
+  &--info {
+    border-color: transparent;
+    background: transparent;
+    color: color("text-dim");
+    width: 24px;
+    height: 24px;
+    flex: none;
 
-  &:hover {
-    background: color("btn-hover");
-  }
-
-  &--on {
-    background: color("accent");
-    border-color: color("accent");
-    transform: scale(1.2);
+    &:hover {
+      color: color("text-bright");
+      background: color("btn-hover");
+    }
   }
 }
 
@@ -159,17 +138,43 @@
   .walker {
     left: 10px;
     right: 10px;
-    top: 118px;
-    bottom: calc(var(--dock-h, 60px) + 16px);
-  }
+    top: 70px;
+    bottom: calc(var(--dock-h, 60px) + 12px);
 
-  .walker__step {
-    font-size: font-size("xs");
+    &__step {
+      font-size: font-size("xxs");
+    }
   }
 }
 
 @include respond-to("mobile") {
-  .walker__dots {
-    display: none;
+  .walker {
+    left: 8px;
+    right: 8px;
+    top: 60px;
+    bottom: calc(var(--dock-h, 60px) + 8px);
+
+    &__title {
+      max-width: calc(100vw - 190px);
+    }
+  }
+}
+
+@include respond-to("mobile-landscape") {
+  .walker {
+    left: 8px;
+    right: 8px;
+    top: 48px;
+    bottom: calc(var(--dock-h, 50px) + 6px);
+
+    &__step {
+      padding: 2px 4px;
+      gap: 5px;
+    }
+
+    &__title {
+      max-width: calc(100vw - 210px);
+      font-size: 11px;
+    }
   }
 }

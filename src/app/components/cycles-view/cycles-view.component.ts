@@ -9,9 +9,13 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ExternalLink } from 'lucide-angular';
+import { LucideAngularModule, ExternalLink, Table } from 'lucide-angular';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
+import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
+import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { TemplateRef } from '@angular/core';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoHistoryEvent, EnsoHistoryService } from '../../core/services/enso-history.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
@@ -29,21 +33,40 @@ const ONI_MAX = 3.2;
 @Component({
   selector: 'app-cycles-view',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, LucideAngularModule],
+  imports: [CommonModule, BadgeComponent, ButtonComponent, LucideAngularModule],
   templateUrl: './cycles-view.component.html',
   styleUrl: './cycles-view.component.scss'
 })
 export class CyclesViewComponent implements AfterViewInit, OnDestroy {
   @ViewChild('box') boxRef!: ElementRef<HTMLDivElement>;
   @ViewChild('cv') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('detailsTpl') detailsTpl!: TemplateRef<unknown>;
 
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   history = inject(EnsoHistoryService);
   private theme = inject(ThemeService);
   private weather = inject(CurrentWeatherService);
+  private popup = inject(PopupService);
 
   readonly externalLinkIcon = ExternalLink;
+  readonly tableIcon = Table;
+
+  openDetails() {
+    this.popup.open({
+      id: 'cycles-details',
+      title: computed(() => this.i18n.t().cyclesDetails),
+      subtitle: computed(() => this.i18n.t().cyclesDetailsTitle),
+      template: this.detailsTpl,
+      size: 'lg',
+      actions: [
+        {
+          label: computed(() => this.i18n.t().close),
+          variant: 'default'
+        }
+      ]
+    });
+  }
 
   /** The event in progress first, then the strongest finished El Niño events. */
   readonly catalogue = computed<EnsoHistoryEvent[]>(() => {
