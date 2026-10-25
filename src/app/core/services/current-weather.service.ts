@@ -487,6 +487,36 @@ export class CurrentWeatherService {
     return pair.kfA.nino34 + (pair.kfB.nino34 - pair.kfA.nino34) * pair.t;
   }
 
+  /**
+   * The same observed anomaly, averaged over the keyframes within ±`days` (the frames are weekly).
+   * Anything driven straight off `nino34AnomAt()` jitters on week-to-week noise as the slider moves;
+   * the window is still interpolated between the two bracketing frames, so the result stays
+   * continuous in `s`. Observed and forecast frames are never averaged together — the forecast sits
+   * more than a year past the last observation on this axis.
+   */
+  nino34AnomSmoothedAt(s: number, days = 30): number | null {
+    const kfs = this.meta()?.keyframes;
+    const pair = this.getKeyframePairMeta(s);
+    if (!kfs || !kfs.length || !pair) return null;
+
+    const half = Math.max(1, Math.round(days / 7));
+    const mean = (kf: TimelineKeyframeMeta) => {
+      const c = kfs.indexOf(kf);
+      if (c < 0) return kf.nino34;
+      let sum = 0;
+      let n = 0;
+      for (let i = Math.max(0, c - half); i <= Math.min(kfs.length - 1, c + half); i++) {
+        if (!!kfs[i].forecast !== !!kf.forecast) continue;
+        sum += kfs[i].nino34;
+        n++;
+      }
+      return n ? sum / n : kf.nino34;
+    };
+
+    const a = mean(pair.kfA);
+    return a + (mean(pair.kfB) - a) * pair.t;
+  }
+
   nino34Sst(s: number): number | null {
     const pair = this.getKeyframePair(s);
     const bin = this.sstBin ?? this.sstLowBin;

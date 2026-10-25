@@ -279,7 +279,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const ctx = this.ctx;
     const L = this.i18n.t().canvas;
     const { W, H } = this;
-    const s = this.state.sCur();
+    const s = this.sceneS();
     const ys = this.ys;
     const xc = Math.max(128, this.math.convLon(s));
     const trade = this.math.trade(s);
@@ -320,6 +320,24 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.drawCloud(xc, dt);
     this.drawLabels(s, xc, eS, wS, L);
     this.drawAxis();
+  }
+
+  /**
+   * The amplitude the cross-section is drawn at.
+   *
+   * The slider's `s` is a position on the calendar as much as a strength (see CLAUDE.md), and it
+   * rises monotonically from the earliest frame to the forecast — so reading it as an amplitude
+   * makes the circulation only ever weaken, while the real index crossed the phase thresholds
+   * several times over these two years. Outside the guided walkthrough the scene therefore takes
+   * its amplitude from the observed Niño 3.4 at that date, smoothed over ±1 month so dragging the
+   * slider does not make the cell jitter on weekly noise. During the walkthrough each step's own
+   * `s` is the lesson, so it is used as given.
+   */
+  private sceneS(): number {
+    const sliderS = this.state.sCur();
+    if (this.step() >= 0) return sliderS;
+    const observed = this.weather.nino34AnomSmoothedAt(sliderS);
+    return observed === null ? sliderS : this.math.clamp(this.math.sForNino34(observed), -2, 3);
   }
 
   /**
