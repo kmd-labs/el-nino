@@ -2,9 +2,9 @@
 
 .header {
   position: fixed;
-  top: 16px;
-  left: 16px;
-  right: 16px;
+  top: var(--header-offset-top, 16px);
+  left: var(--header-offset-x, 16px);
+  right: var(--header-offset-x, 16px);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -48,7 +48,7 @@
   &__brand {
     display: inline-flex;
     align-items: center;
-    height: 42px;
+    height: var(--kmd-brand-h, 42px);
     padding: 4px;
     border-radius: radius("pill");
     cursor: pointer;
@@ -225,9 +225,9 @@
   }
 
   @include respond-to("mobile") {
-    top: 10px;
-    left: 8px;
-    right: 8px;
+    top: var(--header-offset-top, 10px);
+    left: var(--header-offset-x, 8px);
+    right: var(--header-offset-x, 8px);
     gap: 8px;
     flex-wrap: nowrap;
 
@@ -250,7 +250,7 @@
       top: auto;
       left: auto;
       z-index: 1;
-      height: 38px;
+      height: var(--kmd-brand-h, 38px);
       padding: 3px;
       width: auto;
       max-width: none;
@@ -356,9 +356,9 @@
   }
 
   @include respond-to("mobile-landscape") {
-    top: 8px;
-    left: max(8px, env(safe-area-inset-left, 8px));
-    right: max(8px, env(safe-area-inset-right, 8px));
+    top: var(--header-offset-top, 8px);
+    left: var(--header-offset-x, max(8px, env(safe-area-inset-left, 8px)));
+    right: max(var(--header-offset-top, 8px), env(safe-area-inset-right, 8px));
     align-items: center;
 
     &__left {
@@ -380,7 +380,7 @@
       top: auto;
       left: auto;
       z-index: 1;
-      height: 34px;
+      height: var(--kmd-brand-h, 34px);
       padding: 3px;
       width: auto;
       max-width: none;

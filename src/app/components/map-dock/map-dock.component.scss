@@ -491,7 +491,8 @@
   }
 
   .dock {
-    width: min(100%, 720px);
+    width: 66vw;
+    max-width: 66vw;
     margin: 0 auto;
     padding: 6px 10px 8px;
     gap: 6px;
