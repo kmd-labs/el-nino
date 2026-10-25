@@ -93,6 +93,12 @@ describe('CyclesViewComponent', () => {
     history.status.set('ready');
     fixture.detectChanges();
 
+    const box = fixture.componentInstance.boxRef.nativeElement;
+    box.style.width = '600px';
+    box.style.height = '400px';
+    (fixture.componentInstance as any).resize();
+    (fixture.componentInstance as any).draw();
+
     const canvas: HTMLCanvasElement = fixture.nativeElement.querySelector('canvas');
     expect(canvas).toBeTruthy();
     expect(canvas.width).toBeGreaterThan(1);
