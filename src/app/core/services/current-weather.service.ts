@@ -176,9 +176,17 @@ export class CurrentWeatherService {
     const neu = midOfLongestRun(v => v > PHASE_THRESHOLDS.nina && v < PHASE_THRESHOLDS.nino);
     const nino = midOfLongestRun(v => v >= PHASE_THRESHOLDS.nino && v < PHASE_THRESHOLDS.super);
 
-    // Super: the warmest frame there is, forecast included — that is the whole point.
-    const warmest = kfs.reduce((a, b) => (b.nino34 > a.nino34 ? b : a));
-    const sup = warmest.nino34 >= PHASE_THRESHOLDS.super ? warmest : undefined;
+    // Super: the end of the slider, as long as the forecast frame reaches the top
+    // tier — that is what the forecast marker is there for. Picking the plain warmest
+    // frame instead would drop this anchor onto NOW whenever the scenario sits below
+    // the current observation, stacking two markers on one position.
+    const fc = kfs.find(k => k.forecast);
+    const warmestObs = obs.reduce((a, b) => (b.nino34 > a.nino34 ? b : a));
+    const sup = fc && fc.nino34 >= PHASE_THRESHOLDS.super
+      ? fc
+      : warmestObs.nino34 >= PHASE_THRESHOLDS.super
+        ? warmestObs
+        : undefined;
 
     // A phase the record never reached simply gets no anchor.
     const pairs: [EnsoPhase, TimelineKeyframeMeta | undefined][] = [

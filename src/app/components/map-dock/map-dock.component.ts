@@ -94,8 +94,15 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;
 
+  /**
+   * The observed anomaly, or an em dash past NOW. Frames beyond the last observation
+   * are a synthesised scenario, not a measurement, so there is no NOAA figure to put
+   * here — the same dash the rest of the app uses for data it does not have.
+   */
   readonly formattedNino = computed(() => {
-    return this.localeTemp.transform(this.state.nino34Value(), 'delta');
+    const s = this.state.sCur();
+    const observed = this.weather.isForecast(s) ? null : this.state.nino34Value();
+    return this.localeTemp.transform(observed, 'delta');
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */
@@ -189,7 +196,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return this.milestones().map(m => ({
       id: m.id,
       value: m.value,
-      label: m.ph ? t.phase[m.ph] : t.live.toUpperCase(),
+      label: m.ph ? t.phase[m.ph] : t.timelineNow,
       hot: m.hot,
       active: m.ph ? m.ph === dataPhase && !atNow : atNow
     }));

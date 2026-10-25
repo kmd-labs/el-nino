@@ -171,6 +171,22 @@ export class EnsoHistoryService {
     return total > 0 ? hit / total : null;
   }
 
+  /**
+   * Observed ONI for a day, read off the month it falls in, with the provisional
+   * value standing in for the month still in progress. Null outside the record —
+   * which includes anything past the last observation, where there is nothing to read.
+   */
+  oniAt(iso: string): number | null {
+    const d = this.data();
+    if (!d) return null;
+    const key = iso.slice(0, 7);
+    if (d.provisional?.month === key) return d.provisional.oni;
+    const [y0, m0] = d.index.firstMonth.split('-').map(Number);
+    const [y, m] = key.split('-').map(Number);
+    if (!Number.isFinite(y) || !Number.isFinite(m)) return null;
+    return d.index.oni[(y - y0) * 12 + (m - m0)] ?? null;
+  }
+
   /** Tier of an observed ONI value, using the same thresholds as the event catalogue. */
   tierOf(oni: number, phase: EnsoPhase): EnsoTier | null {
     const tiers = this.data()?.tiers;

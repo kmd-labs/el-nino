@@ -145,6 +145,24 @@ describe('EnsoStateService peak probability', () => {
     history = TestBed.inject(EnsoHistoryService);
   });
 
+  it('reads the observed ONI for a day, and reports nothing outside the record', () => {
+    history.data.set({
+      ...HISTORY,
+      index: { ...HISTORY.index, firstMonth: '2026-01', lastMonth: '2026-04', oni: [0.1, 0.8, 1.6, 2.2] },
+      provisional: { month: '2026-05', anom: 3.1, oni: 2.9, weeks: 2, lastWeek: '2026-05-13', weeklyAnom: 3.0, offset: 0.05 }
+    });
+
+    expect(history.oniAt('2026-01-15')).toBe(0.1);
+    expect(history.oniAt('2026-03-28')).toBe(1.6);
+
+    // The month in progress is not in the index yet, so the provisional value stands in.
+    expect(history.oniAt('2026-05-20')).toBe(2.9);
+
+    // Past the record there is nothing to read — the marker is simply left off.
+    expect(history.oniAt('2026-09-01')).toBeNull();
+    expect(history.oniAt('2025-12-01')).toBeNull();
+  });
+
   it('shows a dash until the record is available', () => {
     expect(state.prob2026()).toBe('—');
   });

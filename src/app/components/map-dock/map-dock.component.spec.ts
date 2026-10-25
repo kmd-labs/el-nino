@@ -3,6 +3,8 @@ import { MapDockComponent } from './map-dock.component';
 import { CurrentWeatherService, TimelineMeta } from '../../core/services/current-weather.service';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { EnsoStateService } from '../../core/services/enso-state.service';
+import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 
 /**
  * Builds a timeline the way scripts/fetch-current-weather.mjs does: the last frame is
@@ -48,15 +50,16 @@ const SHIFTED: [string, number][] = RECORD.map(([d, v], i): [string, number] =>
 
 describe('MapDockComponent slider anchors', () => {
   const setup = (frames: [string, number][]) => {
-    TestBed.configureTestingModule({ providers: [LocaleDatePipe] });
+    TestBed.configureTestingModule({ providers: [LocaleDatePipe, LocaleTempPipe] });
     const weather = TestBed.inject(CurrentWeatherService);
     const localeDate = TestBed.inject(LocaleDatePipe);
+    const state = TestBed.inject(EnsoStateService);
     const i18n = TestBed.inject(I18nService);
     i18n.setLang('en');
     weather.meta.set(meta(frames));
     const dock = TestBed.createComponent(MapDockComponent).componentInstance;
     const month = (iso: string) => localeDate.transform(new Date(`${iso}T12:00:00Z`), 'monthYear');
-    return { weather, dock, i18n, month };
+    return { weather, dock, state, i18n, month };
   };
 
   afterEach(() => TestBed.resetTestingModule());
@@ -88,7 +91,7 @@ describe('MapDockComponent slider anchors', () => {
 
     const pills = dock.timelineMarkers();
     expect(pills.map(p => p.id)).toEqual(['nina', 'neu', 'nino', 'now', 'super']);
-    expect(pills.find(p => p.id === 'now')!.label).toBe(i18n.t().live.toUpperCase());
+    expect(pills.find(p => p.id === 'now')!.label).toBe(i18n.t().timelineNow);
 
     const dates = dock.dateMarkers();
     expect(dates.filter(d => d.subLabel).map(d => d.id)).toEqual(['m-super']);
@@ -121,6 +124,31 @@ describe('MapDockComponent slider anchors', () => {
 
     // Never colder than -0.5, and it jumps straight past the El Niño band into super.
     expect(weather.phaseAnchors().map(a => a.ph)).toEqual(['neu', 'super']);
+  });
+
+  it('reports no anomaly past NOW, where the frames stop being observations', () => {
+    const { dock, state } = setup(RECORD);
+
+    // Compared against the pipe's own output: 'en' renders Fahrenheit.
+    const temp = TestBed.inject(LocaleTempPipe);
+    state.sCur.set(1.4);
+    expect(dock.formattedNino()).toBe(temp.transform(3.1, 'delta'));
+
+    // Beyond the last observation the globe shows a synthesised scenario, so there is
+    // no measured figure to report.
+    state.sCur.set(2.6);
+    expect(dock.formattedNino()).toBe('—');
+  });
+
+  it('keeps the super anchor on the end of the slider, never stacked on NOW', () => {
+    // The forecast frame is cooler than the latest observation here, so the plain
+    // warmest frame would be NOW — and two markers would land on one position.
+    const { weather, dock } = setup([...RECORD.slice(0, -1), ['2026-12-16', 2.2]]);
+
+    const sup = weather.phaseAnchors().find(a => a.ph === 'super')!;
+    expect(sup.date).toBe('2026-12-16');
+    expect(sup.s).toBe(2.6);
+    expect(new Set(dock.dateMarkers().map(d => d.value)).size).toBe(dock.dateMarkers().length);
   });
 
   it('keeps the two rows on the same values, so a date cannot drift off its pill', () => {

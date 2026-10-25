@@ -13,7 +13,6 @@ import { LucideAngularModule, ExternalLink } from 'lucide-angular';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
 import { EnsoStateService } from '../../core/services/enso-state.service';
-import { EnsoMathService } from '../../core/services/enso-math.service';
 import { EnsoHistoryEvent, EnsoHistoryService } from '../../core/services/enso-history.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -41,7 +40,6 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   history = inject(EnsoHistoryService);
-  private math = inject(EnsoMathService);
   private theme = inject(ThemeService);
   private weather = inject(CurrentWeatherService);
 
@@ -327,9 +325,12 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // ── and the level it reads out, which is what the peak probability is measured against ──
-    const sliderOni = this.math.nino34(this.state.sTarget());
-    if (sliderOni > ONI_MIN && sliderOni < ONI_MAX) {
+    // ── and the level the record puts the slider's day at ──
+    // This axis is ONI, so the marker has to be ONI too. The analytic ramp that used
+    // to feed it is a different quantity altogether: at NOW it reads +1.29 against an
+    // observed +2.93, and the line landed well below the event it was marking.
+    const sliderOni = sliderDate ? this.history.oniAt(sliderDate.toISOString().slice(0, 10)) : null;
+    if (sliderOni !== null && sliderOni > ONI_MIN && sliderOni < ONI_MAX) {
       ctx.setLineDash([2, 5]);
       ctx.strokeStyle = cSuper;
       ctx.lineWidth = 1.2;
