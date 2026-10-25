@@ -170,7 +170,9 @@ export class CurrentWeatherService {
     };
 
     // La Niña: the deepest cold peak on record — well clear of the threshold already.
-    const nina = obs.reduce((a, b) => (b.nino34 < a.nino34 ? b : a));
+    // Guarded, because a record that never turned cold has no La Niña to point at.
+    const coldest = obs.reduce((a, b) => (b.nino34 < a.nino34 ? b : a));
+    const nina = coldest.nino34 <= PHASE_THRESHOLDS.nina ? coldest : undefined;
     const neu = midOfLongestRun(v => v > PHASE_THRESHOLDS.nina && v < PHASE_THRESHOLDS.nino);
     const nino = midOfLongestRun(v => v >= PHASE_THRESHOLDS.nino && v < PHASE_THRESHOLDS.super);
 
@@ -178,14 +180,15 @@ export class CurrentWeatherService {
     const warmest = kfs.reduce((a, b) => (b.nino34 > a.nino34 ? b : a));
     const sup = warmest.nino34 >= PHASE_THRESHOLDS.super ? warmest : undefined;
 
-    const pairs: [EnsoPhase, typeof nina | undefined][] = [
+    // A phase the record never reached simply gets no anchor.
+    const pairs: [EnsoPhase, TimelineKeyframeMeta | undefined][] = [
       ['nina', nina],
       ['neu', neu],
       ['nino', nino],
       ['super', sup]
     ];
     return pairs
-      .filter((pair): pair is [EnsoPhase, typeof nina] => pair[1] !== undefined)
+      .filter((pair): pair is [EnsoPhase, TimelineKeyframeMeta] => pair[1] !== undefined)
       .map(([ph, kf]) => ({ ph, s: kf.s, date: kf.date, nino34: kf.nino34 }))
       .sort((a, b) => a.s - b.s);
   });

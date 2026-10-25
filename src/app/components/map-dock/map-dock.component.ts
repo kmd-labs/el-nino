@@ -18,7 +18,6 @@ import {
   Gauge
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
-import { EnsoMathService } from '../../core/services/enso-math.service';
 import { EnsoPhase } from '../../core/models/enso.model';
 import { PRESETS } from '../../core/constants/enso-data';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
@@ -72,7 +71,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
-  private math = inject(EnsoMathService);
   private localeTemp = inject(LocaleTempPipe);
   private localeDate = inject(LocaleDatePipe);
 
@@ -95,18 +93,8 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;
 
-  /**
-   * Niño 3.4 as the SST frames actually hold it, falling back to the analytic model
-   * only until they load. The pills now name phases taken from the record, so the
-   * number and the thumb colour beside them have to come from the record as well —
-   * read off the model ramp, a +0.2 °C week reads as La Niña.
-   */
-  readonly dataNino = computed(() => this.weather.nino34AnomAt(this.state.sCur()) ?? this.state.nino34Value());
-
-  readonly dataCategory = computed(() => this.math.category(this.dataNino()));
-
   readonly formattedNino = computed(() => {
-    return this.localeTemp.transform(this.dataNino(), 'delta');
+    return this.localeTemp.transform(this.state.nino34Value(), 'delta');
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */
@@ -190,7 +178,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     // Light the pill the record agrees with. Matching on the model ramp instead would
     // leave the Neutral pill dark on the very week it points at, because 0.918 · s
     // already reads as La Niña by then.
-    const dataPhase = this.dataCategory().k;
+    const dataPhase = this.state.phase();
     const atNow = this.isNow();
     return this.milestones().map(m => ({
       id: m.id,

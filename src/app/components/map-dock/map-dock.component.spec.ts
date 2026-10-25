@@ -111,6 +111,18 @@ describe('MapDockComponent slider anchors', () => {
     expect(nino.nino34).toBe(1.2);
   });
 
+  it('leaves out a phase the record never reached', () => {
+    const { weather } = setup([
+      ['2025-01-01', 0.1],
+      ['2025-06-01', 0.3],
+      ['2026-10-21', 2.4],
+      ['2026-12-16', 3.0]
+    ]);
+
+    // Never colder than -0.5, and it jumps straight past the El Niño band into super.
+    expect(weather.phaseAnchors().map(a => a.ph)).toEqual(['neu', 'super']);
+  });
+
   it('keeps the two rows on the same values, so a date cannot drift off its pill', () => {
     const { dock } = setup(RECORD);
     expect(dock.dateMarkers().map(d => d.value)).toEqual(dock.timelineMarkers().map(p => p.value));
