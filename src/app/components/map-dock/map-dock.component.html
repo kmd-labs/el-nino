@@ -2,9 +2,15 @@
 
 <div #wrap class="dock-wrap">
   <div class="dock glass-panel">
-    <!-- Row 1: Status (Live), Phase Badge, Niño 3.4 Readout & Date Lozenge (left), Legend & Glossary (right) -->
-    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
+    <!-- Row 1: Date (first), Latest, El Niño state name -->
+    <div class="dock__row dock__row--status" role="group" [attr.aria-label]="state.category().name">
       <div class="dock__header-group">
+        @if (activeDateLabel()) {
+          <div class="dock__date-pill" role="status">
+            <span class="dock__date-val">{{ activeDateLabel() }}</span>
+          </div>
+        }
+
         @if (isNow()) {
           <div
             class="dock__status-pill dock__status-pill--live"
@@ -23,14 +29,15 @@
           <span class="dock__phase-dot" aria-hidden="true"></span>
           <span class="dock__phase-name">{{ state.category().name }}</span>
         </div>
+      </div>
+    </div>
 
+    <!-- Row 2: Niño 3.4 Readout & NOAA source (left), Legend & Glossary (right) -->
+    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
+      <div class="dock__header-group">
         <div class="dock__readout">
           <span class="dock__readout-label">{{ t.readoutTitle }}</span>
           <span class="dock__readout-val">{{ formattedNino() }}</span>
-        </div>
-
-        <div class="dock__date-pill" role="status">
-          <span class="dock__date-val">{{ activeDateLabel() }}</span>
         </div>
 
         <a

@@ -207,6 +207,15 @@
     justify-content: space-between;
     gap: 12px;
 
+    &--status {
+      justify-content: flex-start;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      width: 100%;
+    }
+
     &--readout {
       justify-content: space-between;
       align-items: center;
@@ -214,6 +223,8 @@
       flex-wrap: nowrap;
       white-space: nowrap;
       width: 100%;
+      padding-top: 10px;
+      border-top: 1px solid color("line");
     }
 
     &--enso {
@@ -312,10 +323,15 @@
       margin: 0 2px;
     }
 
+    &__row--status {
+      gap: 6px;
+    }
+
     &__row--readout {
       justify-content: space-between;
       gap: 6px;
       flex-wrap: nowrap;
+      padding-top: 6px;
     }
 
     &__row--enso {
@@ -530,10 +546,15 @@
       margin: 0 2px;
     }
 
+    &__row--status {
+      gap: 5px;
+    }
+
     &__row--readout {
       justify-content: space-between;
       gap: 6px;
       flex-wrap: nowrap;
+      padding-top: 5px;
     }
 
     &__row--enso {
