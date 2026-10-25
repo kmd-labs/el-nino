@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang, TempUnit } from '../../core/i18n/i18n.types';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 @Component({
   selector: 'app-settings-popup',
@@ -12,6 +13,7 @@ import { Lang, TempUnit } from '../../core/i18n/i18n.types';
 })
 export class SettingsPopupComponent {
   i18n = inject(I18nService);
+  private analytics = inject(AnalyticsService);
 
   readonly languages: { id: Lang; label: string }[] = [
     { id: 'en', label: 'English' },
@@ -25,10 +27,12 @@ export class SettingsPopupComponent {
   ];
 
   selectLang(lang: Lang) {
+    this.analytics.track('language', { lang });
     this.i18n.setLang(lang);
   }
 
   selectTempUnit(unit: TempUnit) {
+    this.analytics.track('temp-unit', { unit });
     this.i18n.setTempUnit(unit);
   }
 }

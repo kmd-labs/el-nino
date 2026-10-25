@@ -1,8 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ExternalLink, Search } from 'lucide-angular';
+import { LucideAngularModule, ArrowRight, ExternalLink, Search } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { GlossaryGroup } from '../../core/i18n/i18n.types';
+import { PageService } from '../../core/services/page.service';
+import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 
 /** Searchable glossary projected inside the Design System Popup. */
 @Component({
@@ -14,8 +16,11 @@ import { GlossaryGroup } from '../../core/i18n/i18n.types';
 })
 export class GlossaryComponent {
   i18n = inject(I18nService);
+  private page = inject(PageService);
+  private popup = inject(PopupService);
   readonly searchIcon = Search;
   readonly externalLinkIcon = ExternalLink;
+  readonly arrowIcon = ArrowRight;
 
   readonly query = signal('');
 
@@ -41,5 +46,11 @@ export class GlossaryComponent {
 
   onSearch(e: Event) {
     this.query.set((e.target as HTMLInputElement).value);
+  }
+
+  /** "Meet the team": the About page opens under the popup, so close the popup first. */
+  openAbout() {
+    this.popup.close();
+    this.page.openAbout('glossary');
   }
 }

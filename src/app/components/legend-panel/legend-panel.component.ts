@@ -21,6 +21,8 @@ import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
  * 2. Scientific Data Sources modal trigger
  * 3. Searchable Glossary modal trigger
  */
+import { AnalyticsService } from '../../core/services/analytics.service';
+
 @Component({
   selector: 'app-legend-panel',
   standalone: true,
@@ -36,6 +38,7 @@ export class LegendPanelComponent {
   private math = inject(EnsoMathService);
   private popup = inject(PopupService);
   private localeTemp = inject(LocaleTempPipe);
+  private analytics = inject(AnalyticsService);
 
   readonly layersIcon = Layers;
   readonly databaseIcon = Database;
@@ -87,6 +90,7 @@ export class LegendPanelComponent {
   }
 
   openGlossaryPopup() {
+    this.analytics.track('glossary-open');
     this.popup.open({
       id: 'glossary',
       title: computed(() => this.i18n.t().glTitle),

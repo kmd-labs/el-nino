@@ -21,6 +21,7 @@ import * as d3Geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PageService } from '../../core/services/page.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { EVENTS_META } from '../../core/constants/enso-data';
@@ -105,6 +106,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
   private page = inject(PageService);
+  private analytics = inject(AnalyticsService);
   i18n = inject(I18nService);
   private theme = inject(ThemeService);
   private popup = inject(PopupService);
@@ -392,7 +394,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private initThree() {
     const canvas = this.canvasRef.nativeElement;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    try {
+      this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    } catch (err) {
+      this.analytics.track('load-error', { what: 'webgl' });
+      throw err;
+    }
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     this.scene = new THREE.Scene();
@@ -1209,10 +1216,24 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       ? this.localeTemp.transform(sample.airTemp, 'temp')
       : (t.inspectNoWater || '-');
     const coordsStr = t.inspectCoords(pt.lat, pt.lon);
-    const text = `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
+    const text = isLand
+      ? `${t.inspectAir}: ${airStr} · ${coordsStr}`
+      : `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
 
     const waterIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--water"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>`;
     const airIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--air"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
+
+    const waterRowHtml = !isLand
+      ? `
+          <div class="globe-tooltip-col__row">
+            <div class="globe-tooltip-col__label-group">
+              ${waterIconSvg}
+              <span class="globe-tooltip-col__label">${t.inspectWater}</span>
+            </div>
+            <span class="globe-tooltip-col__val">${waterStr}</span>
+          </div>
+        `
+      : '';
 
     const htmlString = `
       <div class="globe-tooltip-col">
@@ -1221,13 +1242,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         </div>
         <div class="globe-tooltip-col__divider"></div>
         <div class="globe-tooltip-col__rows">
-          <div class="globe-tooltip-col__row">
-            <div class="globe-tooltip-col__label-group">
-              ${waterIconSvg}
-              <span class="globe-tooltip-col__label">${t.inspectWater}</span>
-            </div>
-            <span class="globe-tooltip-col__val">${waterStr}</span>
-          </div>
+          ${waterRowHtml}
           <div class="globe-tooltip-col__row">
             <div class="globe-tooltip-col__label-group">
               ${airIconSvg}

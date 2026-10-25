@@ -5,6 +5,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { Lang } from '../i18n/i18n.types';
 import { CurrentWeatherService } from './current-weather.service';
 import { EnsoStateService } from './enso-state.service';
+import { AnalyticsService } from './analytics.service';
 
 export const APP_CANONICAL_URL = 'https://kmd-labs.github.io/el-nino/';
 
@@ -31,6 +32,7 @@ export class ShareLinkService {
   private state = inject(EnsoStateService);
   private weather = inject(CurrentWeatherService);
   private i18n = inject(I18nService);
+  private analytics = inject(AnalyticsService);
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
   /** Day from a shared link, applied once the timeline data has loaded. */
   private pendingDate: string | null = null;
@@ -101,6 +103,8 @@ export class ShareLinkService {
 
     const view = this.parseView(params.get('view'));
     const date = params.get('date');
+    const type = date ? 'date' : params.get('state') ? 'state' : view ? 'view' : null;
+    if (type) this.analytics.track('deeplink-open', { type, view: view ?? 'globe' });
     if (date && ISO_DAY.test(date) && Number.isFinite(Date.parse(date))) {
       this.pendingDate = date;
       this.state.applySharedState(view, null, true);

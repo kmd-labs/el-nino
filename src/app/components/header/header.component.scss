@@ -273,26 +273,39 @@
       display: inline-flex;
       align-items: center;
       flex: none;
+      width: 53px;
+      height: 38px;
     }
 
     &__brand {
-      position: relative;
-      top: auto;
-      left: auto;
-      z-index: 1;
-      height: var(--kmd-brand-h, 38px);
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      height: 38px;
       padding: 3px;
-      width: auto;
-      max-width: none;
-      overflow: visible;
+      width: max-content;
+      max-width: 53px;
+      overflow: hidden;
       box-sizing: border-box;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.3s ease;
+
+      &--expanded {
+        max-width: 250px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+      }
     }
 
     &__brand-btn {
       height: 32px;
-      padding: 0 8px;
+      padding: 0 5px;
       gap: 0;
+    }
+
+    &__brand--expanded &__brand-btn {
+      padding: 0 8px 0 5px;
     }
 
     &__logo {
@@ -305,7 +318,37 @@
     }
 
     &__brand-expand {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 0;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.25s ease;
+    }
+
+    &__brand--expanded &__brand-expand {
+      margin-left: 5px;
+      max-width: 220px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    &__divider {
+      height: 14px;
+    }
+
+    &__cta {
+      gap: 4px;
+    }
+
+    &__cta-text {
+      font-size: font-size("xxs");
     }
 
     &__actions {

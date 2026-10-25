@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GlobeComponent } from './components/globe/globe.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -15,6 +15,9 @@ import { PageService } from './core/services/page.service';
 import { SeoService } from './core/services/seo.service';
 import { EnsoHistoryService } from './core/services/enso-history.service';
 import { CurrentWeatherService } from './core/services/current-weather.service';
+import { AnalyticsService } from './core/services/analytics.service';
+import { EquatorProfileService } from './core/services/equator-profile.service';
+import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 
 @Component({
   selector: 'app-root',
@@ -42,11 +45,32 @@ export class AppComponent {
   private seo = inject(SeoService);
   private history = inject(EnsoHistoryService);
   private weather = inject(CurrentWeatherService);
+  private analytics = inject(AnalyticsService);
+  private profile = inject(EquatorProfileService);
+  private bp = inject(BreakpointService);
 
   constructor() {
     // Start weather and history loads immediately on page load
     this.weather.load();
     this.history.load();
     this.page.initFromUrl();
+    this.analytics.init();
+
+    // Each failure and the load time are reported once per visit
+    const reported = new Set<string>();
+    const once = (key: string, report: () => void) => {
+      if (reported.has(key)) return;
+      reported.add(key);
+      report();
+    };
+    effect(() => {
+      if (this.weather.status() === 'error') once('sst', () => this.analytics.track('load-error', { what: 'sst' }));
+      if (this.history.status() === 'error') once('history', () => this.analytics.track('load-error', { what: 'history' }));
+      if (this.profile.status() === 'error') once('profile', () => this.analytics.track('load-error', { what: 'profile' }));
+      if (this.state.mapError()) once('land', () => this.analytics.track('load-error', { what: 'land' }));
+      if (this.state.experienceStarted()) {
+        once('time', () => this.analytics.trackLoadTime(this.bp.mobile() ? 'mobile' : this.bp.tablet() ? 'tablet' : 'desktop'));
+      }
+    });
   }
 }
