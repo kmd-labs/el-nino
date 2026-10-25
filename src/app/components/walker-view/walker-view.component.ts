@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
+import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
@@ -70,6 +71,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('cv') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   state = inject(EnsoStateService);
+  private weather = inject(CurrentWeatherService);
   private math = inject(EnsoMathService);
   private theme = inject(ThemeService);
   i18n = inject(I18nService);
@@ -95,7 +97,11 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly caption = computed(() => {
     const t = this.i18n.t();
-    if (this.state.isPlaying()) return t.walkerCycleCaption(this.state.monthText());
+    if (this.state.isPlaying()) {
+      return t.walkerCycleCaption(
+        this.weather.interpolatedDateLabel(this.state.sCur(), t.htmlLang, t.timelineNow, t.timelineForecast)
+      );
+    }
     if (this.step() < 0) return t.walkerCurrent(this.state.category().name);
     return t.steps[this.step()];
   });

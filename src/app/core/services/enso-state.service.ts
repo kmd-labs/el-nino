@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { DisplayMode, EnsoPhase, ImpactLocationMeta, PhaseInfo, ViewMode } from '../models/enso.model';
-import { CYCLE_FORECAST_FROM, CYCLE_START_YEAR, EVENTS_META, PRESETS } from '../constants/enso-data';
+import { EVENTS_META, PRESETS } from '../constants/enso-data';
 import { EnsoMathService } from './enso-math.service';
 import { EnsoHistoryService } from './enso-history.service';
 import { CurrentWeatherService } from './current-weather.service';
@@ -44,9 +44,6 @@ export class EnsoStateService {
   /** True once the splash has handed over and the intro (if any) has started. */
   readonly experienceStarted = signal<boolean>(false);
   readonly sceneReady = signal<boolean>(false);
-  readonly cycleT = signal<number>(0);
-  /** Month index (0–47) of the running ENSO cycle, null when it is not playing. */
-  readonly cycleMonth = signal<number | null>(null);
   readonly mapLoaded = signal<boolean>(false);
   readonly mapError = signal<boolean>(false);
 
@@ -91,15 +88,6 @@ export class EnsoStateService {
     const t = this.i18n.t();
     if (this.phase() === 'neu') return t.hintNeutral;
     return t.hintPins(this.activeEventsCount(), this.category().name);
-  });
-
-  /** "Yr 3 · December (≈ 2026, forecast)" for the running cycle, '' when stopped. */
-  readonly monthText = computed<string>(() => {
-    const m = this.cycleMonth();
-    if (m === null) return '';
-    const t = this.i18n.t();
-    const year = Math.floor(m / 12) + 1;
-    return t.cycleMonth(year, t.months[m % 12], CYCLE_START_YEAR + year - 1, m >= CYCLE_FORECAST_FROM);
   });
 
   /**
@@ -172,7 +160,6 @@ export class EnsoStateService {
   stopPlaying() {
     if (this.isPlaying()) {
       this.isPlaying.set(false);
-      this.cycleMonth.set(null);
     }
   }
 

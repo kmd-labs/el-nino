@@ -146,7 +146,6 @@ export interface Dict {
   showPanel: string;
   ensoTab: string;
   viewTab: string;
-  cycleMonth: (year: number, month: string, realYear: number, forecast: boolean) => string;
   hintNeutral: string;
   hintPins: (count: number, phase: string) => string;
 
@@ -243,7 +242,7 @@ export interface Dict {
   walkerNow: string;
   walkerCycle: string;
   walkerCurrent: (phase: string) => string;
-  walkerCycleCaption: (month: string) => string;
+  walkerCycleCaption: (date: string) => string;
   walkerPrev: string;
   walkerNext: string;
   walkerPlay: string;

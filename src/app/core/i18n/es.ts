@@ -49,7 +49,6 @@ export const ES: Dict = {
   showPanel: 'Mostrar controles',
   ensoTab: 'Estado ENSO',
   viewTab: 'Controles',
-  cycleMonth: (year, month, realYear, forecast) => `Año ${year} · ${month} (≈ ${realYear}${forecast ? ', pronóstico' : ''})`,
   hintNeutral: 'En la fase neutral no hay marcadores. Elige La Niña, El Niño o Súper El Niño para ver los impactos históricos.',
   hintPins: (count, phase) => `${count} lugares con impactos documentados de ${phase}. Haz clic en un marcador para ver los datos y la fuente.`,
 
@@ -141,7 +140,7 @@ export const ES: Dict = {
   walkerNow: 'más reciente',
   walkerCycle: 'ciclo',
   walkerCurrent: phase => `Estado actual: ${phase} · Pulsa Reproducir para la explicación paso a paso`,
-  walkerCycleCaption: month => `Ciclo ENSO · ${month || 'inicio'}`,
+  walkerCycleCaption: date => (date ? `Ciclo ENSO · ${date}` : 'Ciclo ENSO'),
   walkerPrev: 'Paso anterior',
   walkerNext: 'Paso siguiente',
   walkerPlay: 'Reproducir los pasos',
