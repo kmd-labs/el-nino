@@ -51,7 +51,6 @@ export type AnalyticsEvent =
   | 'temp-unit'
   | 'source-click'
   | 'glossary-open'
-  | 'glossary-search'
   | 'load-error'
   | 'load-time';
 type EventData = Record<string, string | number | boolean>;
