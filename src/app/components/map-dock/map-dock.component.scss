@@ -2,9 +2,9 @@
 
 .dock-wrap {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  left: var(--dock-offset-x);
+  right: var(--dock-offset-x);
+  bottom: var(--dock-offset-bottom);
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -261,9 +261,9 @@
 
 @include respond-to("mobile") {
   .dock-wrap {
-    left: 8px;
-    right: 8px;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    left: var(--dock-offset-x);
+    right: var(--dock-offset-x);
+    bottom: var(--dock-offset-bottom);
   }
 
   .dock {
@@ -481,8 +481,8 @@
 @include respond-to("mobile-landscape") {
   .dock-wrap {
     left: 50%;
-    right: max(8px, env(safe-area-inset-right, 8px));
-    bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    right: max(var(--dock-offset-x), env(safe-area-inset-right, 8px));
+    bottom: var(--dock-offset-bottom);
     top: 50px;
     align-items: stretch;
     justify-content: center;
