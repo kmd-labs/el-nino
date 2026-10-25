@@ -324,18 +324,25 @@
   }
 }
 
-// play button with the speed menu above it
+// play button with the speed menu
 .dock__play {
-  position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  flex: none;
+
+  @include respond-to("mobile") {
+    gap: 4px;
+  }
+
+  @include respond-to("mobile-landscape") {
+    gap: 4px;
+  }
 }
 
 .dock__speed {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
 
   ::ng-deep {
     .dropdown__chevron {
@@ -349,23 +356,12 @@
       min-width: 32px;
       padding: 0;
       border-radius: radius("control");
-      background: rgba(palette("neutral-900"), 0.05);
-      border: 1px solid rgba(palette("neutral-900"), 0.16);
-      color: color("text-main");
       justify-content: center;
-      transition: background transition("fast"), border-color transition("fast"), color transition("fast"), transform transition("fast");
 
-      &:hover:not(:disabled) {
-        background: rgba(palette("neutral-900"), 0.1);
-        border-color: rgba(palette("neutral-900"), 0.26);
-        color: color("text-bright");
-      }
-
-      &.btn--active,
-      &:active:not(:disabled) {
-        background: rgba(palette("neutral-900"), 0.14);
-        border-color: rgba(palette("neutral-900"), 0.32);
-        color: color("text-bright");
+      lucide-icon,
+      svg {
+        width: 15px;
+        height: 15px;
       }
     }
 
@@ -385,32 +381,83 @@
     }
   }
 
-  // on mobile, speed button sits to the left of the play button
   @include respond-to("mobile") {
-    position: static;
-    transform: none;
-    margin-right: 4px;
-
     ::ng-deep .btn {
       height: 30px;
       min-height: 30px;
       width: 30px;
       min-width: 30px;
-      padding: 0;
+
+      lucide-icon,
+      svg {
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 
   @include respond-to("mobile-landscape") {
-    position: static;
-    transform: none;
-    margin-right: 4px;
-
     ::ng-deep .btn {
       height: 28px;
       min-height: 28px;
       width: 28px;
       min-width: 28px;
-      padding: 0;
+
+      lucide-icon,
+      svg {
+        width: 13px;
+        height: 13px;
+      }
+    }
+  }
+}
+
+.dock__play-btn {
+  display: inline-flex;
+  align-items: center;
+
+  ::ng-deep .btn {
+    height: 32px;
+    min-height: 32px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    justify-content: center;
+
+    lucide-icon,
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  @include respond-to("mobile") {
+    ::ng-deep .btn {
+      height: 30px;
+      min-height: 30px;
+      width: 30px;
+      min-width: 30px;
+
+      lucide-icon,
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
+  @include respond-to("mobile-landscape") {
+    ::ng-deep .btn {
+      height: 28px;
+      min-height: 28px;
+      width: 28px;
+      min-width: 28px;
+
+      lucide-icon,
+      svg {
+        width: 13px;
+        height: 13px;
+      }
     }
   }
 }
