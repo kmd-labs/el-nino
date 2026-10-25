@@ -15,6 +15,7 @@ import { PageService } from './core/services/page.service';
 import { SeoService } from './core/services/seo.service';
 import { EnsoHistoryService } from './core/services/enso-history.service';
 import { CurrentWeatherService } from './core/services/current-weather.service';
+import { AnalyticsService } from './core/services/analytics.service';
 
 @Component({
   selector: 'app-root',
@@ -42,11 +43,13 @@ export class AppComponent {
   private seo = inject(SeoService);
   private history = inject(EnsoHistoryService);
   private weather = inject(CurrentWeatherService);
+  private analytics = inject(AnalyticsService);
 
   constructor() {
     // Start weather and history loads immediately on page load
     this.weather.load();
     this.history.load();
     this.page.initFromUrl();
+    this.analytics.init();
   }
 }

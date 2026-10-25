@@ -12,6 +12,7 @@ import {
 } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PageService } from '../../core/services/page.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ViewMode } from '../../core/models/enso.model';
@@ -40,6 +41,7 @@ export class HeaderComponent {
   bp = inject(BreakpointService);
   page = inject(PageService);
   private popup = inject(PopupService);
+  private analytics = inject(AnalyticsService);
 
   readonly shareIcon = Share2;
   readonly ctaIcon = Handshake;
@@ -70,6 +72,7 @@ export class HeaderComponent {
       }
     }
     this.mobileExpanded.set(false);
+    this.analytics.track('cta-click');
     this.openAbout();
   }
 
@@ -92,6 +95,7 @@ export class HeaderComponent {
   }
 
   openSharePopup() {
+    this.analytics.track('share-open');
     this.popup.open({
       id: 'share',
       title: computed(() => this.i18n.t().shareTitle),
@@ -140,6 +144,7 @@ export class HeaderComponent {
   );
 
   onViewChange(v: string) {
+    this.analytics.track('view-change', { view: v });
     this.state.setView(v as ViewMode);
   }
 }

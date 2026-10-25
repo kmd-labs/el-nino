@@ -13,6 +13,7 @@ import {
 import QRCode from 'qrcode';
 import { APP_CANONICAL_URL, ShareLinkService } from '../../core/services/share-link.service';
 import { EnsoStateService } from '../../core/services/enso-state.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 
@@ -30,6 +31,7 @@ export class SharePopupComponent implements OnInit {
   i18n = inject(I18nService);
   private localeDate = inject(LocaleDatePipe);
   private sanitizer = inject(DomSanitizer);
+  private analytics = inject(AnalyticsService);
 
   readonly copyIcon = Copy;
   readonly checkIcon = Check;
@@ -73,6 +75,7 @@ export class SharePopupComponent implements OnInit {
   }
 
   async copyText(text: string, key: string) {
+    this.analytics.track('share-copy', { link: key });
     try {
       await navigator.clipboard.writeText(text);
       this.copiedKey.set(key);
