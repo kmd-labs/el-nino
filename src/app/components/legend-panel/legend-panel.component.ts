@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Layers, BookOpen } from 'lucide-angular';
+import { LucideAngularModule, Layers, BookOpen, Database } from 'lucide-angular';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
@@ -11,13 +11,15 @@ import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directiv
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { GlossaryComponent } from '../glossary/glossary.component';
+import { SourcesPopupComponent } from '../sources-popup/sources-popup.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 
 /**
- * Legend & Glossary controls:
+ * Legend, Data Sources & Glossary controls:
  * 1. Thermal / Anomaly color scale bar, Phase Impacts Pins & Continental Rainfall Anomalies
- * 2. Searchable Glossary modal trigger
+ * 2. Scientific Data Sources modal trigger
+ * 3. Searchable Glossary modal trigger
  */
 @Component({
   selector: 'app-legend-panel',
@@ -36,6 +38,7 @@ export class LegendPanelComponent {
   private localeTemp = inject(LocaleTempPipe);
 
   readonly layersIcon = Layers;
+  readonly databaseIcon = Database;
   readonly bookOpenIcon = BookOpen;
 
   @ViewChild('scaleCanvas') set scaleCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
@@ -64,6 +67,22 @@ export class LegendPanelComponent {
   });
 
   readonly showImpactsLegend = computed(() => !this.state.crossSectionView());
+
+  openSourcesPopup() {
+    this.popup.open({
+      id: 'sources',
+      title: computed(() => this.i18n.t().sourcesTitle),
+      subtitle: computed(() => this.i18n.t().dataSourcesSubtitle),
+      component: SourcesPopupComponent,
+      size: 'lg',
+      actions: [
+        {
+          label: computed(() => this.i18n.t().close),
+          variant: 'default'
+        }
+      ]
+    });
+  }
 
   openGlossaryPopup() {
     this.popup.open({

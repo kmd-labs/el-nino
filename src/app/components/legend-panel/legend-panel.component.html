@@ -71,6 +71,20 @@
 
   <app-button
     variant="ghost"
+    [iconOnly]="bp.mobile()"
+    [ariaLabel]="t.sourcesTitle"
+    [titleText]="t.sourcesTitle"
+    (btnClick)="openSourcesPopup()">
+    <lucide-icon [img]="databaseIcon" [size]="15"></lucide-icon>
+    @if (!bp.mobile()) {
+      <span class="legend-panel__btn-text">{{ t.dataSources }}</span>
+    }
+  </app-button>
+
+  <span class="legend-panel__divider" aria-hidden="true"></span>
+
+  <app-button
+    variant="ghost"
     [iconOnly]="true"
     [ariaLabel]="t.layerGlossary"
     [titleText]="t.layerGlossaryTitle"

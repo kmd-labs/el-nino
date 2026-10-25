@@ -361,6 +361,8 @@ export const EN: Dict = {
   },
 
   sourcesTitle: 'Data Sources & Licences',
+  dataSources: 'Data sources',
+  dataSourcesSubtitle: 'Datasets, models, and attribution',
   sourcesList: [
     {
       name: 'NOAA OISST v2.1',

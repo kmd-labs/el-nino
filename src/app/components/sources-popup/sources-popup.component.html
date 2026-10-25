@@ -1,0 +1,38 @@
+@let t = i18n.t();
+<div class="sources-popup">
+  <!-- Data Sources & Licences -->
+  <section class="sources-popup__section" aria-labelledby="sources-title">
+    <h3 class="sources-popup__title" id="sources-title">{{ t.sourcesTitle }}</h3>
+    <div class="sources-popup__list">
+      @for (s of t.sourcesList; track s.name) {
+        <article class="sources-popup__card">
+          <div class="sources-popup__card-header">
+            <a [href]="s.url" target="_blank" rel="noopener noreferrer" class="sources-popup__link">
+              <span>{{ s.name }}</span>
+              <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
+            </a>
+            <span class="sources-popup__license">{{ s.license }}</span>
+          </div>
+          <p class="sources-popup__desc">{{ s.desc }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- Built by KMD Labs (Attribution) -->
+  <section class="sources-popup__built" aria-labelledby="sources-built-title">
+    <h3 class="sources-popup__title" id="sources-built-title">{{ t.built.title }}</h3>
+    <dl class="sources-popup__built-list">
+      @for (row of t.built.rows; track row.label) {
+        <div class="sources-popup__built-row">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.text }}</dd>
+        </div>
+      }
+    </dl>
+    <button type="button" class="sources-popup__team" (click)="openAbout()">
+      {{ t.built.teamLink }}
+      <lucide-icon [img]="arrowIcon" [size]="12"></lucide-icon>
+    </button>
+  </section>
+</div>

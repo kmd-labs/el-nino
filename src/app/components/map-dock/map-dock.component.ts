@@ -2,6 +2,7 @@ import {
   Component,
   ElementRef,
   ViewChild,
+  HostListener,
   AfterViewInit,
   OnDestroy,
   inject,
@@ -28,7 +29,6 @@ import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/t
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
-import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 
@@ -41,8 +41,7 @@ import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
     DropdownComponent,
     TimelineSliderComponent,
     LegendPanelComponent,
-    LucideAngularModule,
-    TooltipDirective
+    LucideAngularModule
   ],
   providers: [LocaleTempPipe, LocaleDatePipe],
   templateUrl: './map-dock.component.html',
@@ -68,8 +67,28 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     }));
   });
 
-  @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('dockRef') dockRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateDockMetrics();
+  }
+
+  updateDockMetrics() {
+    if (!this.dockRef?.nativeElement) return;
+    const el = this.dockRef.nativeElement;
+    const rect = el.getBoundingClientRect();
+    const h = Math.ceil(rect.height || el.offsetHeight);
+    const w = Math.ceil(rect.width || el.offsetWidth);
+    const fromBottom = Math.ceil(window.innerHeight - rect.top);
+    const gap = window.innerWidth <= 640 ? 10 : 16;
+    const clearance = Math.max(fromBottom + gap, h + gap * 2);
+
+    document.documentElement.style.setProperty('--dock-h', `${h}px`);
+    document.documentElement.style.setProperty('--dock-w', `${w}px`);
+    document.documentElement.style.setProperty('--dock-clearance', `${clearance}px`);
+  }
 
   /**
    * The observed anomaly for the current playhead position.
@@ -96,11 +115,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     }
     return s >= 1.35;
   });
-
-  /** Where the anomaly and the timeline come from (NOAA OISST), linked next to the date. */
-  readonly sourceUrl = computed(
-    () => this.weather.meta()?.sstSourceUrl ?? 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst'
-  );
 
   readonly dataReady = computed(() => this.weather.status() === 'ready');
 
@@ -131,13 +145,9 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   });
 
   ngAfterViewInit() {
-    this.resizeObs = new ResizeObserver(() => {
-      const h = this.wrapRef.nativeElement.offsetHeight;
-      const w = this.wrapRef.nativeElement.offsetWidth;
-      document.documentElement.style.setProperty('--dock-h', `${h}px`);
-      document.documentElement.style.setProperty('--dock-w', `${w}px`);
-    });
-    this.resizeObs.observe(this.wrapRef.nativeElement);
+    this.updateDockMetrics();
+    this.resizeObs = new ResizeObserver(() => this.updateDockMetrics());
+    this.resizeObs.observe(this.dockRef.nativeElement);
   }
 
   ngOnDestroy() {

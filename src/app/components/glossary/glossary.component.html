@@ -51,41 +51,5 @@
     @if (!hasResults()) {
       <p class="gl__empty">{{ t.glEmpty(query()) }}</p>
     }
-
-    @if (!query().trim()) {
-      <section class="gl__built" aria-labelledby="gl-built-title">
-        <h3 class="gl__gtitle" id="gl-built-title">{{ t.built.title }}</h3>
-        <dl class="gl__built-list">
-          @for (row of t.built.rows; track row.label) {
-            <div class="gl__built-row">
-              <dt>{{ row.label }}</dt>
-              <dd>{{ row.text }}</dd>
-            </div>
-          }
-        </dl>
-        <button type="button" class="gl__team" (click)="openAbout()">
-          {{ t.built.teamLink }}
-          <lucide-icon [img]="arrowIcon" [size]="12"></lucide-icon>
-        </button>
-      </section>
-
-      <section class="gl__sources" aria-labelledby="gl-sources-title">
-        <h3 class="gl__gtitle" id="gl-sources-title">{{ t.sourcesTitle }}</h3>
-        <div class="gl__sources-list">
-          @for (s of t.sourcesList; track s.name) {
-            <article class="gl__source-card">
-              <div class="gl__source-header">
-                <a [href]="s.url" target="_blank" rel="noopener noreferrer" class="gl__source-link">
-                  <span>{{ s.name }}</span>
-                  <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
-                </a>
-                <span class="gl__source-license">{{ s.license }}</span>
-              </div>
-              <p class="gl__source-desc">{{ s.desc }}</p>
-            </article>
-          }
-        </div>
-      </section>
-    }
   </div>
 </div>

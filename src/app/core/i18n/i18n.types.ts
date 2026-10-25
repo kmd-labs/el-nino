@@ -301,6 +301,8 @@ export interface Dict {
   methodology: MethodologyText;
   built: BuiltText;
   sourcesTitle: string;
+  dataSources: string;
+  dataSourcesSubtitle: string;
   sourcesList: SourceItem[];
 
   // globe inspection tooltip

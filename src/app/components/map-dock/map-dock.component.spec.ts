@@ -114,4 +114,12 @@ describe('MapDockComponent', () => {
     dock.onSliderChange(0.5);
     expect(state.sTarget()).toBe(0.5);
   });
+
+  it('computes dock metrics and clearance', () => {
+    const { dock } = setup(RECORD);
+    const fixture = TestBed.createComponent(MapDockComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.updateDockMetrics();
+    expect(document.documentElement.style.getPropertyValue('--dock-clearance')).toBeTruthy();
+  });
 });

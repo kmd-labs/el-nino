@@ -1,7 +1,7 @@
 @let t = i18n.t();
 
-<div #wrap class="dock-wrap">
-  <div class="dock glass-panel">
+<div class="dock-wrap">
+  <div #dockRef class="dock glass-panel">
     <!-- Row 1: Date (first), Latest, El Niño state name -->
     <div class="dock__row dock__row--status" role="group" [attr.aria-label]="state.category().name">
       <div class="dock__header-group">
@@ -32,22 +32,13 @@
       </div>
     </div>
 
-    <!-- Row 2: Niño 3.4 Readout & NOAA source (left), Legend & Glossary (right) -->
+    <!-- Row 2: Niño 3.4 Readout (left), Legend & Glossary (right) -->
     <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
       <div class="dock__header-group">
         <div class="dock__readout">
           <span class="dock__readout-label">{{ t.readoutTitle }}</span>
           <span class="dock__readout-val">{{ formattedNino() }}</span>
         </div>
-
-        <a
-          class="dock__source"
-          [href]="sourceUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          [appTooltip]="t.readoutSource"
-          tooltipPlacement="top"
-          [attr.aria-label]="t.readoutSource">NOAA</a>
       </div>
 
       <app-legend-panel></app-legend-panel>
