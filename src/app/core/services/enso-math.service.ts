@@ -17,6 +17,9 @@ export interface ColorLut {
   hi: number;
 }
 
+/** ONI tiers. Shared so category() and the data-derived phase anchors cannot drift apart. */
+export const PHASE_THRESHOLDS = { super: 2, nino: 0.5, nina: -0.5 } as const;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -204,9 +207,9 @@ export class EnsoMathService {
   }
 
   category(n: number): PhaseInfo {
-    if (n >= 2) return { k: 'super', name: 'Super El Niño', col: this.getPhaseColor('super') };
-    if (n >= 0.5) return { k: 'nino', name: 'El Niño', col: this.getPhaseColor('nino') };
-    if (n <= -0.5) return { k: 'nina', name: 'La Niña', col: this.getPhaseColor('nina') };
+    if (n >= PHASE_THRESHOLDS.super) return { k: 'super', name: 'Super El Niño', col: this.getPhaseColor('super') };
+    if (n >= PHASE_THRESHOLDS.nino) return { k: 'nino', name: 'El Niño', col: this.getPhaseColor('nino') };
+    if (n <= PHASE_THRESHOLDS.nina) return { k: 'nina', name: 'La Niña', col: this.getPhaseColor('nina') };
     return { k: 'neu', name: 'Neutral', col: this.getPhaseColor('neu') };
   }
 

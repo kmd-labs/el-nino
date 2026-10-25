@@ -18,6 +18,8 @@ import {
   Gauge
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
+import { EnsoMathService } from '../../core/services/enso-math.service';
+import { EnsoPhase } from '../../core/models/enso.model';
 import { PRESETS } from '../../core/constants/enso-data';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
@@ -30,6 +32,17 @@ import { CurrentWeatherService } from '../../core/services/current-weather.servi
 import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
+
+/** One anchor on the slider, shared by the pill row and the date row above it. */
+interface Milestone {
+  id: string;
+  /** null for NOW, which marks a moment rather than a phase. */
+  ph: EnsoPhase | null;
+  value: number;
+  dateIso: string;
+  forecast: boolean;
+  hot: boolean;
+}
 
 export interface DateMarker {
   id: string;
@@ -59,6 +72,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
+  private math = inject(EnsoMathService);
   private localeTemp = inject(LocaleTempPipe);
   private localeDate = inject(LocaleDatePipe);
 
@@ -81,8 +95,18 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   @ViewChild('wrap') wrapRef!: ElementRef<HTMLDivElement>;
   private resizeObs: ResizeObserver | null = null;
 
+  /**
+   * Niño 3.4 as the SST frames actually hold it, falling back to the analytic model
+   * only until they load. The pills now name phases taken from the record, so the
+   * number and the thumb colour beside them have to come from the record as well —
+   * read off the model ramp, a +0.2 °C week reads as La Niña.
+   */
+  readonly dataNino = computed(() => this.weather.nino34AnomAt(this.state.sCur()) ?? this.state.nino34Value());
+
+  readonly dataCategory = computed(() => this.math.category(this.dataNino()));
+
   readonly formattedNino = computed(() => {
-    return this.localeTemp.transform(this.state.nino34Value(), 'delta');
+    return this.localeTemp.transform(this.dataNino(), 'delta');
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */
@@ -112,58 +136,82 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   readonly dataReady = computed(() => this.weather.status() === 'ready');
 
+  /**
+   * The slider's anchors: the four phases where the record actually shows them, plus
+   * NOW. Both marker rows read this one list, so a date can never drift away from the
+   * pill underneath it.
+   */
+  private readonly milestones = computed<Milestone[]>(() => {
+    const kfs = this.weather.meta()?.keyframes;
+    const nowKf = kfs?.find(k => k.now) ?? kfs?.find(k => !k.forecast && Math.abs(k.s - 1.4) < 0.05);
+    const fcDate = kfs?.find(k => k.forecast)?.date;
+
+    const today = new Date();
+    const fallbackForecastDate = new Date(today);
+    fallbackForecastDate.setUTCDate(fallbackForecastDate.getUTCDate() + 56);
+    const startIso = kfs?.[0]?.date ?? '2024-11-06';
+    const nowIso = nowKf?.date ?? today.toISOString().slice(0, 10);
+
+    const anchors = this.weather.phaseAnchors();
+    if (!anchors.length) {
+      // Timeline still loading. Frames are weekly and `s` is linear in frame index,
+      // so the observed axis is a straight line between its two known anchors.
+      const a = Date.parse(`${startIso}T12:00:00Z`);
+      const b = Date.parse(`${nowIso}T12:00:00Z`);
+      const at = (v: number) => new Date(a + (b - a) * ((v + 1.8) / 3.2)).toISOString().slice(0, 10);
+      return PRESETS.map(p => ({
+        id: p.ph,
+        ph: p.ph,
+        value: p.strength,
+        dateIso: p.forecast
+          ? fallbackForecastDate.toISOString().slice(0, 10)
+          : p.now
+            ? nowIso
+            : at(p.strength),
+        forecast: !!p.forecast,
+        hot: !!p.hot
+      }));
+    }
+
+    const items: Milestone[] = anchors.map(a => ({
+      id: a.ph,
+      ph: a.ph,
+      value: a.s,
+      dateIso: a.date,
+      forecast: a.date === fcDate,
+      hot: a.ph === 'super'
+    }));
+    items.push({ id: 'now', ph: null, value: nowKf?.s ?? 1.4, dateIso: nowIso, forecast: false, hot: false });
+    return items.sort((x, y) => x.value - y.value);
+  });
+
   readonly timelineMarkers = computed<TimelineMarker[]>(() => {
     const t = this.i18n.t();
-    const curPhase = this.state.phase();
-    return PRESETS.map(p => ({
-      id: p.ph,
-      value: p.strength,
-      label: t.phase[p.ph],
-      hot: !!p.hot,
-      active: curPhase === p.ph
+    // Light the pill the record agrees with. Matching on the model ramp instead would
+    // leave the Neutral pill dark on the very week it points at, because 0.918 · s
+    // already reads as La Niña by then.
+    const dataPhase = this.dataCategory().k;
+    const atNow = this.isNow();
+    return this.milestones().map(m => ({
+      id: m.id,
+      value: m.value,
+      label: m.ph ? t.phase[m.ph] : t.live.toUpperCase(),
+      hot: m.hot,
+      active: m.ph ? m.ph === dataPhase && !atNow : atNow
     }));
   });
 
   readonly dateMarkers = computed<DateMarker[]>(() => {
     const t = this.i18n.t();
     const sCur = this.state.sCur();
-    const lang = t.htmlLang;
-
-    const kfs = this.weather.meta()?.keyframes;
-    const nowKf = kfs?.find(k => k.now) ?? kfs?.find(k => !k.forecast && Math.abs(k.s - 1.4) < 0.05);
-    const fcKf = kfs?.find(k => k.forecast);
-    const ninaKf = kfs?.[0];
-
-    const today = new Date();
-    const fallbackNow = today.toISOString().slice(0, 10);
-    const fallbackForecastDate = new Date(today);
-    fallbackForecastDate.setUTCDate(fallbackForecastDate.getUTCDate() + 56);
-    const fallbackForecast = fallbackForecastDate.toISOString().slice(0, 10);
-
-    const milestones = [
-      { id: 'm-nina', value: -1.8, dateIso: ninaKf?.date ?? '2024-11-06', now: false, forecast: false, hot: false },
-      { id: 'm-neu', value: 0.0, dateIso: '2025-07-15', now: false, forecast: false, hot: false },
-      { id: 'm-now', value: 1.4, dateIso: nowKf?.date ?? fallbackNow, now: true, forecast: false, hot: false },
-      { id: 'm-fc', value: 2.6, dateIso: fcKf?.date ?? fallbackForecast, now: false, forecast: true, hot: true }
-    ];
-
-    return milestones.map(p => {
-      const d = new Date(`${p.dateIso}T12:00:00Z`);
-      const label = this.localeDate.transform(d, 'monthYear');
-      let subLabel: string | undefined;
-      if (p.now) subLabel = t.live.toUpperCase();
-      if (p.forecast) subLabel = t.timelineForecast;
-      const active = Math.abs(sCur - p.value) < 0.22;
-
-      return {
-        id: p.id,
-        value: p.value,
-        label,
-        subLabel,
-        hot: p.hot,
-        active
-      };
-    });
+    return this.milestones().map(m => ({
+      id: `m-${m.id}`,
+      value: m.value,
+      label: this.localeDate.transform(new Date(`${m.dateIso}T12:00:00Z`), 'monthYear'),
+      subLabel: m.forecast ? t.timelineForecast : undefined,
+      hot: m.hot,
+      active: Math.abs(sCur - m.value) < 0.22
+    }));
   });
 
   markerPct(val: number): number {

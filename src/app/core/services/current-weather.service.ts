@@ -1,4 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { EnsoPhase } from '../models/enso.model';
+import { PHASE_THRESHOLDS } from './enso-math.service';
 
 export interface TimelineKeyframeMeta {
   index: number;
@@ -57,6 +59,14 @@ export interface TimelineMeta {
   keyframes: TimelineKeyframeMeta[];
   openMeteo?: OpenMeteoSnapshot;
   dailyWeather?: DailyWeather;
+}
+
+/** Where one phase actually shows up in the record, as a position on the slider. */
+export interface PhaseAnchor {
+  ph: EnsoPhase;
+  s: number;
+  date: string;
+  nino34: number;
 }
 
 export interface KeyframePair {
@@ -122,6 +132,62 @@ export class CurrentWeatherService {
       time: m.time,
       source: m.source
     };
+  });
+
+  /**
+   * Where each phase sits on the slider, read off the observed Niño 3.4 series.
+   * Derived rather than written down: `s` is a fraction of the observed span, so a
+   * fixed anchor lands on a later date every time CI appends a week — and the model
+   * ramp (0.918 · s) is not the record, it only drives the globe's physics.
+   */
+  readonly phaseAnchors = computed<PhaseAnchor[]>(() => {
+    const kfs = this.meta()?.keyframes;
+    if (!kfs?.length) return [];
+    const obs = kfs.filter(k => !k.forecast);
+    if (!obs.length) return [];
+
+    /**
+     * Middle week of the longest unbroken run that qualifies. Anchoring mid-run
+     * rather than on the first crossing keeps the marker clear of the threshold, so
+     * the pill still lights up when the slider eases to a few days short of it.
+     */
+    const midOfLongestRun = (fits: (v: number) => boolean) => {
+      let bestFrom = -1;
+      let bestLen = 0;
+      let from = -1;
+      for (let i = 0; i <= obs.length; i++) {
+        if (i < obs.length && fits(obs[i].nino34)) {
+          if (from < 0) from = i;
+          continue;
+        }
+        if (from >= 0 && i - from > bestLen) {
+          bestLen = i - from;
+          bestFrom = from;
+        }
+        from = -1;
+      }
+      return bestLen > 0 ? obs[bestFrom + Math.floor((bestLen - 1) / 2)] : undefined;
+    };
+
+    // La Niña: the deepest cold peak on record — well clear of the threshold already.
+    const nina = obs.reduce((a, b) => (b.nino34 < a.nino34 ? b : a));
+    const neu = midOfLongestRun(v => v > PHASE_THRESHOLDS.nina && v < PHASE_THRESHOLDS.nino);
+    const nino = midOfLongestRun(v => v >= PHASE_THRESHOLDS.nino && v < PHASE_THRESHOLDS.super);
+
+    // Super: the warmest frame there is, forecast included — that is the whole point.
+    const warmest = kfs.reduce((a, b) => (b.nino34 > a.nino34 ? b : a));
+    const sup = warmest.nino34 >= PHASE_THRESHOLDS.super ? warmest : undefined;
+
+    const pairs: [EnsoPhase, typeof nina | undefined][] = [
+      ['nina', nina],
+      ['neu', neu],
+      ['nino', nino],
+      ['super', sup]
+    ];
+    return pairs
+      .filter((pair): pair is [EnsoPhase, typeof nina] => pair[1] !== undefined)
+      .map(([ph, kf]) => ({ ph, s: kf.s, date: kf.date, nino34: kf.nino34 }))
+      .sort((a, b) => a.s - b.s);
   });
 
   // Packed 0.5° Uint8Array for all weekly frames (frameSize = 720 * 360 = 259,200 bytes)
@@ -360,6 +426,16 @@ export class CurrentWeatherService {
     if (a == null) return b;
     if (b == null) return a;
     return a + (b - a) * t;
+  }
+
+  /**
+   * Observed Niño 3.4 *anomaly* (°C) for strength s, interpolated between keyframes.
+   * Not to be confused with nino34Sst(), which is the absolute temperature in the box.
+   */
+  nino34AnomAt(s: number): number | null {
+    const pair = this.getKeyframePairMeta(s);
+    if (!pair) return null;
+    return pair.kfA.nino34 + (pair.kfB.nino34 - pair.kfA.nino34) * pair.t;
   }
 
   nino34Sst(s: number): number | null {
