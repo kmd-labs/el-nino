@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { AboutModalComponent } from '@kmd/design-system';
 import { I18nService } from '../i18n/i18n.service';
+import { AnalyticsService } from './analytics.service';
 
 const PARAM = 'page';
 const ABOUT = 'about';
@@ -14,6 +15,7 @@ const ABOUT = 'about';
 export class PageService {
   private popup = inject(PopupService);
   private i18n = inject(I18nService);
+  private analytics = inject(AnalyticsService);
 
   readonly about = signal<boolean>(this.aboutInUrl());
   /** Control that opened the page; focus goes back to it on close. */
@@ -45,12 +47,14 @@ export class PageService {
   /** Initialize the popup on startup if ?page=about is in URL */
   initFromUrl() {
     if (this.about()) {
+      this.analytics.track('about-open', { source: 'link' });
       this.showAboutPopup();
     }
   }
 
-  openAbout() {
+  openAbout(source: 'cta' | 'glossary' = 'cta') {
     if (this.about()) return;
+    this.analytics.track('about-open', { source });
     const active = document.activeElement;
     this.opener = active instanceof HTMLElement && active !== document.body ? active : null;
     const url = new URL(location.href);

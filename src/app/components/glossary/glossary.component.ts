@@ -6,6 +6,10 @@ import { GlossaryGroup } from '../../core/i18n/i18n.types';
 import { PageService } from '../../core/services/page.service';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 
+import { AnalyticsService } from '../../core/services/analytics.service';
+
+const SEARCH_REPORT_MS = 1500;
+
 /** Searchable glossary projected inside the Design System Popup. */
 @Component({
   selector: 'app-glossary',
@@ -18,6 +22,9 @@ export class GlossaryComponent {
   i18n = inject(I18nService);
   private page = inject(PageService);
   private popup = inject(PopupService);
+  private analytics = inject(AnalyticsService);
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastSearch = '';
   readonly searchIcon = Search;
   readonly externalLinkIcon = ExternalLink;
   readonly arrowIcon = ArrowRight;
@@ -46,11 +53,20 @@ export class GlossaryComponent {
 
   onSearch(e: Event) {
     this.query.set((e.target as HTMLInputElement).value);
+    // Report what people look for once they stop typing; letters, digits and spaces only, short
+    if (this.searchTimer !== null) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      const query = this.query().toLowerCase().replace(/[^\p{L}\p{N} -]/gu, '').trim().slice(0, 40);
+      if (query.length < 2 || query === this.lastSearch) return;
+      this.lastSearch = query;
+      const results = this.groups().reduce((n, g) => n + g.terms.length, 0);
+      this.analytics.track('glossary-search', { query, results });
+    }, SEARCH_REPORT_MS);
   }
 
   /** "Meet the team": the About page opens under the popup, so close the popup first. */
   openAbout() {
     this.popup.close();
-    this.page.openAbout();
+    this.page.openAbout('glossary');
   }
 }

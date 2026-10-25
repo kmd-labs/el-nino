@@ -21,6 +21,7 @@ import * as d3Geo from 'd3-geo';
 import * as topojson from 'topojson-client';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PageService } from '../../core/services/page.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { EVENTS_META } from '../../core/constants/enso-data';
@@ -104,6 +105,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   state = inject(EnsoStateService);
   private page = inject(PageService);
+  private analytics = inject(AnalyticsService);
   i18n = inject(I18nService);
   private theme = inject(ThemeService);
   private popup = inject(PopupService);
@@ -386,7 +388,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private initThree() {
     const canvas = this.canvasRef.nativeElement;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    try {
+      this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    } catch (err) {
+      this.analytics.track('load-error', { what: 'webgl' });
+      throw err;
+    }
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     this.scene = new THREE.Scene();

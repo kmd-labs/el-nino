@@ -19,6 +19,8 @@ import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
  * 1. Thermal / Anomaly color scale bar, Phase Impacts Pins & Continental Rainfall Anomalies
  * 2. Searchable Glossary modal trigger
  */
+import { AnalyticsService } from '../../core/services/analytics.service';
+
 @Component({
   selector: 'app-legend-panel',
   standalone: true,
@@ -34,6 +36,7 @@ export class LegendPanelComponent {
   private math = inject(EnsoMathService);
   private popup = inject(PopupService);
   private localeTemp = inject(LocaleTempPipe);
+  private analytics = inject(AnalyticsService);
 
   readonly layersIcon = Layers;
   readonly bookOpenIcon = BookOpen;
@@ -66,6 +69,7 @@ export class LegendPanelComponent {
   readonly showImpactsLegend = computed(() => !this.state.crossSectionView());
 
   openGlossaryPopup() {
+    this.analytics.track('glossary-open');
     this.popup.open({
       id: 'glossary',
       title: computed(() => this.i18n.t().glTitle),

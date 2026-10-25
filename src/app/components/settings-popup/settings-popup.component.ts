@@ -32,6 +32,7 @@ export class SettingsPopupComponent {
   }
 
   selectTempUnit(unit: TempUnit) {
+    this.analytics.track('temp-unit', { unit });
     this.i18n.setTempUnit(unit);
   }
 }
