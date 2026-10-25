@@ -16,6 +16,7 @@ export const PL: Dict = {
   },
   months: ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'],
 
+  readoutSource: 'Źródło danych: temperatura powierzchni morza NOAA OISST v2.1',
   readoutTitle: 'Anomalia',
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
@@ -49,7 +50,6 @@ export const PL: Dict = {
   showPanel: 'Rozwiń pasek',
   ensoTab: 'Stan ENSO',
   viewTab: 'Sterowanie',
-  cycleMonth: (year, month, realYear, forecast) => `Rok ${year} · ${month} (≈ ${realYear}${forecast ? ', prognoza' : ''})`,
   hintNeutral: 'W fazie neutralnej nie ma pinezek. Wybierz La Niña, El Niño lub Super El Niño, aby zobaczyć historyczne skutki.',
   hintPins: (count, phase) => `${count} lokalizacji z udokumentowanymi skutkami fazy ${phase}. Kliknij pinezkę na globie, aby zobaczyć dane i źródło.`,
 
@@ -141,7 +141,7 @@ export const PL: Dict = {
   walkerNow: 'najnowsze',
   walkerCycle: 'cykl',
   walkerCurrent: phase => `Bieżący stan: ${phase} · Użyj odtwarzania, aby uruchomić omówienie krok po kroku`,
-  walkerCycleCaption: month => `Cykl ENSO · ${month || 'start'}`,
+  walkerCycleCaption: date => (date ? `Cykl ENSO · ${date}` : 'Cykl ENSO'),
   walkerPrev: 'Poprzedni krok',
   walkerNext: 'Następny krok',
   walkerPlay: 'Odtwarzaj kroki',
@@ -231,7 +231,7 @@ export const PL: Dict = {
     ]
   },
 
-  viewCycles: 'Poprzednie cykle',
+  viewCycles: 'Poprzednie cykle i predykcja',
   cyclesAria: 'Poprzednie cykle ENSO i prognoza analogowa',
   cyclesTitle: 'Wszystkie zdarzenia ENSO od 1950 roku',
   cyclesNote: 'Każda linia to jedno zdarzenie: indeks Niño 3.4 (ONI, średnia krocząca z 3 miesięcy) w ciągu dwóch lat '

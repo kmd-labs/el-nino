@@ -16,6 +16,7 @@ export const EN: Dict = {
   },
   months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 
+  readoutSource: 'Data source: NOAA OISST v2.1 sea surface temperature',
   readoutTitle: 'Anomaly',
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',
@@ -49,7 +50,6 @@ export const EN: Dict = {
   showPanel: 'Expand controls',
   ensoTab: 'ENSO state',
   viewTab: 'Controls',
-  cycleMonth: (year, month, realYear, forecast) => `Yr ${year} · ${month} (≈ ${realYear}${forecast ? ', forecast' : ''})`,
   hintNeutral: 'There are no impact pins in the neutral phase. Choose La Niña, El Niño or Super El Niño to inspect historical events.',
   hintPins: (count, phase) => `${count} locations with documented impacts of ${phase}. Click any pin on the globe to inspect the event data and source.`,
 
@@ -141,7 +141,7 @@ export const EN: Dict = {
   walkerNow: 'latest',
   walkerCycle: 'cycle',
   walkerCurrent: phase => `Current state: ${phase} · Press Play for step-by-step walkthrough`,
-  walkerCycleCaption: month => `ENSO cycle · ${month || 'start'}`,
+  walkerCycleCaption: date => (date ? `ENSO cycle · ${date}` : 'ENSO cycle'),
   walkerPrev: 'Previous step',
   walkerNext: 'Next step',
   walkerPlay: 'Play walkthrough',
@@ -231,7 +231,7 @@ export const EN: Dict = {
     ]
   },
 
-  viewCycles: 'Previous cycles',
+  viewCycles: 'Previous cycles and forecast',
   cyclesAria: 'Previous ENSO cycles and the analog forecast',
   cyclesTitle: 'Every ENSO event since 1950',
   cyclesNote: 'Each line is one event: the Niño 3.4 index (ONI, a 3-month running mean) across two calendar years. '

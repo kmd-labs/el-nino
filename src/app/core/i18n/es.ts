@@ -16,6 +16,7 @@ export const ES: Dict = {
   },
   months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
 
+  readoutSource: 'Fuente de los datos: temperatura superficial del mar NOAA OISST v2.1',
   readoutTitle: 'Anomalía',
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',
@@ -49,7 +50,6 @@ export const ES: Dict = {
   showPanel: 'Mostrar controles',
   ensoTab: 'Estado ENSO',
   viewTab: 'Controles',
-  cycleMonth: (year, month, realYear, forecast) => `Año ${year} · ${month} (≈ ${realYear}${forecast ? ', pronóstico' : ''})`,
   hintNeutral: 'En la fase neutral no hay marcadores. Elige La Niña, El Niño o Súper El Niño para ver los impactos históricos.',
   hintPins: (count, phase) => `${count} lugares con impactos documentados de ${phase}. Haz clic en un marcador para ver los datos y la fuente.`,
 
@@ -141,7 +141,7 @@ export const ES: Dict = {
   walkerNow: 'más reciente',
   walkerCycle: 'ciclo',
   walkerCurrent: phase => `Estado actual: ${phase} · Pulsa Reproducir para la explicación paso a paso`,
-  walkerCycleCaption: month => `Ciclo ENSO · ${month || 'inicio'}`,
+  walkerCycleCaption: date => (date ? `Ciclo ENSO · ${date}` : 'Ciclo ENSO'),
   walkerPrev: 'Paso anterior',
   walkerNext: 'Paso siguiente',
   walkerPlay: 'Reproducir los pasos',
@@ -231,7 +231,7 @@ export const ES: Dict = {
     ]
   },
 
-  viewCycles: 'Ciclos anteriores',
+  viewCycles: 'Ciclos anteriores y predicción',
   cyclesAria: 'Ciclos ENSO anteriores y el pronóstico por analogías',
   cyclesTitle: 'Todos los eventos ENSO desde 1950',
   cyclesNote: 'Cada línea es un evento: el índice Niño 3.4 (ONI, media móvil de 3 meses) a lo largo de dos años '

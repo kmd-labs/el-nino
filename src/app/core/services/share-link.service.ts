@@ -34,6 +34,8 @@ export class ShareLinkService {
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
   /** Day from a shared link, applied once the timeline data has loaded. */
   private pendingDate: string | null = null;
+  /** Phase from a shared link, moved onto its real anchor once the data has loaded. */
+  private pendingPhase: EnsoPhase | null = null;
   /** What the shared link set, so the address bar keeps the link until the user changes something. */
   private linked: { view: ViewMode; strength: number } | null = null;
 
@@ -45,6 +47,16 @@ export class ShareLinkService {
       const strength = this.weather.strengthForDate(this.pendingDate);
       this.pendingDate = null;
       if (strength === null) return;
+      this.state.applySharedState(null, strength);
+      this.linked = { view: this.state.view(), strength };
+    });
+
+    effect(() => {
+      if (!this.pendingPhase || !this.weather.meta()) return;
+      const ph = this.pendingPhase;
+      this.pendingPhase = null;
+      const strength = this.weather.phaseAnchors().find(a => a.ph === ph)?.s;
+      if (strength === undefined) return;
       this.state.applySharedState(null, strength);
       this.linked = { view: this.state.view(), strength };
     });
@@ -94,9 +106,15 @@ export class ShareLinkService {
       this.state.applySharedState(view, null, true);
       return;
     }
-    const strength = this.parseStrength(params.get('state'));
+    const raw = params.get('state');
+    const strength = this.parseStrength(raw);
     this.state.applySharedState(view, strength);
     if (strength !== null) this.linked = { view: this.state.view(), strength };
+    // A phase link names a phase, not a number, and the anchors come from the
+    // timeline. parseStrength() has opened on the static preset for now; once the
+    // data lands, move to where the record actually puts that phase.
+    const ph = this.phaseName(raw);
+    if (ph && !this.weather.phaseAnchors().length) this.pendingPhase = ph;
   }
 
   private parseView(raw: string | null): ViewMode | null {
@@ -105,17 +123,31 @@ export class ShareLinkService {
     return VIEW_ALIASES[v] ?? (VIEWS.includes(v as ViewMode) ? (v as ViewMode) : null);
   }
 
+  private phaseName(raw: string | null): EnsoPhase | null {
+    if (!raw) return null;
+    const v = raw.toLowerCase() as EnsoPhase;
+    return PRESETS.some(p => p.ph === v) ? v : null;
+  }
+
   private parseStrength(raw: string | null): number | null {
     if (!raw) return null;
-    const preset = PRESETS.find(p => p.ph === (raw.toLowerCase() as EnsoPhase));
-    if (preset) return preset.strength;
+    const ph = this.phaseName(raw);
+    if (ph) {
+      // Where the record puts the phase, falling back to the static preset while the
+      // timeline is still loading.
+      return this.weather.phaseAnchors().find(a => a.ph === ph)?.s
+        ?? PRESETS.find(p => p.ph === ph)?.strength
+        ?? null;
+    }
     const n = Number(raw);
     if (raw.trim() === '' || !Number.isFinite(n)) return null;
     return Math.min(STRENGTH_MAX, Math.max(STRENGTH_MIN, n));
   }
 
-  /** Preset name when the strength sits on a preset marker, otherwise the value to 2 decimals. */
+  /** Phase name when the strength sits on a slider anchor, otherwise the value to 2 decimals. */
   private formatStrength(s: number): string {
+    const anchor = this.weather.phaseAnchors().find(a => Math.abs(a.s - s) < 0.01);
+    if (anchor) return anchor.ph;
     const preset = PRESETS.find(p => Math.abs(p.strength - s) < 0.01);
     return preset ? preset.ph : String(Math.round(s * 100) / 100);
   }
