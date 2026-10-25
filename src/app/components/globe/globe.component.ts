@@ -1197,8 +1197,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     const [sx, sy] = this.screenOf(pt.p);
     const t = this.i18n.t();
-    const sample = this.weather.samplePointAt(pt.lon, pt.lat, this.state.sCur());
-    const waterStr = sample.waterTemp != null
+    const isLand = this.isLand(pt.lon, pt.lat);
+    const sample = this.weather.samplePointAt(pt.lon, pt.lat, this.state.sCur(), isLand);
+    const waterStr = !isLand && sample.waterTemp != null
       ? this.localeTemp.transform(sample.waterTemp, 'temp')
       : (t.inspectNoWater || '-');
     const airStr = sample.airTemp != null

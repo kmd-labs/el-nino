@@ -391,7 +391,7 @@
 
     &__brand-btn {
       height: 28px;
-      padding: 0 8px 0 5px;
+      padding: 0 8px;
     }
 
     &__logo-img {
@@ -400,27 +400,7 @@
     }
 
     &__brand-expand {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-left: 5px;
-      max-width: none;
-      opacity: 1;
-      overflow: visible;
-      pointer-events: auto;
-      white-space: nowrap;
-    }
-
-    &__divider {
-      height: 13px;
-    }
-
-    &__cta {
-      gap: 4px;
-    }
-
-    &__cta-text {
-      font-size: font-size("xxs");
+      display: none;
     }
 
     &__actions {

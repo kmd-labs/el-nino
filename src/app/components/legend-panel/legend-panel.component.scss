@@ -196,4 +196,33 @@
       gap: 4px;
     }
   }
+
+  @include respond-to("mobile-landscape") {
+    gap: 3px;
+
+    &__divider {
+      height: 14px;
+      margin: 0 1px;
+    }
+
+    &__legend {
+      ::ng-deep .btn {
+        padding: 4px 8px;
+        height: 28px;
+        min-height: 28px;
+        font-size: font-size("xxs");
+        line-height: 1.25;
+        gap: 4px;
+      }
+    }
+
+    app-button {
+      ::ng-deep .btn {
+        width: 28px;
+        height: 28px;
+        min-height: 28px;
+        padding: 0;
+      }
+    }
+  }
 }

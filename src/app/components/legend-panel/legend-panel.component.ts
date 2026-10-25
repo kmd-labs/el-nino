@@ -41,6 +41,8 @@ export class LegendPanelComponent {
   readonly databaseIcon = Database;
   readonly bookOpenIcon = BookOpen;
 
+  readonly iconOnly = computed(() => this.bp.mobile() || this.bp.mobileLandscape());
+
   @ViewChild('scaleCanvas') set scaleCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
     this.scaleRef = ref;
     if (ref) this.drawScale();

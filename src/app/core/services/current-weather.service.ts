@@ -525,7 +525,7 @@ export class CurrentWeatherService {
       });
   }
 
-  samplePointAt(lon: number, lat: number, s: number): PointSample {
+  samplePointAt(lon: number, lat: number, s: number, isLand?: boolean): PointSample {
     let waterTemp: number | null = null;
     let airTemp: number | null = null;
 
@@ -541,11 +541,11 @@ export class CurrentWeatherService {
 
     const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
 
-    // 1. Water SST from NOAA OISST v2.1 keyframe grid (high-res 0.5°)
+    // 1. Water SST from NOAA OISST v2.1 keyframe grid (high-res 0.5°). Skip if point is on land.
     const bin = this.sstBin;
     const g = this.meta()?.grid;
     const frameSize = this.FRAME_SIZE;
-    if (kf && bin && g) {
+    if (!isLand && kf && bin && g) {
       const r = Math.max(0, Math.min(g.nLat - 1, Math.round((lat - g.lat0) / g.step)));
       const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
       const val = bin[kf.index * frameSize + r * g.nLon + c];

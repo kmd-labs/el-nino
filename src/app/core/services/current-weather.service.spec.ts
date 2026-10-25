@@ -156,6 +156,12 @@ describe('CurrentWeatherService', () => {
     const landSample = service.samplePointAt(17.04, 51.11, 1.0);
     expect(landSample.waterTemp).toBeNull();
     expect(landSample.airTemp).toBeCloseTo(19.8, 1);
+
+    // Over land flag set explicitly
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(165); // would be 28°C if ocean
+    const explicitLandSample = service.samplePointAt(17.04, 51.11, 1.0, true);
+    expect(explicitLandSample.waterTemp).toBeNull();
+    expect(explicitLandSample.airTemp).toBeCloseTo(19.8, 1);
   });
 
   it('extracts packed weekly air temperature Int16Array from combined binary asset', () => {

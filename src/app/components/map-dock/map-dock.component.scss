@@ -196,14 +196,6 @@
     align-self: baseline;
   }
 
-  &__divider {
-    width: 1px;
-    height: 18px;
-    background: color("line-strong");
-    flex: none;
-    margin: 0 4px;
-  }
-
   &__top {
     display: flex;
     align-items: center;
@@ -330,11 +322,6 @@
       font-size: font-size("xs");
       line-height: 1;
       align-self: baseline;
-    }
-
-    &__divider {
-      height: 14px;
-      margin: 0 2px;
     }
 
     &__top {
@@ -579,11 +566,6 @@
       font-size: font-size("xs");
       line-height: 1;
       align-self: baseline;
-    }
-
-    &__divider {
-      height: 14px;
-      margin: 0 2px;
     }
 
     &__top {
