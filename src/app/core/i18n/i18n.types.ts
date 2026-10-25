@@ -114,6 +114,7 @@ export interface Dict {
 
   // header & settings
   readoutTitle: string;
+  readoutSource: string;
   loadingMap: string;
   mapError: string;
   changeLanguage: string;

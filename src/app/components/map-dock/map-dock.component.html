@@ -31,6 +31,15 @@
         <div class="dock__date-pill" role="status">
           <span class="dock__date-val">{{ activeDateLabel() }}</span>
         </div>
+
+        <a
+          class="dock__source"
+          [href]="sourceUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          [appTooltip]="t.readoutSource"
+          tooltipPlacement="top"
+          [attr.aria-label]="t.readoutSource">NOAA</a>
       </div>
 
       <app-legend-panel></app-legend-panel>

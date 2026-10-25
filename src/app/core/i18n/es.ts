@@ -16,6 +16,7 @@ export const ES: Dict = {
   },
   months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
 
+  readoutSource: 'Fuente de los datos: temperatura superficial del mar NOAA OISST v2.1',
   readoutTitle: 'Anomalía',
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',

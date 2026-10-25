@@ -61,7 +61,8 @@ export interface DateMarker {
     DropdownComponent,
     TimelineSliderComponent,
     LegendPanelComponent,
-    LucideAngularModule
+    LucideAngularModule,
+    TooltipDirective
   ],
   providers: [LocaleTempPipe, LocaleDatePipe],
   templateUrl: './map-dock.component.html',
@@ -115,6 +116,11 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     }
     return Math.abs(s - 1.4) < 0.05;
   });
+
+  /** Where the anomaly and the timeline come from (NOAA OISST), linked next to the date. */
+  readonly sourceUrl = computed(
+    () => this.weather.meta()?.sstSourceUrl ?? 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst'
+  );
 
   readonly activeSst = computed(() => this.weather.nino34Sst(this.state.sCur()));
 

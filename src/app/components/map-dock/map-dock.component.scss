@@ -109,6 +109,25 @@
     flex: none;
   }
 
+  &__source {
+    flex: none;
+    font-size: font-size("xxs");
+    font-weight: font-weight("semibold");
+    letter-spacing: 0.04em;
+    color: color("link-color");
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid color("accent");
+      outline-offset: 2px;
+      border-radius: radius("xs");
+    }
+  }
+
   &__readout-label {
     font-size: font-size("xxs");
     color: color("text-dim");

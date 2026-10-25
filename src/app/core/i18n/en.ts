@@ -16,6 +16,7 @@ export const EN: Dict = {
   },
   months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 
+  readoutSource: 'Data source: NOAA OISST v2.1 sea surface temperature',
   readoutTitle: 'Anomaly',
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',

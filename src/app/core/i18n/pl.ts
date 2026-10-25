@@ -16,6 +16,7 @@ export const PL: Dict = {
   },
   months: ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'],
 
+  readoutSource: 'Źródło danych: temperatura powierzchni morza NOAA OISST v2.1',
   readoutTitle: 'Anomalia',
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
