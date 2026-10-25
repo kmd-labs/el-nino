@@ -434,17 +434,16 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
       ctx.fillStyle = ink;
       ctx.textAlign = right ? 'right' : 'left';
       const dx = right ? -8 : 8;
-      ctx.fillText(
-        `${current.season} ${this.formatOni(labelVal, 1)} °C`,
-        X(labelIdx) + dx,
-        Y(Math.min(ONI_MAX, labelVal)) - 20
-      );
+      // On a short canvas (the phone layout) a near-maximum point sits barely 13px below padT, so
+      // the two-line label would land above the top edge — keep it inside the plot.
+      const labelY = Math.max(padT + 8, Y(Math.min(ONI_MAX, labelVal)) - 20);
+      ctx.fillText(`${current.season} ${this.formatOni(labelVal, 1)} °C`, X(labelIdx) + dx, labelY);
       ctx.font = `500 10px ${font}`;
       ctx.fillStyle = dim;
       ctx.fillText(
         prov && provOnAxis ? t.cyclesProvisional(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month),
         X(labelIdx) + dx,
-        Y(Math.min(ONI_MAX, labelVal)) - 8
+        labelY + 12
       );
     }
   }

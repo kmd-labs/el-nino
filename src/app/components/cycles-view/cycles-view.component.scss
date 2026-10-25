@@ -126,6 +126,11 @@
       border-bottom: 1px solid color("line");
     }
 
+    th + th,
+    td + td {
+      padding-left: 8px; // the right-aligned peak column otherwise runs into the tier text
+    }
+
     .num {
       text-align: right;
       font-variant-numeric: tabular-nums;
@@ -314,9 +319,41 @@
 
 @include respond-to("mobile") {
   .cycles {
+    // The frame between the header and the dock is far shorter than the content on a phone — the
+    // catalogue alone runs to ~40 rows — so the panel itself scrolls, instead of letting the chart,
+    // the side panels and the footnotes overflow their boxes and overlap each other.
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding-bottom: 8px;
+    @include custom-scrollbar;
+
     &__meta,
     &__legend {
       display: none;
+    }
+
+    &__body {
+      flex: 0 0 auto; // no longer stretches to the frame: each child keeps its own height
+    }
+
+    &__box {
+      flex: 0 0 auto;
+      height: 280px; // fixed chart; the ResizeObserver in the component redraws the canvas to it
+    }
+
+    &__side {
+      flex: 0 0 auto;
+      flex-direction: column; // tablet puts the panels in a horizontally scrolling row
+      overflow: visible; // one scroll container for the whole view, no nested scroll areas
+    }
+
+    &__panel {
+      flex: 0 0 auto; // tablet's `flex: 1 0 240px` would squash them once stacked
+    }
+
+    &__foot {
+      flex: 0 0 auto;
     }
   }
 }
