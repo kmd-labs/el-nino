@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 /** Umami Cloud website ID (Umami → Settings → Websites → el-nino). Empty keeps analytics off. */
-export const UMAMI_WEBSITE_ID = '';
+export const UMAMI_WEBSITE_ID = '884cbd52-1fa2-40a5-8c28-0489f7653e91';
 const UMAMI_SRC = 'https://cloud.umami.is/script.js';
 /** Only the deployed site is counted – never localhost, previews or tests. */
 const PROD_HOST = 'kmd-labs.github.io';
