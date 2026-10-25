@@ -111,6 +111,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private ctx!: CanvasRenderingContext2D;
   private W = 0;
   private H = 0;
+  private readonly inkCache = new Map<string, [number, number, number]>();
   private resizeObs: ResizeObserver | null = null;
   private animId: number | null = null;
   private lastTime = 0;
@@ -302,10 +303,10 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(W, this.zY(16));
     ctx.stroke();
     ctx.restore();
-    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', 'rgba(200, 215, 240, 0.65)');
+    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', this.ink('text-dim', 0.95, '#64748b'));
 
     this.drawOcean(s);
-    this.drawThermocline(s, L.thermocline);
+    this.drawThermocline(s);
     this.drawUpwelling(trade);
     this.drawKelvin(s, xc, L.kelvin);
     this.drawLand(L.indonesia, L.andes);
@@ -321,9 +322,34 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.drawAxis();
   }
 
+  /**
+   * Labels are drawn in CSS pixels, so a phone-width canvas needs a bigger face than a desktop one:
+   * 13px at ~380px wide, easing down to 11px from ~700px up.
+   */
+  private get labelPx() {
+    return this.math.clamp(13 - (this.W - 380) / 160, 11, 13);
+  }
+
+  /**
+   * A design token as `rgba()`, so a label can fade with its focus without leaving the palette.
+   * The sky, the land and the axis strip are all light in this theme, so text over them has to be
+   * dark ink — only labels sitting on the saturated SST gradient stay white.
+   * Resolving a token reads computed styles, so each one is read once and kept.
+   */
+  private ink(token: string, alpha: number, fallback: string) {
+    let rgb = this.inkCache.get(token);
+    if (!rgb) {
+      const hex = /^#([0-9a-f]{6})$/i.exec(this.theme.getTokenColor(token, fallback).trim());
+      const n = parseInt(hex ? hex[1] : fallback.slice(1), 16);
+      rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      this.inkCache.set(token, rgb);
+    }
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${this.math.clamp(alpha, 0, 1).toFixed(2)})`;
+  }
+
   private text(str: string, x: number, y: number, align: CanvasTextAlign, color: string, bold = false) {
     const ctx = this.ctx;
-    ctx.font = `${bold ? '600 ' : ''}11px ${this.theme.getFontFamily()}`;
+    ctx.font = `${bold ? '600 ' : ''}${this.labelPx}px ${this.theme.getFontFamily()}`;
     ctx.textAlign = align;
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = color;
@@ -367,7 +393,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.math.clamp(d, 0, 4) / 4 * SEA_DEPTH;
   }
 
-  private drawThermocline(s: number, label: string) {
+  private drawThermocline(s: number) {
     const ctx = this.ctx;
     const a = 0.25 + 0.75 * this.fa.thermo;
     ctx.strokeStyle = `rgba(255, 255, 255, ${0.85 * a})`;
@@ -380,7 +406,6 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
-    this.text(label, this.X(104), this.dY(this.thermoDepth(104, s)) - 5, 'left', `rgba(255, 255, 255, ${0.8 * a})`);
   }
 
   private drawUpwelling(trade: number) {
@@ -430,7 +455,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.arc(x, y, rx, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    this.text(label, x, this.dY(28), 'center', `rgba(255, 210, 160, ${a})`, true);
+    this.text(label, x, this.dY(28), 'center', `rgba(255, 255, 255, ${a})`, true);
   }
 
   /**
@@ -469,8 +494,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     coast(0, left - 1);
     coast(right + 1, n - 1);
 
-    this.text(indonesia, this.X(100.5), this.zY(2.2), 'left', 'rgba(220, 230, 245, 0.8)');
-    this.text(andes, this.W - 8, this.zY(5.2), 'right', 'rgba(220, 230, 245, 0.8)');
+    this.text(indonesia, this.X(100.5), this.zY(2.2), 'left', this.ink('text-main', 0.9, '#1e293b'));
+    this.text(andes, this.W - 8, this.zY(5.2), 'right', this.ink('text-main', 0.9, '#1e293b'));
   }
 
   private drawNinoBox() {
@@ -483,7 +508,9 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineWidth = 1;
     ctx.strokeRect(x0, this.ys - 6, x1 - x0, this.dY(40) - this.ys + 6);
     ctx.restore();
-    this.text('Niño 3.4', x0 + 2, this.ys - 10, 'left', 'rgba(255, 255, 255, 0.9)', true);
+    // inside the box rather than above it: at the larger label size the sky band over the surface
+    // already carries the trade-wind label
+    this.text('Niño 3.4', x0 + 4, this.ys + this.labelPx + 1, 'left', 'rgba(255, 255, 255, 0.95)', true);
   }
 
   private drawCell(ps: Particle[], lonW: number, lonE: number, dir: number, strength: number, dt: number) {
@@ -597,30 +624,34 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private drawLabels(s: number, xc: number, eS: number, wS: number, L: WalkerCanvasText) {
-    const dimText = (k: Focus, base = 0.85) => `rgba(220, 230, 248, ${base * (0.2 + 0.8 * this.fa[k])})`;
-    const eA = this.math.clamp(eS, 0.15, 1);
+    const skyInk = (k: Focus, gate = 1) => this.ink('text-main', gate * (0.45 + 0.55 * this.fa[k]), '#1e293b');
+    const sea = (k: Focus) => `rgba(255, 255, 255, ${(0.55 + 0.45 * this.fa[k]).toFixed(2)})`;
+    // a dimmed label still has to be readable, hence the 0.45 floor rather than 0.15
+    const eA = this.math.clamp(eS, 0.45, 1);
     if (268 - xc > 30) {
-      this.text(L.trades, this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', dimText('wind', 0.9 * eA), true);
-      this.text(L.aloft, this.X((xc + 268) / 2 + 8), this.zY(14.4), 'center', dimText('aloft', 0.8 * eA));
-      this.text(L.sinkDry, this.X(266), this.zY(8.2), 'right', dimText('sink', 0.8 * eA));
+      this.text(L.trades, this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', skyInk('wind', eA), true);
+      this.text(L.aloft, this.X((xc + 268) / 2 + 8), this.zY(14.4), 'center', this.ink('text-dim', eA * (0.5 + 0.5 * this.fa.aloft), '#64748b'));
+      this.text(L.sinkDry, this.X(266), this.zY(8.2), 'right', skyInk('sink', eA));
     }
-    this.text(L.rising, this.X(xc), this.zY(15), 'center', dimText('convection'), true);
+    this.text(L.rising, this.X(xc), this.zY(15), 'center', skyInk('convection'), true);
+    // east of the Indonesian coast (117.9°E) and drawn after drawLand(), so the land cannot bury it
+    this.text(L.thermocline, this.X(122), this.dY(this.thermoDepth(122, s)) - 6, 'left', sea('thermo'));
     if (wS > 0.05) {
-      this.text(L.sinkDrought, this.X(113), this.zY(8.2), 'left', `rgba(255, 196, 140, ${0.85 * wS})`, true);
-      this.text(L.westerly, this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', `rgba(255, 214, 170, ${0.85 * wS})`);
+      this.text(L.sinkDrought, this.X(113), this.zY(8.2), 'left', this.ink('accent', 0.45 + 0.55 * wS, '#d37400'), true);
+      this.text(L.westerly, this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', this.ink('accent', 0.4 + 0.5 * wS, '#d37400'));
     }
     if (s < 1) {
-      this.text(L.warmPool, this.X(134), this.dY(26), 'center', `rgba(255, 235, 215, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
+      this.text(L.warmPool, this.X(134), this.dY(26), 'center', sea('ocean'), true);
     }
     if (s < 0.6) {
-      this.text(L.coldTongue, this.X(254), this.dY(26), 'center', `rgba(220, 240, 255, ${0.85 * (0.25 + 0.75 * this.fa.ocean)})`, true);
+      this.text(L.coldTongue, this.X(254), this.dY(26), 'center', sea('ocean'), true);
     }
   }
 
   private drawAxis() {
     const ticks: [number, string][] = [[120, '120°E'], [150, '150°E'], [180, '180°'], [210, '150°W'], [240, '120°W'], [270, '90°W']];
     for (const [lon, label] of ticks) {
-      this.text(label, this.X(lon), this.H - 6, 'center', 'rgba(180, 196, 224, 0.9)');
+      this.text(label, this.X(lon), this.H - 6, 'center', this.ink('text-dim', 0.95, '#64748b'));
     }
   }
 }
