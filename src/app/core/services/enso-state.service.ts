@@ -63,6 +63,17 @@ export class EnsoStateService {
     return this.weather.nino34AnomAt(this.sCur()) ?? this.math.nino34(this.sCur());
   });
 
+  /**
+   * The physical ENSO amplitude (-2 to 3) for the current playhead position, derived
+   * from the smoothed observed Niño 3.4 index. Both the 3D globe's convective atmosphere
+   * and the Walker Cell cross-section take their cloud position from this.
+   */
+  readonly sceneS = computed<number>(() => {
+    const s = this.sCur();
+    const observed = this.weather.nino34AnomSmoothedAt(s);
+    return observed !== null ? this.math.sForNino34(observed) : s;
+  });
+
   /** Indian Ocean Dipole index (°C) for the current state. */
   readonly dmiValue = computed<number>(() => this.math.dmi(this.sCur()));
 

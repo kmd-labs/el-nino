@@ -741,14 +741,6 @@
       "s": 1.4,
       "nino34": 3.5,
       "now": true
-    },
-    {
-      "index": 103,
-      "id": "forecast",
-      "date": "2026-12-16",
-      "s": 2.6,
-      "nino34": 4.6,
-      "forecast": true
     }
   ],
   "openMeteo": {
@@ -5031,14 +5023,5 @@
       5.4,
       5.1
     ]
-  },
-  "lowGrid": {
-    "step": 2,
-    "nLat": 90,
-    "nLon": 180,
-    "lat0": -89,
-    "lon0": -179
-  },
-  "lowBinFile": "assets/data/timeline-sst-low.bin.gz",
-  "lowEncoding": "delta-u8"
+  }
 }

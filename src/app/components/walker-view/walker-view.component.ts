@@ -283,7 +283,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const { W, H } = this;
     const s = this.sceneS();
     const ys = this.ys;
-    const xc = Math.max(128, this.math.convLon(s));
+    const xc = this.math.convLon(s);
     const trade = this.math.trade(s);
 
     ctx.clearRect(0, 0, W, H);
@@ -336,10 +336,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
    * `s` is the lesson, so it is used as given.
    */
   private sceneS(): number {
-    const sliderS = this.state.sCur();
-    if (this.step() >= 0) return sliderS;
-    const observed = this.weather.nino34AnomSmoothedAt(sliderS);
-    return observed === null ? sliderS : this.math.clamp(this.math.sForNino34(observed), -2, 3);
+    if (this.step() >= 0) return STEPS[this.step()].s;
+    return this.state.sceneS();
   }
 
   /**

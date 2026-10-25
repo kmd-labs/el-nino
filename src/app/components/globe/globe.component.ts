@@ -569,7 +569,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sc = 255 / (hi - lo);
     const pair = this.weather.getKeyframePair(s);
     const bin = this.weather.sstBin;
-    const lowBin = this.weather.sstLowBin;
 
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
     const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
@@ -604,47 +603,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
           this.texData[o + 2] = gb;
         }
         this.texData[o + 3] = 255;
-      }
-    } else if (pair && lowBin) {
-      // Fast progressive preview mapping (180x90 blocks into 720x360)
-      const lowW = 180;
-      const lowH = 90;
-      const lowNG = lowW * lowH;
-      const offsetA = pair.indexA * lowNG;
-      const offsetB = pair.indexB * lowNG;
-      const t = pair.t;
-
-      for (let lr = 0; lr < lowH; lr++) {
-        for (let lc = 0; lc < lowW; lc++) {
-          const li = lr * lowW + lc;
-          const va = lowBin[offsetA + li];
-          const vb = lowBin[offsetB + li];
-          let r = gr, g = gg, b = gb;
-          if (va !== 255 && vb !== 255) {
-            const vByte = va + (vb - va) * t;
-            const v = vByte * 0.2 - 5.0;
-            const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
-            if (dim) {
-              r = Math.round(245 * 0.62 + lut[k] * 0.38);
-              g = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
-              b = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
-            } else {
-              r = lut[k];
-              g = lut[k + 1];
-              b = lut[k + 2];
-            }
-          }
-          for (let dr = 0; dr < 4; dr++) {
-            const rowOffset = (lr * 4 + dr) * this.GW * 4;
-            for (let dc = 0; dc < 4; dc++) {
-              const o = rowOffset + (lc * 4 + dc) * 4;
-              this.texData[o] = r;
-              this.texData[o + 1] = g;
-              this.texData[o + 2] = b;
-              this.texData[o + 3] = 255;
-            }
-          }
-        }
       }
     } else {
       // Clean neutral grey while dataset is streaming
@@ -1901,9 +1859,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const s = this.state.sCur();
     const impacts = this.state.view() === 'impacts';
     const weatherReady = this.weather.status() === 'ready';
-    const hiRes = this.weather.highResReady();
+    const physS = this.state.sceneS();
 
-    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${hiRes ? 'hi' : 'low'}:${Math.round(s * 80)}`;
+    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${Math.round(s * 80)}`;
     if (Math.abs(s - this.lastS) > 0.012 || textureKey !== this.lastMode) {
       this.recolorTexture(s, impacts);
       this.lastS = s;
@@ -1924,7 +1882,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.ensoWaveLines.visible = !weatherReady;
     }
     if (showAtm) {
-      this.updateAtm(s, dt, t);
+      this.updateAtm(physS, dt, t);
     }
 
     this.currentLayer.group.visible = showAtm && weatherReady;
@@ -1948,8 +1906,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     if (camMoved || sChanged || this.hoverPin || this.inspectedPoint()) {
       this.updatePins(t, dt);
-      this.updateLabels(s);
-      this.updateImpacts(s, dt);
+      this.updateLabels(physS);
+      this.updateImpacts(physS, dt);
       this.layoutLabels();
       this.lastLabelS = s;
       this.lastCamPos.copy(this.camera.position);
