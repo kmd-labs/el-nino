@@ -40,6 +40,7 @@ interface PinItem {
   sp: THREE.Sprite;
   p: THREE.Vector3;
   a: number;
+  hoverA: number;
   phases: Set<EnsoPhase>;
 }
 
@@ -369,6 +370,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
+    const canvas = this.canvasRef?.nativeElement;
+    if (canvas) {
+      canvas.removeEventListener('pointermove', this.onPointerMoveBound);
+    }
     this.uiResizeObs?.disconnect();
     if (this.animId !== null) {
       cancelAnimationFrame(this.animId);
@@ -414,6 +419,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.addEventListener('start', stopAutoRotate);
     canvas.addEventListener('wheel', stopAutoRotate, { passive: true });
     canvas.addEventListener('pointerdown', stopAutoRotate, { passive: true });
+    canvas.addEventListener('pointermove', this.onPointerMoveBound, { passive: true });
 
     this.hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe4f0, 1.25);
     this.scene.add(this.hemiLight);
@@ -1103,6 +1109,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         sp,
         p,
         a: 0,
+        hoverA: 0,
         phases: new Set<EnsoPhase>(loc.ev.map(e => e.ph))
       };
     });
@@ -1550,7 +1557,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       pn.sp.visible = finalOpacity > 0.01;
 
       const isHighlighted = pn === this.hoverPin || (selectedLoc && pn.loc.id === selectedLoc.id);
-      const big = isHighlighted ? 1.4 : 1;
+      pn.hoverA += ((isHighlighted ? 1 : 0) - pn.hoverA) * Math.min(1, dt * 10);
+      const big = 1 + 0.4 * pn.hoverA;
       pn.sp.scale.setScalar((0.38 + 0.05 * Math.sin(t * 3 + pn.p.x)) * big * (0.6 + 0.4 * pn.a));
     }
   }
@@ -1656,7 +1664,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     let best: PinItem | null = null;
     let bd = radius;
     for (const pn of this.pins) {
-      if (pn.a < 0.5 || this.facingOf(pn.p) < 0.12) continue;
+      if (pn.a < 0.2 || this.facingOf(pn.p) < 0.12) continue;
       const [sx, sy] = this.screenOf(pn.p);
       const d = Math.hypot(sx - x, sy - y);
       if (d < bd) {
@@ -1731,6 +1739,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const pn = this.pickPin(e.clientX, e.clientY, e.pointerType === 'touch' ? 34 : 22);
     this.ngZone.run(() => {
       if (pn) {
+        this.hoverPin = null;
         this.clearInspectedPoint();
         this.tooltip.hide();
         const loc = pn.loc;
@@ -1775,6 +1784,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  private onPointerMoveBound = (e: PointerEvent) => {
+    this.onPointerMove(e);
+  };
+
   onPointerMove(e: PointerEvent) {
     if (e.pointerType !== 'mouse') {
       if (this.downXY && this.pinHoldTimer !== null) {
@@ -1785,24 +1798,35 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       }
       return;
     }
-    this.hoverPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
-    const canvas = this.canvasRef.nativeElement;
-    canvas.style.cursor = (this.hoverPin || this.inspectedPoint()) ? 'pointer' : '';
+    const nextPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
+    if (nextPin !== this.hoverPin) {
+      this.hoverPin = nextPin;
+      const canvas = this.canvasRef.nativeElement;
+      canvas.style.cursor = (this.hoverPin || this.inspectedPoint()) ? 'pointer' : '';
 
-    if (this.hoverPin) {
-      this.showPinTooltip(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY);
-    } else if (this.inspectedPoint()) {
-      // Keep inspection tooltip active at the pinned coordinates
-    } else {
-      this.tooltip.hide();
+      if (this.hoverPin) {
+        const [sx, sy] = this.screenOf(this.hoverPin.p);
+        this.ngZone.run(() => {
+          this.showPinTooltip(this.i18n.location(this.hoverPin!.loc).name, sx, sy);
+        });
+      } else if (!this.inspectedPoint()) {
+        this.ngZone.run(() => {
+          this.tooltip.hide();
+        });
+      }
     }
   }
 
   onPointerLeave() {
     this.clearPinHoldTimer();
-    this.hoverPin = null;
-    if (!this.inspectedPoint()) {
-      this.tooltip.hide();
+    if (this.hoverPin) {
+      this.hoverPin = null;
+      this.canvasRef.nativeElement.style.cursor = this.inspectedPoint() ? 'pointer' : '';
+      if (!this.inspectedPoint()) {
+        this.ngZone.run(() => {
+          this.tooltip.hide();
+        });
+      }
     }
   }
 
@@ -1892,17 +1916,32 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.update();
     this.camDir.copy(this.camera.position).normalize();
 
-    // Only update labels, pins, and DOM transforms when camera or strength has changed
+    // Update pins continuously so they smoothly pulse, fade in/out, and transition hover scale
+    this.updatePins(t, dt);
+
+    // Only update labels and DOM transforms when camera or strength has changed
     const camMoved = this.camera.position.distanceToSquared(this.lastCamPos) > 1e-5;
     const sChanged = Math.abs(s - this.lastLabelS) > 0.005;
 
-    if (camMoved || sChanged || this.hoverPin || this.inspectedPoint()) {
-      this.updatePins(t, dt);
+    if (camMoved || sChanged) {
       this.updateLabels(physS);
       this.updateImpacts(physS, dt);
       this.layoutLabels();
       this.lastLabelS = s;
       this.lastCamPos.copy(this.camera.position);
+
+      if (this.hoverPin) {
+        if (this.facingOf(this.hoverPin.p) < 0.12) {
+          this.hoverPin = null;
+          this.canvasRef.nativeElement.style.cursor = this.inspectedPoint() ? 'pointer' : '';
+          this.ngZone.run(() => this.tooltip.hide());
+        } else {
+          const [sx, sy] = this.screenOf(this.hoverPin.p);
+          this.ngZone.run(() => {
+            this.showPinTooltip(this.i18n.location(this.hoverPin!.loc).name, sx, sy);
+          });
+        }
+      }
     }
 
     if (this.inspectedPoint()) {
