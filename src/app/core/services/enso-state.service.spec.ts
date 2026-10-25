@@ -119,4 +119,20 @@ describe('EnsoStateService', () => {
     service.setPlaybackSpeed(3);
     expect(service.playbackSpeed()).toBe(1);
   });
+
+  it('should converge and stay idle when paused without jittering sCur', () => {
+    service.beginExperience();
+    service.togglePlaying(); // paused
+    service.setStrengthTarget(0.5);
+
+    // Let it interpolate towards 0.5
+    for (let i = 0; i < 150; i++) {
+      service.updateInterpolatedStrength(0.016);
+    }
+    expect(service.sCur()).toBe(0.5);
+
+    // Subsequent updates when already converged should stay exact and unchanged
+    service.updateInterpolatedStrength(0.016);
+    expect(service.sCur()).toBe(0.5);
+  });
 });

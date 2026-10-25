@@ -51,6 +51,9 @@ export interface TimelineMeta {
   sstSourceUrl: string;
   fetchedAt: string;
   grid: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
+  lowGrid?: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
+  lowBinFile?: string;
+  lowEncoding?: string;
   airGrid?: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
   totalFrames: number;
   binFile: string;
@@ -128,6 +131,11 @@ export class CurrentWeatherService {
   sstBin: Uint8Array | null = null;
   readonly FRAME_SIZE = 720 * 360;
 
+  // Packed 2.0° Uint8Array for all weekly frames (preview, lowFrameSize = 180 * 90 = 16,200 bytes)
+  sstLowBin: Uint8Array | null = null;
+  readonly LOW_FRAME_SIZE = 180 * 90;
+  readonly highResReady = signal<boolean>(false);
+
   // Packed 10° Int16Array (tenths of °C) for all weekly frames (612 values per frame)
   airBin: Int16Array | null = null;
   readonly AIR_MISSING = -32768;
@@ -147,22 +155,40 @@ export class CurrentWeatherService {
   load() {
     if (this.status() !== 'idle') return;
     this.status.set('loading');
-    this.progress.set(5);
+    this.progress.set(10);
 
-    Promise.all([
-      fetch('assets/data/timeline-meta.json', { cache: 'no-cache' }).then(r => {
+    // Stage 1: Load metadata + lightweight low-res preview binary (~470 KB) on critical path
+    fetch('assets/data/timeline-meta.json')
+      .then(r => {
         if (!r.ok) throw new Error(`Meta HTTP ${r.status}`);
-        this.progress.update(p => Math.max(p, 25));
         return r.json() as Promise<TimelineMeta>;
-      }),
-      this.fetchSstBinary()
-    ])
-      .then(([meta, bin]) => {
-        this.sstBin = bin;
-        this.extractAirBin(meta, bin);
+      })
+      .then(async meta => {
+        this.progress.set(30);
+        // Try fetching low-res preview binary first
+        const lowUrl = meta.lowBinFile || 'assets/data/timeline-sst-low.bin.gz';
+        try {
+          const lowBin = await this.fetchBinary(lowUrl);
+          this.decodeLowRes(meta, lowBin);
+          this.prepareOpenMeteo(meta.openMeteo);
+          this.meta.set(meta);
+          this.status.set('ready');
+          this.progress.set(100);
+
+          // Stage 2: Stream high-res 0.5° dataset in background without blocking interaction
+          setTimeout(() => this.streamHighRes(meta), 60);
+          return;
+        } catch (err) {
+          console.warn('Low-res preview unavailable, falling back to full-res:', err);
+        }
+
+        // Direct fallback: load full-res binary
+        const fullBin = await this.fetchBinary(meta.binFile || 'assets/data/timeline-sst.bin.gz');
+        this.sstBin = fullBin;
+        this.extractAirBin(meta, fullBin, this.FRAME_SIZE);
         this.prepareOpenMeteo(meta.openMeteo);
-        this.progress.set(95);
         this.meta.set(meta);
+        this.highResReady.set(true);
         this.status.set('ready');
         this.progress.set(100);
       })
@@ -173,10 +199,46 @@ export class CurrentWeatherService {
       });
   }
 
-  extractAirBin(meta: TimelineMeta, bin: Uint8Array) {
+  private decodeLowRes(meta: TimelineMeta, bin: Uint8Array) {
+    const lg = meta.lowGrid;
+    const lowFrameSize = lg ? lg.nLat * lg.nLon : this.LOW_FRAME_SIZE;
+    const totalFrames = meta.totalFrames;
+    const sstBytes = totalFrames * lowFrameSize;
+
+    let sstSlice = bin.subarray(0, sstBytes);
+    if (meta.lowEncoding === 'delta-u8') {
+      const reconstructed = new Uint8Array(sstBytes);
+      reconstructed.set(sstSlice.subarray(0, lowFrameSize), 0);
+      for (let f = 1; f < totalFrames; f++) {
+        const cur = f * lowFrameSize;
+        const prev = (f - 1) * lowFrameSize;
+        for (let i = 0; i < lowFrameSize; i++) {
+          reconstructed[cur + i] = (reconstructed[prev + i] + sstSlice[cur + i]) & 0xff;
+        }
+      }
+      this.sstLowBin = reconstructed;
+    } else {
+      this.sstLowBin = new Uint8Array(sstSlice);
+    }
+
+    this.extractAirBin(meta, bin, lowFrameSize);
+  }
+
+  private async streamHighRes(meta: TimelineMeta) {
+    try {
+      const bin = await this.fetchBinary(meta.binFile || 'assets/data/timeline-sst.bin.gz');
+      this.sstBin = bin;
+      this.extractAirBin(meta, bin, this.FRAME_SIZE);
+      this.highResReady.set(true);
+    } catch (err) {
+      console.warn('Background high-res SST stream failed:', err);
+    }
+  }
+
+  extractAirBin(meta: TimelineMeta, bin: Uint8Array, sstFrameSize = this.FRAME_SIZE) {
     const ag = meta.airGrid;
     if (!ag) return;
-    const sstBytes = meta.totalFrames * this.FRAME_SIZE;
+    const sstBytes = meta.totalFrames * sstFrameSize;
     const airPoints = ag.nLat * ag.nLon;
     const airBytes = meta.totalFrames * airPoints * 2;
     if (bin.byteLength >= sstBytes + airBytes) {
@@ -185,35 +247,11 @@ export class CurrentWeatherService {
     }
   }
 
-  private async fetchSstBinary(): Promise<Uint8Array> {
-    const r = await fetch('assets/data/timeline-sst.bin.gz', { cache: 'no-cache' });
+  private async fetchBinary(url: string): Promise<Uint8Array> {
+    const r = await fetch(url);
     if (!r.ok) throw new Error(`Binary HTTP ${r.status}`);
 
-    const total = Number(r.headers.get('content-length') ?? 0);
-    let rawBuf: ArrayBuffer;
-    if (r.body && total > 0 && typeof r.body.getReader === 'function') {
-      const reader = r.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let loaded = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.byteLength;
-        this.progress.set(Math.min(85, 25 + Math.round((loaded / total) * 60)));
-      }
-      const merged = new Uint8Array(loaded);
-      let offset = 0;
-      for (const chunk of chunks) {
-        merged.set(chunk, offset);
-        offset += chunk.byteLength;
-      }
-      rawBuf = merged.buffer;
-    } else {
-      rawBuf = await r.arrayBuffer();
-      this.progress.set(85);
-    }
-
+    const rawBuf = await r.arrayBuffer();
     const header = new Uint8Array(rawBuf, 0, 2);
     if (header[0] === 0x1f && header[1] === 0x8b && typeof DecompressionStream !== 'undefined') {
       const stream = new Response(rawBuf).body!.pipeThrough(new DecompressionStream('gzip'));
@@ -266,7 +304,7 @@ export class CurrentWeatherService {
   getKeyframePair(s: number): KeyframePair | null {
     // Read meta() first so computeds depending on this re-run once the data arrives
     const pair = this.getKeyframePairMeta(s);
-    return this.sstBin ? pair : null;
+    return (this.sstBin || this.sstLowBin) ? pair : null;
   }
 
   private getKeyframePairMeta(s: number): KeyframePair | null {
@@ -364,19 +402,21 @@ export class CurrentWeatherService {
 
   nino34Sst(s: number): number | null {
     const pair = this.getKeyframePair(s);
-    const bin = this.sstBin;
-    const g = this.meta()?.grid;
+    const bin = this.sstBin ?? this.sstLowBin;
+    const isLow = !this.sstBin && !!this.sstLowBin;
+    const g = isLow ? (this.meta()?.lowGrid ?? this.meta()?.grid) : this.meta()?.grid;
+    const frameSize = isLow ? ((g?.nLat ?? 90) * (g?.nLon ?? 180)) : this.FRAME_SIZE;
     if (!pair || !bin || !g) return null;
 
-    const offsetA = pair.indexA * this.FRAME_SIZE;
-    const offsetB = pair.indexB * this.FRAME_SIZE;
+    const offsetA = pair.indexA * frameSize;
+    const offsetB = pair.indexB * frameSize;
     let sum = 0;
     let n = 0;
 
-    for (let lat = -5; lat <= 5; lat += 1) {
+    for (let lat = -5; lat <= 5; lat += g.step) {
       const r = Math.round((lat - g.lat0) / g.step);
       if (r < 0 || r >= g.nLat) continue;
-      for (let lon = 190; lon <= 240; lon += 1) {
+      for (let lon = 190; lon <= 240; lon += g.step) {
         const lon180 = lon > 180 ? lon - 360 : lon;
         const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
         const i = r * g.nLon + c;
@@ -452,13 +492,15 @@ export class CurrentWeatherService {
 
     const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
 
-    // 1. Water SST from 0.5° NOAA OISST v2.1 keyframe grid (no spatial or temporal interpolation)
-    const bin = this.sstBin;
-    const g = this.meta()?.grid;
+    // 1. Water SST from NOAA OISST v2.1 keyframe grid (high-res 0.5° or preview 2.0°)
+    const bin = this.sstBin ?? this.sstLowBin;
+    const isLow = !this.sstBin && !!this.sstLowBin;
+    const g = isLow ? (this.meta()?.lowGrid ?? this.meta()?.grid) : this.meta()?.grid;
+    const frameSize = isLow ? ((g?.nLat ?? 90) * (g?.nLon ?? 180)) : this.FRAME_SIZE;
     if (kf && bin && g) {
       const r = Math.max(0, Math.min(g.nLat - 1, Math.round((lat - g.lat0) / g.step)));
       const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
-      const val = bin[kf.index * this.FRAME_SIZE + r * g.nLon + c];
+      const val = bin[kf.index * frameSize + r * g.nLon + c];
       if (val !== undefined && val !== 255) {
         waterTemp = val * 0.2 - 5.0;
       }

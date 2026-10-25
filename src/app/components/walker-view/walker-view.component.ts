@@ -233,6 +233,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private frame = (now: number) => {
     this.animId = requestAnimationFrame(this.frame);
+    if (typeof document !== 'undefined' && document.hidden) return;
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
     this.t += dt;

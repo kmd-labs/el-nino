@@ -5031,5 +5031,14 @@
       5.4,
       5.1
     ]
-  }
+  },
+  "lowGrid": {
+    "step": 2,
+    "nLat": 90,
+    "nLon": 180,
+    "lat0": -89,
+    "lon0": -179
+  },
+  "lowBinFile": "assets/data/timeline-sst-low.bin.gz",
+  "lowEncoding": "delta-u8"
 }

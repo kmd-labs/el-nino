@@ -22,6 +22,7 @@ const ROOT = resolve(__dirname, '..');
 const CACHE_DIR = resolve(__dirname, '.cache');
 const CACHE_FILE = resolve(CACHE_DIR, 'SR_50M.zip');
 const OUT_FILE = resolve(ROOT, 'src/assets/data/relief.bin.gz');
+const OUT_FILE_2K = resolve(ROOT, 'src/assets/data/relief-2k.bin.gz');
 
 const SRC_URL = 'https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip';
 
@@ -184,6 +185,19 @@ async function main() {
   const gz = gzipSync(Buffer.concat([header, small]), { level: 9 });
   await writeFile(OUT_FILE, gz);
   console.log(`Wrote ${OUT_FILE} (${(gz.length / 1048576).toFixed(2)} MB gzipped)`);
+
+  console.log(`Downsampling to 2048 x 1024 (relief-2k)...`);
+  const small2k = downsample(data, width, height, 2048, 1024);
+  const base2k = modeValue(small2k);
+  const header2k = Buffer.alloc(HEADER_BYTES);
+  header2k.writeUInt32BE(MAGIC, 0);
+  header2k.writeUInt16LE(2048, 4);
+  header2k.writeUInt16LE(1024, 6);
+  header2k.writeUInt8(base2k, 8);
+  header2k.writeUInt8(VERSION, 9);
+  const gz2k = gzipSync(Buffer.concat([header2k, small2k]), { level: 9 });
+  await writeFile(OUT_FILE_2K, gz2k);
+  console.log(`Wrote ${OUT_FILE_2K} (${(gz2k.length / 1048576).toFixed(2)} MB gzipped)`);
 }
 
 main().catch(err => {

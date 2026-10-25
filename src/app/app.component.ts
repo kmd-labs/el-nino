@@ -14,6 +14,7 @@ import { ShareLinkService } from './core/services/share-link.service';
 import { PageService } from './core/services/page.service';
 import { SeoService } from './core/services/seo.service';
 import { EnsoHistoryService } from './core/services/enso-history.service';
+import { CurrentWeatherService } from './core/services/current-weather.service';
 
 @Component({
   selector: 'app-root',
@@ -40,9 +41,11 @@ export class AppComponent {
   private shareLink = inject(ShareLinkService);
   private seo = inject(SeoService);
   private history = inject(EnsoHistoryService);
+  private weather = inject(CurrentWeatherService);
 
   constructor() {
-    // Needed by the dock's peak-probability readout, not just by the cycles view.
+    // Start weather and history loads immediately on page load
+    this.weather.load();
     this.history.load();
     this.page.initFromUrl();
   }

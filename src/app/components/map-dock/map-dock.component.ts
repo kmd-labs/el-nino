@@ -104,10 +104,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return Math.abs(s - 1.4) < 0.05;
   });
 
-  readonly activeSst = computed(() => this.weather.nino34Sst(this.state.sCur()));
-
-  readonly daily = computed(() => this.weather.dailyWeatherOn(this.state.sCur()));
-
   readonly isForecast = computed(() => this.weather.isForecast(this.state.sCur()));
 
   readonly dataReady = computed(() => this.weather.status() === 'ready');
@@ -124,11 +120,17 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     }));
   });
 
-  readonly dateMarkers = computed<DateMarker[]>(() => {
-    const t = this.i18n.t();
+  readonly activeDateMarkerId = computed<string>(() => {
     const sCur = this.state.sCur();
-    const lang = t.htmlLang;
+    if (Math.abs(sCur - -1.8) < 0.22) return 'm-nina';
+    if (Math.abs(sCur - 0.0) < 0.22) return 'm-neu';
+    if (Math.abs(sCur - 1.4) < 0.22) return 'm-now';
+    if (Math.abs(sCur - 2.6) < 0.22) return 'm-fc';
+    return '';
+  });
 
+  readonly dateMarkers = computed<Omit<DateMarker, 'active'>[]>(() => {
+    const t = this.i18n.t();
     const kfs = this.weather.meta()?.keyframes;
     const nowKf = kfs?.find(k => k.now) ?? kfs?.find(k => !k.forecast && Math.abs(k.s - 1.4) < 0.05);
     const fcKf = kfs?.find(k => k.forecast);
@@ -153,15 +155,13 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
       let subLabel: string | undefined;
       if (p.now) subLabel = t.live.toUpperCase();
       if (p.forecast) subLabel = t.timelineForecast;
-      const active = Math.abs(sCur - p.value) < 0.22;
 
       return {
         id: p.id,
         value: p.value,
         label,
         subLabel,
-        hot: p.hot,
-        active
+        hot: p.hot
       };
     });
   });

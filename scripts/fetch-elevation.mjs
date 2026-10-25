@@ -26,6 +26,7 @@ const ROOT = resolve(__dirname, '..');
 const CACHE_DIR = resolve(__dirname, '.cache');
 const CACHE_FILE = resolve(CACHE_DIR, 'ETOPO2v2c_i2_LSB.zip');
 const OUT_FILE = resolve(ROOT, 'src/assets/data/elevation.png');
+const OUT_FILE_1K = resolve(ROOT, 'src/assets/data/elevation-1k.png');
 
 const SRC_URL =
   'https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2/ETOPO2v2-2006/ETOPO2v2c/raw_binary/ETOPO2v2c_i2_LSB.zip';
@@ -181,6 +182,12 @@ async function main() {
   const png = encodeGreyPng(out, OUT_W, OUT_H);
   await writeFile(OUT_FILE, png);
   console.log(`Wrote ${OUT_FILE} (${(png.length / 1048576).toFixed(2)} MB)`);
+
+  console.log(`Downsampling to 1024 x 512 (elevation-1k)...`);
+  const { out: out1k } = downsampleLand(grid, 1024, 512);
+  const png1k = encodeGreyPng(out1k, 1024, 512);
+  await writeFile(OUT_FILE_1K, png1k);
+  console.log(`Wrote ${OUT_FILE_1K} (${(png1k.length / 1048576).toFixed(2)} MB)`);
 }
 
 main().catch(err => {
