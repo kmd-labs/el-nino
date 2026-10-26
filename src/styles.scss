@@ -104,11 +104,5 @@
 
 .popup-dialog:has(.about-page, .about-popup) {
   max-width: min(880px, calc(100vw - 32px));
-  max-height: min(90vh, 820px);
-}
-
-@include respond-to("mobile") {
-  .popup-backdrop {
-    padding-top: 56px !important;
-  }
+  max-height: min(calc(100vh - var(--popup-top-padding) - var(--spacing-lg, 16px)), 820px);
 }

@@ -1,10 +1,16 @@
 @let t = i18n.t();
 
-<div #wrap class="dock-wrap">
-  <div class="dock glass-panel">
-    <!-- Row 1: Status (Live), Niño 3.4 Readout & Date Lozenge (left), Legend & Glossary (right) -->
-    <div class="dock__row dock__row--readout" role="group" [attr.aria-label]="t.readoutTitle">
-      <div class="dock__header-group">
+<div class="dock-wrap">
+  <div #dockRef class="dock glass-panel">
+    <!-- Dock Top: 1 row on Desktop & Mobile Landscape; 2 rows on Mobile Portrait -->
+    <div class="dock__top">
+      <div class="dock__status-group" role="group" [attr.aria-label]="state.category().name">
+        @if (activeDateLabel()) {
+          <div class="dock__date-pill" role="status">
+            <span class="dock__date-val">{{ activeDateLabel() }}</span>
+          </div>
+        }
+
         @if (isNow()) {
           <div
             class="dock__status-pill dock__status-pill--live"
@@ -14,102 +20,39 @@
             <span class="dock__live-dot" aria-hidden="true"></span>
             <span class="dock__status-text">{{ t.live }}</span>
           </div>
-        } @else if (isForecast()) {
-          <button
-            type="button"
-            class="dock__status-pill dock__status-pill--forecast"
-            [appTooltip]="t.viewCycles"
-            [attr.aria-label]="t.cyclesAria"
-            (click)="openCycles()">
-            <span class="dock__status-text">{{ t.timelineForecast }}</span>
-            <lucide-icon [img]="cyclesIcon" [size]="11"></lucide-icon>
-          </button>
         }
 
+        <div
+          class="dock__phase-badge dock__phase-badge--{{ state.category().k }}"
+          [style.--phase-accent]="state.category().col"
+          role="status">
+          <span class="dock__phase-dot" aria-hidden="true"></span>
+          <span class="dock__phase-name">{{ state.category().name }}</span>
+        </div>
+      </div>
+
+      <div class="dock__readout-group" role="group" [attr.aria-label]="t.readoutTitle">
         <div class="dock__readout">
           <span class="dock__readout-label">{{ t.readoutTitle }}</span>
           <span class="dock__readout-val">{{ formattedNino() }}</span>
         </div>
 
-        <div class="dock__date-pill" role="status">
-          <span class="dock__date-val">{{ activeDateLabel() }}</span>
-        </div>
-
-        <a
-          class="dock__source"
-          [href]="sourceUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          [appTooltip]="t.readoutSource"
-          tooltipPlacement="top"
-          [attr.aria-label]="t.readoutSource">NOAA</a>
+        <app-legend-panel></app-legend-panel>
       </div>
-
-      <app-legend-panel></app-legend-panel>
     </div>
 
-    <!-- Row 2: every pill in one row above the timeline, left-aligned -->
-    <div class="dock__row dock__row--phases" role="group" [attr.aria-label]="t.ensoTab">
-      @for (p of phasePills(); track p.id) {
-        <app-button
-          class="dock__phase"
-          variant="toggle"
-          [active]="p.active"
-          [hot]="p.hot"
-          [appTooltip]="p.tip"
-          tooltipPlacement="top"
-          (btnClick)="onDateClick(p.value)">
-          {{ p.label }}
-        </app-button>
-      }
-      @if (nowPill(); as now) {
-        <app-button
-          class="dock__phase"
-          variant="toggle"
-          [active]="now.active"
-          [appTooltip]="now.tip"
-          tooltipPlacement="top"
-          (btnClick)="onDateClick(now.value)">
-          {{ now.label }}
-        </app-button>
-      }
-    </div>
-
-    <!-- Row 3: the timeline, full width -->
+    <!-- Row 2: the timeline, full width -->
     <div class="dock__row dock__row--enso" role="group" [attr.aria-label]="t.ensoTab">
       <div class="dock__timeline">
-        <!-- The date belonging to the NOW marker, pinned above it -->
-        <div class="dock__timeline-dates">
-          @for (dm of dateMarkers(); track dm.id) {
-            <div
-              class="dock__timeline-date"
-              [class.dock__timeline-date--active]="activeDateMarkerId() === dm.id"
-              [class.dock__timeline-date--hot]="dm.hot"
-              [style.left.%]="markerPct(dm.value)"
-              role="button"
-              tabindex="0"
-              (click)="onDateClick(dm.value)"
-              (keydown.enter)="onDateClick(dm.value)"
-              (keydown.space)="onDateClick(dm.value)">
-              @if (dm.subLabel) {
-                <span class="dock__timeline-sub">{{ dm.subLabel }}</span>
-              }
-              <span class="dock__timeline-label">{{ dm.label }}</span>
-            </div>
-          }
-        </div>
-
         <app-timeline-slider
           [style.--phase-ticks]="phaseTicks()"
-          [min]="-2"
-          [max]="3"
-          [step]="0.05"
+          [min]="-1.8"
+          [max]="1.4"
+          [step]="0.01"
           [value]="state.sTarget()"
-          [markers]="timelineMarkers()"
           [thumbColor]="state.category().col"
           [ariaLabel]="t.strengthAria"
-          (valueChange)="onSliderChange($event)"
-          (markerClick)="onMarkerClick($event)">
+          (valueChange)="onSliderChange($event)">
           <div timelineAction class="dock__play">
             <app-dropdown
               class="dock__speed"
@@ -124,6 +67,7 @@
               (valueChange)="state.setPlaybackSpeed($event)">
             </app-dropdown>
             <app-button
+              class="dock__play-btn"
               variant="play"
               [iconOnly]="true"
               [active]="state.isPlaying()"
@@ -131,9 +75,9 @@
               [titleText]="state.isPlaying() ? t.playStop : t.playStart"
               (btnClick)="state.togglePlaying()">
               @if (state.isPlaying()) {
-                <lucide-icon [img]="pauseIcon" [size]="14"></lucide-icon>
+                <lucide-icon [img]="pauseIcon" [size]="15"></lucide-icon>
               } @else {
-                <lucide-icon [img]="playIcon" [size]="14"></lucide-icon>
+                <lucide-icon [img]="playIcon" [size]="15"></lucide-icon>
               }
             </app-button>
           </div>

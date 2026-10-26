@@ -234,6 +234,8 @@ export const PL: Dict = {
   viewCycles: 'Poprzednie cykle i predykcja',
   cyclesAria: 'Poprzednie cykle ENSO i prognoza analogowa',
   cyclesTitle: 'Wszystkie zdarzenia ENSO od 1950 roku',
+  cyclesDetails: 'Dane i analogi',
+  cyclesDetailsTitle: 'Historia zdarzeń, prognoza analogowa i metodologia',
   cyclesNote: 'Każda linia to jedno zdarzenie: indeks Niño 3.4 (ONI, średnia krocząca z 3 miesięcy) w ciągu dwóch lat '
     + 'kalendarzowych. Sezony, na których opiera się prognoza, są wyróżnione; obecne zdarzenie to gruba linia.',
   cyclesBarrier: 'Prognoza analogowa to baza statystyczna, nie model dynamiczny. Pięć składowych wybranych z dziesięciu '
@@ -359,6 +361,9 @@ export const PL: Dict = {
   },
 
   sourcesTitle: 'Źródła danych i licencje',
+  dataSources: 'Dane',
+  dataSourcesTitle: 'Dane',
+  dataSourcesSubtitle: 'Zbiory danych, metodologia i atrybucja',
   sourcesList: [
     {
       name: 'NOAA OISST v2.1',

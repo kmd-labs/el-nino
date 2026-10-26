@@ -262,6 +262,8 @@ export interface Dict {
   viewCycles: string;
   cyclesAria: string;
   cyclesTitle: string;
+  cyclesDetails: string;
+  cyclesDetailsTitle: string;
   cyclesNote: string;
   cyclesBarrier: string;
   cyclesLegendPast: string;
@@ -299,6 +301,9 @@ export interface Dict {
   methodology: MethodologyText;
   built: BuiltText;
   sourcesTitle: string;
+  dataSources: string;
+  dataSourcesTitle: string;
+  dataSourcesSubtitle: string;
   sourcesList: SourceItem[];
 
   // globe inspection tooltip

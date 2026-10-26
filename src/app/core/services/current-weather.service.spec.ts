@@ -156,6 +156,12 @@ describe('CurrentWeatherService', () => {
     const landSample = service.samplePointAt(17.04, 51.11, 1.0);
     expect(landSample.waterTemp).toBeNull();
     expect(landSample.airTemp).toBeCloseTo(19.8, 1);
+
+    // Over land flag set explicitly
+    service.sstBin = new Uint8Array(360 * 720 * 2).fill(165); // would be 28°C if ocean
+    const explicitLandSample = service.samplePointAt(17.04, 51.11, 1.0, true);
+    expect(explicitLandSample.waterTemp).toBeNull();
+    expect(explicitLandSample.airTemp).toBeCloseTo(19.8, 1);
   });
 
   it('extracts packed weekly air temperature Int16Array from combined binary asset', () => {
@@ -213,38 +219,5 @@ describe('CurrentWeatherService', () => {
     const forecastSample = service.samplePointAt(0, 0, 2.0);
     expect(forecastSample.waterTemp).toBeNull();
     expect(forecastSample.airTemp).toBeNull();
-  });
-
-  it('correctly decodes low-res delta-encoded preview frames', () => {
-    const lowGrid = { step: 2.0, nLat: 2, nLon: 2, lat0: -89.0, lon0: -179.0 };
-    const lfSize = 4;
-    const meta: any = {
-      source: 'test',
-      sourceUrl: '',
-      sstSourceUrl: '',
-      fetchedAt: '',
-      totalFrames: 2,
-      lowGrid,
-      lowEncoding: 'delta-u8',
-      binFile: '',
-      keyframes: [
-        { index: 0, id: 'k0', date: '2024-11-06', s: -1.0, nino34: 0 },
-        { index: 1, id: 'k1', date: '2024-11-13', s: 1.0, nino34: 2 }
-      ]
-    };
-    // Frame 0: [100, 100, 100, 100], Frame 1: [105, 104, 103, 102]
-    // Delta for Frame 1: [5, 4, 3, 2]
-    const deltaBin = new Uint8Array([
-      100, 100, 100, 100,
-      5, 4, 3, 2
-    ]);
-
-    service['decodeLowRes'](meta, deltaBin);
-    expect(service.sstLowBin).toBeTruthy();
-    expect(service.sstLowBin?.[0]).toBe(100);
-    expect(service.sstLowBin?.[4]).toBe(105);
-    expect(service.sstLowBin?.[5]).toBe(104);
-    expect(service.sstLowBin?.[6]).toBe(103);
-    expect(service.sstLowBin?.[7]).toBe(102);
   });
 });

@@ -2,9 +2,9 @@
 
 .header {
   position: fixed;
-  top: 16px;
-  left: 16px;
-  right: 16px;
+  top: var(--header-offset-top, 16px);
+  left: var(--header-offset-x, 16px);
+  right: var(--header-offset-x, 16px);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,6 +17,7 @@
   &--popup-open {
     z-index: 120;
 
+    .header__actions,
     .header__share,
     .header__settings,
     .header__loading,
@@ -24,6 +25,36 @@
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+    }
+
+    .header__brand-expand {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 5px;
+      margin-left: 5px;
+      max-width: none;
+      opacity: 1 !important;
+      overflow: visible;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+
+    .header__brand-btn {
+      padding: 0 8px 0 6px !important;
+    }
+
+    .header__divider {
+      display: block !important;
+      height: 14px;
+    }
+
+    .header__cta {
+      display: inline-flex !important;
+      gap: 4px;
+    }
+
+    .header__cta-text {
+      font-size: font-size("xxs");
     }
   }
 
@@ -47,7 +78,7 @@
   &__brand {
     display: inline-flex;
     align-items: center;
-    height: 42px;
+    height: var(--kmd-brand-h, 42px);
     padding: 4px;
     border-radius: radius("pill");
     cursor: pointer;
@@ -149,6 +180,14 @@
     white-space: nowrap;
   }
 
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    transition: opacity transition("fast"), visibility transition("fast");
+  }
+
   &__share,
   &__settings {
     display: inline-flex;
@@ -216,9 +255,9 @@
   }
 
   @include respond-to("mobile") {
-    top: 10px;
-    left: 8px;
-    right: 8px;
+    top: var(--header-offset-top, 10px);
+    left: var(--header-offset-x, 8px);
+    right: var(--header-offset-x, 8px);
     gap: 8px;
     flex-wrap: nowrap;
 
@@ -312,10 +351,18 @@
       font-size: font-size("xxs");
     }
 
+    &__actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+    }
+
     &__share,
     &__settings {
       padding: 3px;
       height: 38px;
+      flex: none;
     }
 
     &__right {
@@ -326,7 +373,7 @@
     }
 
     &__view {
-      width: 140px;
+      width: 148px;
       height: 38px;
       padding: 3px;
       flex-shrink: 0;
@@ -355,6 +402,142 @@
         .dropdown__item {
           padding: 6px 10px;
           font-size: font-size("xxs");
+          gap: 6px;
+        }
+      }
+    }
+  }
+
+  @include respond-to("mobile-landscape") {
+    top: var(--header-offset-top, 8px);
+    left: var(--header-offset-x, max(8px, env(safe-area-inset-left, 8px)));
+    right: max(var(--header-offset-top, 8px), env(safe-area-inset-right, 8px));
+    align-items: center;
+
+    &__left {
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
+    &__brand-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+    }
+
+    &__brand {
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
+      height: var(--kmd-brand-h, 34px);
+      padding: 3px;
+      width: auto;
+      max-width: none;
+      overflow: visible;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    &__brand-btn {
+      height: 28px;
+      padding: 0 8px 0 6px;
+      gap: 0;
+    }
+
+    &__logo-img {
+      height: 13px;
+      width: 32px;
+    }
+
+    &__brand-expand {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 5px;
+      max-width: none;
+      opacity: 1;
+      overflow: visible;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+
+    &__divider {
+      height: 13px;
+    }
+
+    &__cta {
+      gap: 4px;
+    }
+
+    &__cta-text {
+      font-size: font-size("xxs");
+    }
+
+    &__actions {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+    }
+
+    &__share,
+    &__settings {
+      padding: 2px;
+      height: 34px;
+      flex: none;
+
+      ::ng-deep .btn {
+        width: 28px;
+        height: 28px;
+        min-height: 28px;
+        padding: 0;
+      }
+    }
+
+    &__loading {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    &__right {
+      align-self: center;
+      margin-left: auto;
+    }
+
+    &__view {
+      width: 210px;
+      height: 34px;
+      padding: 2px;
+      flex-shrink: 0;
+
+      ::ng-deep {
+        .btn {
+          padding: 3px 8px;
+          height: 28px;
+          min-height: 28px;
+          font-size: font-size("xs");
+          gap: 6px;
+        }
+
+        .dropdown__trigger-label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .dropdown__menu {
+          min-width: 190px;
+          max-width: calc(100vw - 16px);
+        }
+
+        .dropdown__item {
+          padding: 6px 10px;
+          font-size: font-size("xs");
           gap: 6px;
         }
       }

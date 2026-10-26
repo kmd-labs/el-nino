@@ -28,7 +28,7 @@ import { EVENTS_META } from '../../core/constants/enso-data';
 import { RAIN_REGIONS } from '../../core/constants/impacts-data';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { EnsoPhase, ImpactLocationMeta } from '../../core/models/enso.model';
-import { isAtMost } from '@kmd/design-system/utils/breakpoints';
+import { isAtMost, isMobileLandscape } from '@kmd/design-system/utils/breakpoints';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { TooltipService } from '@kmd/design-system/ui/tooltip/tooltip.service';
 import { ImpactModalComponent } from '../impact-modal/impact-modal.component';
@@ -41,6 +41,7 @@ interface PinItem {
   sp: THREE.Sprite;
   p: THREE.Vector3;
   a: number;
+  hoverA: number;
   phases: Set<EnsoPhase>;
 }
 
@@ -338,6 +339,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
   private lastS = 999;
   private lastMode = '';
+  private lastLayoutMode: 'portrait' | 'landscape' | 'desktop' | null = null;
 
   private uiResizeObs: ResizeObserver | null = null;
 
@@ -370,6 +372,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    const canvas = this.canvasRef?.nativeElement;
+    if (canvas) {
+      canvas.removeEventListener('pointermove', this.onPointerMoveBound);
     }
     this.uiResizeObs?.disconnect();
     if (this.animId !== null) {
@@ -421,6 +427,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.addEventListener('start', stopAutoRotate);
     canvas.addEventListener('wheel', stopAutoRotate, { passive: true });
     canvas.addEventListener('pointerdown', stopAutoRotate, { passive: true });
+    canvas.addEventListener('pointermove', this.onPointerMoveBound, { passive: true });
 
     this.hemiLight = new THREE.HemisphereLight(0xffffff, 0xdbe4f0, 1.25);
     this.scene.add(this.hemiLight);
@@ -429,9 +436,12 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     headLight.position.set(2, 3, 5);
     this.camera.add(headLight);
 
-    const isPortrait = window.innerWidth / window.innerHeight < 0.9;
+    const isLand = isMobileLandscape();
+    const portrait = !isLand && (window.innerWidth / window.innerHeight < 0.9 || isAtMost('mobile'));
     const zoomOut = 1 / 0.9;
-    this.math.pos(-165, 12, (isPortrait ? 26 : 16) * zoomOut, this.camera.position);
+    this.lastLayoutMode = isLand ? 'landscape' : portrait ? 'portrait' : 'desktop';
+    this.math.pos(-165, 12, (portrait ? 26 : isLand ? 8.5 : 16) * zoomOut, this.camera.position);
+    this.controls.minDistance = isLand ? 5.8 : (portrait ? 11 : 7.5);
     this.controls.update();
 
     // Glow / uniform drop shadow shader & soft bokeh background
@@ -575,7 +585,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const sc = 255 / (hi - lo);
     const pair = this.weather.getKeyframePair(s);
     const bin = this.weather.sstBin;
-    const lowBin = this.weather.sstLowBin;
 
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
     const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
@@ -610,47 +619,6 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
           this.texData[o + 2] = gb;
         }
         this.texData[o + 3] = 255;
-      }
-    } else if (pair && lowBin) {
-      // Fast progressive preview mapping (180x90 blocks into 720x360)
-      const lowW = 180;
-      const lowH = 90;
-      const lowNG = lowW * lowH;
-      const offsetA = pair.indexA * lowNG;
-      const offsetB = pair.indexB * lowNG;
-      const t = pair.t;
-
-      for (let lr = 0; lr < lowH; lr++) {
-        for (let lc = 0; lc < lowW; lc++) {
-          const li = lr * lowW + lc;
-          const va = lowBin[offsetA + li];
-          const vb = lowBin[offsetB + li];
-          let r = gr, g = gg, b = gb;
-          if (va !== 255 && vb !== 255) {
-            const vByte = va + (vb - va) * t;
-            const v = vByte * 0.2 - 5.0;
-            const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
-            if (dim) {
-              r = Math.round(245 * 0.62 + lut[k] * 0.38);
-              g = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
-              b = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
-            } else {
-              r = lut[k];
-              g = lut[k + 1];
-              b = lut[k + 2];
-            }
-          }
-          for (let dr = 0; dr < 4; dr++) {
-            const rowOffset = (lr * 4 + dr) * this.GW * 4;
-            for (let dc = 0; dc < 4; dc++) {
-              const o = rowOffset + (lc * 4 + dc) * 4;
-              this.texData[o] = r;
-              this.texData[o + 1] = g;
-              this.texData[o + 2] = b;
-              this.texData[o + 3] = 255;
-            }
-          }
-        }
       }
     } else {
       // Clean neutral grey while dataset is streaming
@@ -1151,6 +1119,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         sp,
         p,
         a: 0,
+        hoverA: 0,
         phases: new Set<EnsoPhase>(loc.ev.map(e => e.ph))
       };
     });
@@ -1238,18 +1207,33 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     const [sx, sy] = this.screenOf(pt.p);
     const t = this.i18n.t();
-    const sample = this.weather.samplePointAt(pt.lon, pt.lat, this.state.sCur());
-    const waterStr = sample.waterTemp != null
+    const isLand = this.isLand(pt.lon, pt.lat);
+    const sample = this.weather.samplePointAt(pt.lon, pt.lat, this.state.sCur(), isLand);
+    const waterStr = !isLand && sample.waterTemp != null
       ? this.localeTemp.transform(sample.waterTemp, 'temp')
       : (t.inspectNoWater || '-');
     const airStr = sample.airTemp != null
       ? this.localeTemp.transform(sample.airTemp, 'temp')
       : (t.inspectNoWater || '-');
     const coordsStr = t.inspectCoords(pt.lat, pt.lon);
-    const text = `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
+    const text = isLand
+      ? `${t.inspectAir}: ${airStr} · ${coordsStr}`
+      : `${t.inspectWater}: ${waterStr} · ${t.inspectAir}: ${airStr} · ${coordsStr}`;
 
     const waterIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--water"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>`;
     const airIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="globe-tooltip-col__icon globe-tooltip-col__icon--air"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
+
+    const waterRowHtml = !isLand
+      ? `
+          <div class="globe-tooltip-col__row">
+            <div class="globe-tooltip-col__label-group">
+              ${waterIconSvg}
+              <span class="globe-tooltip-col__label">${t.inspectWater}</span>
+            </div>
+            <span class="globe-tooltip-col__val">${waterStr}</span>
+          </div>
+        `
+      : '';
 
     const htmlString = `
       <div class="globe-tooltip-col">
@@ -1258,13 +1242,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
         </div>
         <div class="globe-tooltip-col__divider"></div>
         <div class="globe-tooltip-col__rows">
-          <div class="globe-tooltip-col__row">
-            <div class="globe-tooltip-col__label-group">
-              ${waterIconSvg}
-              <span class="globe-tooltip-col__label">${t.inspectWater}</span>
-            </div>
-            <span class="globe-tooltip-col__val">${waterStr}</span>
-          </div>
+          ${waterRowHtml}
           <div class="globe-tooltip-col__row">
             <div class="globe-tooltip-col__label-group">
               ${airIconSvg}
@@ -1598,7 +1576,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       pn.sp.visible = finalOpacity > 0.01;
 
       const isHighlighted = pn === this.hoverPin || (selectedLoc && pn.loc.id === selectedLoc.id);
-      const big = isHighlighted ? 1.4 : 1;
+      pn.hoverA += ((isHighlighted ? 1 : 0) - pn.hoverA) * Math.min(1, dt * 10);
+      const big = 1 + 0.4 * pn.hoverA;
       pn.sp.scale.setScalar((0.38 + 0.05 * Math.sin(t * 3 + pn.p.x)) * big * (0.6 + 0.4 * pn.a));
     }
   }
@@ -1639,12 +1618,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
     const pad = 3;
     const screenPad = 10;
-    const minTop = 64; // Below header pills
-    const maxTop = window.innerHeight - 130; // Above dock
+    const isLand = isMobileLandscape();
+    const minTop = isLand ? 46 : 64; // Below header pills
+    const maxTop = isLand ? window.innerHeight - 85 : window.innerHeight - 130; // Above dock
+    const maxScreenRight = window.innerWidth;
     for (const l of q) {
       const { w, h } = this.lblSize.get(l.el)!;
       const rawLeft = l.x - w / 2;
-      const left = Math.max(screenPad, Math.min(window.innerWidth - w - screenPad, rawLeft));
+      const left = Math.max(screenPad, Math.min(maxScreenRight - w - screenPad, rawLeft));
       const rawTop = l.y - 1.4 * h;
       let dyOk: number | null = null;
       for (const k of [0, -1, 1, -2, 2, -3]) {
@@ -1702,7 +1683,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     let best: PinItem | null = null;
     let bd = radius;
     for (const pn of this.pins) {
-      if (pn.a < 0.5 || this.facingOf(pn.p) < 0.12) continue;
+      if (pn.a < 0.2 || this.facingOf(pn.p) < 0.12) continue;
       const [sx, sy] = this.screenOf(pn.p);
       const d = Math.hypot(sx - x, sy - y);
       if (d < bd) {
@@ -1730,12 +1711,14 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     duration?: number,
     options?: { html?: SafeHtml | string; noWrap?: boolean; interactive?: boolean; closable?: boolean; onClose?: () => void }
   ) {
-    const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (window.innerWidth - 32) / 2);
-    const safeX = Math.max(halfW + 12, Math.min(window.innerWidth - halfW - 12, sx));
+    const isLand = isMobileLandscape();
+    const maxBoundW = window.innerWidth;
+    const halfW = options?.closable ? 95 : options?.noWrap ? 140 : Math.min(130, (maxBoundW - 32) / 2);
+    const safeX = Math.max(halfW + 12, Math.min(maxBoundW - halfW - 12, sx));
     const placement = sy < 120 ? 'bottom' : 'top';
     const safeY = placement === 'bottom'
-      ? Math.max(68, sy + 18)
-      : Math.min(window.innerHeight - 130, sy - 16);
+      ? Math.max(isLand ? 48 : 68, sy + 18)
+      : Math.min(isLand ? window.innerHeight - 85 : window.innerHeight - 130, sy - 16);
     this.tooltip.show(name, safeX, safeY, placement, duration, options);
   }
 
@@ -1775,6 +1758,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const pn = this.pickPin(e.clientX, e.clientY, e.pointerType === 'touch' ? 34 : 22);
     this.ngZone.run(() => {
       if (pn) {
+        this.hoverPin = null;
         this.clearInspectedPoint();
         this.tooltip.hide();
         const loc = pn.loc;
@@ -1819,6 +1803,10 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  private onPointerMoveBound = (e: PointerEvent) => {
+    this.onPointerMove(e);
+  };
+
   onPointerMove(e: PointerEvent) {
     if (e.pointerType !== 'mouse') {
       if (this.downXY && this.pinHoldTimer !== null) {
@@ -1829,24 +1817,35 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       }
       return;
     }
-    this.hoverPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
-    const canvas = this.canvasRef.nativeElement;
-    canvas.style.cursor = (this.hoverPin || this.inspectedPoint()) ? 'pointer' : '';
+    const nextPin = e.buttons ? null : this.pickPin(e.clientX, e.clientY, 22);
+    if (nextPin !== this.hoverPin) {
+      this.hoverPin = nextPin;
+      const canvas = this.canvasRef.nativeElement;
+      canvas.style.cursor = (this.hoverPin || this.inspectedPoint()) ? 'pointer' : '';
 
-    if (this.hoverPin) {
-      this.showPinTooltip(this.i18n.location(this.hoverPin.loc).name, e.clientX, e.clientY);
-    } else if (this.inspectedPoint()) {
-      // Keep inspection tooltip active at the pinned coordinates
-    } else {
-      this.tooltip.hide();
+      if (this.hoverPin) {
+        const [sx, sy] = this.screenOf(this.hoverPin.p);
+        this.ngZone.run(() => {
+          this.showPinTooltip(this.i18n.location(this.hoverPin!.loc).name, sx, sy);
+        });
+      } else if (!this.inspectedPoint()) {
+        this.ngZone.run(() => {
+          this.tooltip.hide();
+        });
+      }
     }
   }
 
   onPointerLeave() {
     this.clearPinHoldTimer();
-    this.hoverPin = null;
-    if (!this.inspectedPoint()) {
-      this.tooltip.hide();
+    if (this.hoverPin) {
+      this.hoverPin = null;
+      this.canvasRef.nativeElement.style.cursor = this.inspectedPoint() ? 'pointer' : '';
+      if (!this.inspectedPoint()) {
+        this.ngZone.run(() => {
+          this.tooltip.hide();
+        });
+      }
     }
   }
 
@@ -1855,23 +1854,24 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     if (!this.renderer || !this.camera) return;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const portrait = w / h < 0.9 || isAtMost('mobile');
+    const isLand = isMobileLandscape();
+    const portrait = !isLand && (w / h < 0.9 || isAtMost('mobile'));
+    const layoutMode: 'portrait' | 'landscape' | 'desktop' = isLand ? 'landscape' : portrait ? 'portrait' : 'desktop';
+
+    if (this.lastLayoutMode && this.lastLayoutMode !== layoutMode) {
+      const zoomOut = 1 / 0.9;
+      const targetDist = (portrait ? 26 : isLand ? 8.5 : 16) * zoomOut;
+      this.camera.position.setLength(targetDist);
+    }
+    this.lastLayoutMode = layoutMode;
 
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-
-    // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
-    const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
-    const dockEl = document.querySelector('.dock-wrap');
-    const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : 52);
-    const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : 130;
-
-    // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
-    const offsetY = (bottomOccupied - topOccupied) / 2;
-    this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+    this.camera.clearViewOffset();
+    this.controls.minDistance = isLand ? 5.8 : (portrait ? 11 : 7.5);
 
     this.camera.updateProjectionMatrix();
-    this.controls.minDistance = portrait ? 11 : 7.5;
+    this.controls.update();
   }
 
   private animate = () => {
@@ -1894,9 +1894,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const s = this.state.sCur();
     const impacts = this.state.view() === 'impacts';
     const weatherReady = this.weather.status() === 'ready';
-    const hiRes = this.weather.highResReady();
+    const physS = this.state.sceneS();
 
-    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${hiRes ? 'hi' : 'low'}:${Math.round(s * 80)}`;
+    const textureKey = `${impacts ? 'impacts' : 'globe'}:${weatherReady}:${Math.round(s * 80)}`;
     if (Math.abs(s - this.lastS) > 0.012 || textureKey !== this.lastMode) {
       this.recolorTexture(s, impacts);
       this.lastS = s;
@@ -1917,7 +1917,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.ensoWaveLines.visible = !weatherReady;
     }
     if (showAtm) {
-      this.updateAtm(s, dt, t);
+      this.updateAtm(physS, dt, t);
     }
 
     this.currentLayer.group.visible = showAtm && weatherReady;
@@ -1935,17 +1935,32 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     this.controls.update();
     this.camDir.copy(this.camera.position).normalize();
 
-    // Only update labels, pins, and DOM transforms when camera or strength has changed
+    // Update pins continuously so they smoothly pulse, fade in/out, and transition hover scale
+    this.updatePins(t, dt);
+
+    // Only update labels and DOM transforms when camera or strength has changed
     const camMoved = this.camera.position.distanceToSquared(this.lastCamPos) > 1e-5;
     const sChanged = Math.abs(s - this.lastLabelS) > 0.005;
 
-    if (camMoved || sChanged || this.hoverPin || this.inspectedPoint()) {
-      this.updatePins(t, dt);
-      this.updateLabels(s);
-      this.updateImpacts(s, dt);
+    if (camMoved || sChanged) {
+      this.updateLabels(physS);
+      this.updateImpacts(physS, dt);
       this.layoutLabels();
       this.lastLabelS = s;
       this.lastCamPos.copy(this.camera.position);
+
+      if (this.hoverPin) {
+        if (this.facingOf(this.hoverPin.p) < 0.12) {
+          this.hoverPin = null;
+          this.canvasRef.nativeElement.style.cursor = this.inspectedPoint() ? 'pointer' : '';
+          this.ngZone.run(() => this.tooltip.hide());
+        } else {
+          const [sx, sy] = this.screenOf(this.hoverPin.p);
+          this.ngZone.run(() => {
+            this.showPinTooltip(this.i18n.location(this.hoverPin!.loc).name, sx, sy);
+          });
+        }
+      }
     }
 
     if (this.inspectedPoint()) {

@@ -53,9 +53,6 @@ export interface TimelineMeta {
   sstSourceUrl: string;
   fetchedAt: string;
   grid: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
-  lowGrid?: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
-  lowBinFile?: string;
-  lowEncoding?: string;
   airGrid?: { step: number; nLat: number; nLon: number; lat0: number; lon0: number };
   totalFrames: number;
   binFile: string;
@@ -183,13 +180,8 @@ export class CurrentWeatherService {
     // tier — that is what the forecast marker is there for. Picking the plain warmest
     // frame instead would drop this anchor onto NOW whenever the scenario sits below
     // the current observation, stacking two markers on one position.
-    const fc = kfs.find(k => k.forecast);
     const warmestObs = obs.reduce((a, b) => (b.nino34 > a.nino34 ? b : a));
-    const sup = fc && fc.nino34 >= PHASE_THRESHOLDS.super
-      ? fc
-      : warmestObs.nino34 >= PHASE_THRESHOLDS.super
-        ? warmestObs
-        : undefined;
+    const sup = warmestObs.nino34 >= PHASE_THRESHOLDS.super ? warmestObs : undefined;
 
     // A phase the record never reached simply gets no anchor.
     const pairs: [EnsoPhase, TimelineKeyframeMeta | undefined][] = [
@@ -207,10 +199,6 @@ export class CurrentWeatherService {
   // Packed 0.5° Uint8Array for all weekly frames (frameSize = 720 * 360 = 259,200 bytes)
   sstBin: Uint8Array | null = null;
   readonly FRAME_SIZE = 720 * 360;
-
-  // Packed 2.0° Uint8Array for all weekly frames (preview, lowFrameSize = 180 * 90 = 16,200 bytes)
-  sstLowBin: Uint8Array | null = null;
-  readonly LOW_FRAME_SIZE = 180 * 90;
   readonly highResReady = signal<boolean>(false);
 
   // Packed 10° Int16Array (tenths of °C) for all weekly frames (612 values per frame)
@@ -234,7 +222,6 @@ export class CurrentWeatherService {
     this.status.set('loading');
     this.progress.set(10);
 
-    // Stage 1: Load metadata + lightweight low-res preview binary (~470 KB) on critical path
     fetch('assets/data/timeline-meta.json')
       .then(r => {
         if (!r.ok) throw new Error(`Meta HTTP ${r.status}`);
@@ -242,24 +229,6 @@ export class CurrentWeatherService {
       })
       .then(async meta => {
         this.progress.set(30);
-        // Try fetching low-res preview binary first
-        const lowUrl = meta.lowBinFile || 'assets/data/timeline-sst-low.bin.gz';
-        try {
-          const lowBin = await this.fetchBinary(lowUrl);
-          this.decodeLowRes(meta, lowBin);
-          this.prepareOpenMeteo(meta.openMeteo);
-          this.meta.set(meta);
-          this.status.set('ready');
-          this.progress.set(100);
-
-          // Stage 2: Stream high-res 0.5° dataset in background without blocking interaction
-          setTimeout(() => this.streamHighRes(meta), 60);
-          return;
-        } catch (err) {
-          console.warn('Low-res preview unavailable, falling back to full-res:', err);
-        }
-
-        // Direct fallback: load full-res binary
         const fullBin = await this.fetchBinary(meta.binFile || 'assets/data/timeline-sst.bin.gz');
         this.sstBin = fullBin;
         this.extractAirBin(meta, fullBin, this.FRAME_SIZE);
@@ -274,42 +243,6 @@ export class CurrentWeatherService {
         this.status.set('error');
         this.progress.set(100);
       });
-  }
-
-  private decodeLowRes(meta: TimelineMeta, bin: Uint8Array) {
-    const lg = meta.lowGrid;
-    const lowFrameSize = lg ? lg.nLat * lg.nLon : this.LOW_FRAME_SIZE;
-    const totalFrames = meta.totalFrames;
-    const sstBytes = totalFrames * lowFrameSize;
-
-    let sstSlice = bin.subarray(0, sstBytes);
-    if (meta.lowEncoding === 'delta-u8') {
-      const reconstructed = new Uint8Array(sstBytes);
-      reconstructed.set(sstSlice.subarray(0, lowFrameSize), 0);
-      for (let f = 1; f < totalFrames; f++) {
-        const cur = f * lowFrameSize;
-        const prev = (f - 1) * lowFrameSize;
-        for (let i = 0; i < lowFrameSize; i++) {
-          reconstructed[cur + i] = (reconstructed[prev + i] + sstSlice[cur + i]) & 0xff;
-        }
-      }
-      this.sstLowBin = reconstructed;
-    } else {
-      this.sstLowBin = new Uint8Array(sstSlice);
-    }
-
-    this.extractAirBin(meta, bin, lowFrameSize);
-  }
-
-  private async streamHighRes(meta: TimelineMeta) {
-    try {
-      const bin = await this.fetchBinary(meta.binFile || 'assets/data/timeline-sst.bin.gz');
-      this.sstBin = bin;
-      this.extractAirBin(meta, bin, this.FRAME_SIZE);
-      this.highResReady.set(true);
-    } catch (err) {
-      console.warn('Background high-res SST stream failed:', err);
-    }
   }
 
   extractAirBin(meta: TimelineMeta, bin: Uint8Array, sstFrameSize = this.FRAME_SIZE) {
@@ -381,7 +314,7 @@ export class CurrentWeatherService {
   getKeyframePair(s: number): KeyframePair | null {
     // Read meta() first so computeds depending on this re-run once the data arrives
     const pair = this.getKeyframePairMeta(s);
-    return (this.sstBin || this.sstLowBin) ? pair : null;
+    return this.sstBin ? pair : null;
   }
 
   private getKeyframePairMeta(s: number): KeyframePair | null {
@@ -519,10 +452,9 @@ export class CurrentWeatherService {
 
   nino34Sst(s: number): number | null {
     const pair = this.getKeyframePair(s);
-    const bin = this.sstBin ?? this.sstLowBin;
-    const isLow = !this.sstBin && !!this.sstLowBin;
-    const g = isLow ? (this.meta()?.lowGrid ?? this.meta()?.grid) : this.meta()?.grid;
-    const frameSize = isLow ? ((g?.nLat ?? 90) * (g?.nLon ?? 180)) : this.FRAME_SIZE;
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    const frameSize = this.FRAME_SIZE;
     if (!pair || !bin || !g) return null;
 
     const offsetA = pair.indexA * frameSize;
@@ -593,7 +525,7 @@ export class CurrentWeatherService {
       });
   }
 
-  samplePointAt(lon: number, lat: number, s: number): PointSample {
+  samplePointAt(lon: number, lat: number, s: number, isLand?: boolean): PointSample {
     let waterTemp: number | null = null;
     let airTemp: number | null = null;
 
@@ -609,12 +541,11 @@ export class CurrentWeatherService {
 
     const lon180 = ((lon + 180) % 360 + 360) % 360 - 180;
 
-    // 1. Water SST from NOAA OISST v2.1 keyframe grid (high-res 0.5° or preview 2.0°)
-    const bin = this.sstBin ?? this.sstLowBin;
-    const isLow = !this.sstBin && !!this.sstLowBin;
-    const g = isLow ? (this.meta()?.lowGrid ?? this.meta()?.grid) : this.meta()?.grid;
-    const frameSize = isLow ? ((g?.nLat ?? 90) * (g?.nLon ?? 180)) : this.FRAME_SIZE;
-    if (kf && bin && g) {
+    // 1. Water SST from NOAA OISST v2.1 keyframe grid (high-res 0.5°). Skip if point is on land.
+    const bin = this.sstBin;
+    const g = this.meta()?.grid;
+    const frameSize = this.FRAME_SIZE;
+    if (!isLand && kf && bin && g) {
       const r = Math.max(0, Math.min(g.nLat - 1, Math.round((lat - g.lat0) / g.step)));
       const c = ((Math.round((lon180 - g.lon0) / g.step) % g.nLon) + g.nLon) % g.nLon;
       const val = bin[kf.index * frameSize + r * g.nLon + c];

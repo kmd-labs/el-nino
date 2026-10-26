@@ -6,17 +6,35 @@
 
 <section class="cycles" [attr.aria-label]="t.cyclesAria">
   <div class="cycles__head glass-panel">
-    <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
-    <span class="cycles__title">{{ t.cyclesTitle }}</span>
-    @if (data) {
-      <span class="cycles__meta">{{ t.cyclesRecordNote(data.index.firstMonth, data.index.lastMonth) }}</span>
-    }
-    @if (prov) {
-      <span class="cycles__meta cycles__meta--prov">
-        {{ monthLabel(prov.month) }} {{ formatOni(prov.oni, 1) }} °C ·
-        {{ t.cyclesProvisional(dayLabel(prov.lastWeek)) }}
-      </span>
-    }
+    <div class="cycles__head-left">
+      <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
+      <span class="cycles__title">{{ t.cyclesTitle }}</span>
+      @if (prov) {
+        <span class="cycles__meta cycles__meta--prov">
+          {{ monthLabel(prov.month) }} {{ formatOni(prov.oni, 1) }} °C ·
+          {{ t.cyclesProvisional(dayLabel(prov.lastWeek)) }}
+        </span>
+      }
+    </div>
+
+    <div class="cycles__head-right">
+      <div class="cycles__legend">
+        <span class="cycles__key cycles__key--past">{{ t.cyclesLegendPast }}</span>
+        <span class="cycles__key cycles__key--analog">{{ t.cyclesLegendAnalog }}</span>
+        <span class="cycles__key cycles__key--current">{{ t.cyclesLegendCurrent }}</span>
+        <span class="cycles__key cycles__key--forecast">{{ t.cyclesLegendForecast }}</span>
+      </div>
+
+      <app-button
+        variant="ghost"
+        [iconOnly]="false"
+        [ariaLabel]="t.cyclesDetails"
+        [titleText]="t.cyclesDetailsTitle"
+        (btnClick)="openDetails()">
+        <lucide-icon [img]="tableIcon" [size]="14"></lucide-icon>
+        <span class="cycles__btn-text">{{ t.cyclesDetails }}</span>
+      </app-button>
+    </div>
   </div>
 
   <div class="cycles__body">
@@ -29,9 +47,15 @@
         <p class="cycles__state">{{ t.cyclesError }}</p>
       }
     </div>
+  </div>
+</section>
 
-    <aside class="cycles__side">
-      <div class="cycles__panel glass-panel">
+<!-- Modal Template: Dense tables, analog members, and methodology notes -->
+<ng-template #detailsTpl>
+  <div class="cycles-details">
+    <div class="cycles-details__grid">
+      <!-- 1. Strongest El Niño Events Catalogue -->
+      <div class="cycles-details__panel glass-panel">
         <h3>{{ t.cyclesCatalogue }}</h3>
         <table class="cycles__table">
           <thead>
@@ -57,8 +81,9 @@
         </table>
       </div>
 
+      <!-- 2. Analog Members Breakdown -->
       @if (forecast) {
-        <div class="cycles__panel glass-panel">
+        <div class="cycles-details__panel glass-panel">
           <h3>{{ t.cyclesAnalogTitle }}</h3>
           <p class="cycles__sub">{{ t.cyclesAnalogNote(forecast.windowMonths, forecast.analogs.length) }}</p>
           <ul class="cycles__analogs">
@@ -75,27 +100,25 @@
           }
         </div>
       }
-    </aside>
-  </div>
-
-  <div class="cycles__foot">
-    <div class="cycles__legend">
-      <span class="cycles__key cycles__key--past">{{ t.cyclesLegendPast }}</span>
-      <span class="cycles__key cycles__key--analog">{{ t.cyclesLegendAnalog }}</span>
-      <span class="cycles__key cycles__key--current">{{ t.cyclesLegendCurrent }}</span>
-      <span class="cycles__key cycles__key--forecast">{{ t.cyclesLegendForecast }}</span>
     </div>
-    <p class="cycles__note">{{ t.cyclesNote }}</p>
-    <p class="cycles__note cycles__note--warn">{{ t.cyclesBarrier }}</p>
-    @if (data) {
-      <p class="cycles__sources">
-        @for (s of data.sources; track s.id) {
-          <a [href]="s.url" [title]="s.title" target="_blank" rel="noopener noreferrer">
-            <span>{{ s.id }}</span>
-            <lucide-icon [img]="externalLinkIcon" [size]="11"></lucide-icon>
-          </a>
-        }
-      </p>
-    }
+
+    <!-- 3. Notes & Methodology Footer -->
+    <div class="cycles-details__foot">
+      @if (data) {
+        <p class="cycles__record-note">{{ t.cyclesRecordNote(data.index.firstMonth, data.index.lastMonth) }}</p>
+      }
+      <p class="cycles__note">{{ t.cyclesNote }}</p>
+      <p class="cycles__note cycles__note--warn">{{ t.cyclesBarrier }}</p>
+      @if (data) {
+        <p class="cycles__sources">
+          @for (s of data.sources; track s.id) {
+            <a [href]="s.url" [title]="s.title" target="_blank" rel="noopener noreferrer">
+              <span>{{ s.id }}</span>
+              <lucide-icon [img]="externalLinkIcon" [size]="11"></lucide-icon>
+            </a>
+          }
+        </p>
+      }
+    </div>
   </div>
-</section>
+</ng-template>

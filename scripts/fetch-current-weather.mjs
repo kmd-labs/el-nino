@@ -8,7 +8,6 @@ import h5wasm from 'h5wasm/node';
 const DIR = dirname(fileURLToPath(import.meta.url));
 const OUT_META = resolve(DIR, '../src/assets/data/timeline-meta.json');
 const OUT_BIN_GZ = resolve(DIR, '../src/assets/data/timeline-sst.bin.gz');
-const OUT_BIN_LOW_GZ = resolve(DIR, '../src/assets/data/timeline-sst-low.bin.gz');
 const CACHE_DIR = resolve(DIR, '.cache');
 
 const OISST_DIR = 'https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr';
@@ -632,32 +631,22 @@ async function main() {
 
   const airGrids = await fetchWeeklyAirGrids(validDates, existingMeta, existingBin);
 
-  console.log(`Synthesizing global forecast frame from latest observed frame (${validDates[validDates.length - 1].iso})...`);
-  const lastObservedIdx = grids.length - 1;
-  const forecastGrid = synthesizeForecast(grids[lastObservedIdx]);
-  const forecastAirGrid = new Int16Array(AIR_FRAME_POINTS).fill(AIR_MISSING);
-
-  // Combined frames: all observed frames + 1 forecast frame (SST followed by Int16 2m air temperature)
-  const totalFrames = grids.length + 1;
+  // Combined frames: observed frames (SST followed by Int16 2m air temperature)
+  const totalFrames = grids.length;
   const sstBytes = totalFrames * FRAME_POINTS;
   const airBytes = totalFrames * AIR_FRAME_POINTS * 2;
   const combinedBin = new Uint8Array(sstBytes + airBytes);
   for (let f = 0; f < grids.length; f++) {
     combinedBin.set(grids[f], f * FRAME_POINTS);
   }
-  combinedBin.set(forecastGrid, grids.length * FRAME_POINTS);
 
   const combinedAir = new Int16Array(combinedBin.buffer, combinedBin.byteOffset + sstBytes, totalFrames * AIR_FRAME_POINTS);
   for (let f = 0; f < airGrids.length; f++) {
     combinedAir.set(airGrids[f], f * AIR_FRAME_POINTS);
   }
-  combinedAir.set(forecastAirGrid, airGrids.length * AIR_FRAME_POINTS);
 
-  const forecastDateObj = new Date(`${validDates[lastObservedIdx].iso}T12:00:00Z`);
-  forecastDateObj.setUTCDate(forecastDateObj.getUTCDate() + 56);
-  const forecastDate = { iso: forecastDateObj.toISOString().slice(0, 10), forecast: true };
-  const allDates = [...validDates, forecastDate];
-  const allNino34 = [...nino34Values, round1(nino34Values[lastObservedIdx] + 1.1)];
+  const allDates = [...validDates];
+  const allNino34 = [...nino34Values];
 
   // Compress with gzip
   console.log(`Compressing ${totalFrames} frames (${(combinedBin.byteLength / 1024 / 1024).toFixed(1)} MB uncompressed)...`);
@@ -665,62 +654,18 @@ async function main() {
   await writeFile(OUT_BIN_GZ, gzippedBin);
   console.log(`Wrote ${OUT_BIN_GZ}: ${(gzippedBin.byteLength / 1024 / 1024).toFixed(2)} MB (${(gzippedBin.byteLength / 1024).toFixed(0)} KB)`);
 
-  // Generate lightweight 2.0° low-res preview binary (180x90, delta-encoded across time)
-  console.log(`Generating low-res (2.0° 180x90) preview binary...`);
-  const LOW_N_LAT = 90;
-  const LOW_N_LON = 180;
-  const LOW_FRAME_POINTS = LOW_N_LAT * LOW_N_LON;
-  const lowSstBytes = totalFrames * LOW_FRAME_POINTS;
-  const lowCombinedBin = new Uint8Array(lowSstBytes + airBytes);
-
-  for (let f = 0; f < totalFrames; f++) {
-    const src = combinedBin.subarray(f * FRAME_POINTS, (f + 1) * FRAME_POINTS);
-    const dstOffset = f * LOW_FRAME_POINTS;
-    for (let r = 0; r < LOW_N_LAT; r++) {
-      for (let c = 0; c < LOW_N_LON; c++) {
-        let sum = 0, count = 0;
-        for (let dr = 0; dr < 4; dr++) {
-          for (let dc = 0; dc < 4; dc++) {
-            const v = src[(r * 4 + dr) * N_LON + (c * 4 + dc)];
-            if (v !== 255) { sum += v; count++; }
-          }
-        }
-        lowCombinedBin[dstOffset + r * LOW_N_LON + c] = count > 0 ? Math.round(sum / count) : 255;
-      }
-    }
-  }
-  lowCombinedBin.set(combinedBin.subarray(sstBytes), lowSstBytes); // Copy airGrid
-
-  // Delta-encode low-res frames
-  const lowDeltaBin = new Uint8Array(lowCombinedBin.byteLength);
-  lowDeltaBin.set(lowCombinedBin.subarray(0, LOW_FRAME_POINTS), 0);
-  for (let f = 1; f < totalFrames; f++) {
-    const cur = f * LOW_FRAME_POINTS;
-    const prev = (f - 1) * LOW_FRAME_POINTS;
-    for (let i = 0; i < LOW_FRAME_POINTS; i++) {
-      lowDeltaBin[cur + i] = (lowCombinedBin[cur + i] - lowCombinedBin[prev + i]) & 0xff;
-    }
-  }
-  lowDeltaBin.set(lowCombinedBin.subarray(lowSstBytes), lowSstBytes);
-
-  const gzippedLowBin = gzipSync(lowDeltaBin, { level: 9 });
-  await writeFile(OUT_BIN_LOW_GZ, gzippedLowBin);
-  console.log(`Wrote ${OUT_BIN_LOW_GZ}: ${(gzippedLowBin.byteLength / 1024).toFixed(0)} KB (down from ${(gzippedBin.byteLength / 1024).toFixed(0)} KB)`);
-
   // Build metadata manifest
   const keyframesMeta = allDates.map((item, idx) => {
-    const isLast = idx === allDates.length - 1;
-    const isNow = !isLast && idx === allDates.length - 2;
-    const s = isLast ? 2.6 : -1.8 + (idx / Math.max(1, allDates.length - 2)) * (1.4 - -1.8);
+    const isNow = idx === allDates.length - 1;
+    const s = -1.8 + (idx / Math.max(1, allDates.length - 1)) * (1.4 - -1.8);
     const nino34 = allNino34[idx];
     return {
       index: idx,
-      id: item.forecast ? 'forecast' : isNow ? 'now' : `w${String(idx).padStart(3, '0')}`,
+      id: isNow ? 'now' : `w${String(idx).padStart(3, '0')}`,
       date: item.iso,
       s: round3(s),
       nino34,
-      now: isNow || undefined,
-      forecast: item.forecast || undefined
+      now: isNow || undefined
     };
   });
 
@@ -730,9 +675,6 @@ async function main() {
     sstSourceUrl: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
     fetchedAt: new Date().toISOString(),
     grid: { step: 0.5, nLat: N_LAT, nLon: N_LON, lat0: -89.75, lon0: -179.75 },
-    lowGrid: { step: 2.0, nLat: LOW_N_LAT, nLon: LOW_N_LON, lat0: -89.0, lon0: -179.0 },
-    lowBinFile: 'assets/data/timeline-sst-low.bin.gz',
-    lowEncoding: 'delta-u8',
     airGrid: { step: AIR_STEP, nLat: AIR_N_LAT, nLon: AIR_N_LON, lat0: AIR_LAT0, lon0: AIR_LON0 },
     totalFrames,
     binFile: 'assets/data/timeline-sst.bin.gz',

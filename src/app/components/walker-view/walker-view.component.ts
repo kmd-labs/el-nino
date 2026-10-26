@@ -11,7 +11,8 @@ import {
   computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-angular';
+import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play, Info } from 'lucide-angular';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
@@ -63,7 +64,7 @@ const SEA_DEPTH = 300; // m shown below the surface
 @Component({
   selector: 'app-walker-view',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TooltipDirective],
   templateUrl: './walker-view.component.html',
   styleUrl: './walker-view.component.scss'
 })
@@ -83,6 +84,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly chevronRightIcon = ChevronRight;
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
+  readonly infoIcon = Info;
 
   readonly steps = STEPS;
   /** Current walkthrough step; −1 = not started, the view just shows the current ENSO state. */
@@ -281,7 +283,7 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const { W, H } = this;
     const s = this.sceneS();
     const ys = this.ys;
-    const xc = Math.max(128, this.math.convLon(s));
+    const xc = this.math.convLon(s);
     const trade = this.math.trade(s);
 
     ctx.clearRect(0, 0, W, H);
@@ -334,10 +336,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
    * `s` is the lesson, so it is used as given.
    */
   private sceneS(): number {
-    const sliderS = this.state.sCur();
-    if (this.step() >= 0) return sliderS;
-    const observed = this.weather.nino34AnomSmoothedAt(sliderS);
-    return observed === null ? sliderS : this.math.clamp(this.math.sForNino34(observed), -2, 3);
+    if (this.step() >= 0) return STEPS[this.step()].s;
+    return this.state.sceneS();
   }
 
   /**

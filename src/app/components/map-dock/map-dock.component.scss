@@ -1,15 +1,10 @@
 @use "variables" as *;
 
-// The date strip above the rail; the phase pills are pushed down by exactly this much so they
-// end up level with the NOW marker.
-$dates-h: 32px;
-$dates-gap: 4px;
-
 .dock-wrap {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  left: var(--dock-offset-x, 16px);
+  right: var(--dock-offset-x, 16px);
+  bottom: var(--dock-offset-bottom, calc(16px + env(safe-area-inset-bottom, 0px)));
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -68,31 +63,6 @@ $dates-gap: 4px;
         border-color: rgba(220, 38, 38, 0.5);
       }
     }
-
-    // A button: it opens the cycles chart, which is the only place that actually
-    // projects this part of the timeline.
-    &--forecast {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      color: color("primary-600");
-      font: inherit;
-      font-size: font-size("xxs");
-      font-weight: font-weight("bold");
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background transition("fast"), border-color transition("fast");
-
-      &:hover {
-        background: rgba(59, 130, 246, 0.18);
-        border-color: rgba(59, 130, 246, 0.55);
-      }
-
-      &:focus-visible {
-        outline: 2px solid color("accent");
-        outline-offset: 2px;
-      }
-    }
   }
 
   &__live-dot {
@@ -105,6 +75,60 @@ $dates-gap: 4px;
   }
 
   &__status-text {
+    line-height: 1;
+  }
+
+  &__phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: radius("pill");
+    font-size: font-size("xs");
+    font-weight: font-weight("semibold");
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid color("line");
+    background: color("btn-bg");
+    color: color("text-bright");
+    flex-shrink: 0;
+    transition: background transition("fast"), border-color transition("fast"), color transition("fast");
+
+    &--nina {
+      border-color: rgba(2, 132, 199, 0.4);
+      background: rgba(2, 132, 199, 0.12);
+      color: #0284c7;
+    }
+
+    &--neu {
+      border-color: rgba(100, 116, 139, 0.35);
+      background: rgba(100, 116, 139, 0.08);
+      color: color("text-main");
+    }
+
+    &--nino {
+      border-color: rgba(234, 88, 12, 0.4);
+      background: rgba(234, 88, 12, 0.12);
+      color: #ea580c;
+    }
+
+    &--super {
+      border-color: rgba(220, 38, 38, 0.45);
+      background: rgba(220, 38, 38, 0.14);
+      color: #dc2626;
+    }
+  }
+
+  &__phase-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--phase-accent, currentColor);
+    flex-shrink: 0;
+  }
+
+  &__phase-name {
     line-height: 1;
   }
 
@@ -126,8 +150,8 @@ $dates-gap: 4px;
 
   &__readout {
     display: inline-flex;
-    align-items: center;
-    gap: 8px 10px;
+    align-items: baseline;
+    gap: 6px;
     flex-wrap: nowrap;
     white-space: nowrap;
     flex: none;
@@ -158,23 +182,43 @@ $dates-gap: 4px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
+    line-height: 1;
+    align-self: baseline;
   }
 
   &__readout-val {
     font-size: font-size("lg");
     font-weight: font-weight("bold");
     font-variant-numeric: tabular-nums;
-    line-height: 1.1;
+    line-height: 1;
     color: color("text-bright");
     white-space: nowrap;
+    align-self: baseline;
   }
 
-  &__divider {
-    width: 1px;
-    height: 18px;
-    background: color("line-strong");
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  &__status-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  &__readout-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
     flex: none;
-    margin: 0 4px;
   }
 
   &__row {
@@ -183,155 +227,22 @@ $dates-gap: 4px;
     justify-content: space-between;
     gap: 12px;
 
-    &--readout {
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: nowrap;
-      white-space: nowrap;
-      width: 100%;
-    }
-
-    // Every pill lives here, left-aligned, directly under the header rule; the timeline below
-    // keeps the full width of the dock.
-    &--phases {
-      justify-content: flex-start;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding-top: 10px;
-      border-top: 1px solid color("line");
-    }
-
     &--enso {
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      padding-top: 8px;
+      padding-top: 10px;
+      border-top: 1px solid color("line");
       gap: 0;
-
-      // Extend top stems from the Niño buttons so they connect directly into the slider rail / nodes
-      ::ng-deep .timeline-slider {
-        &__events {
-          overflow: visible;
-        }
-
-        &__stem {
-          width: 2px;
-          height: 21px;
-          background: color("line-strong");
-          z-index: 1;
-
-          .timeline-slider__event--active & {
-            background: color("btn-active-blue-border");
-          }
-
-          .timeline-slider__event--hot.timeline-slider__event--active & {
-            background: color("btn-active-red-border");
-          }
-        }
-
-        &__node {
-          z-index: 2;
-        }
-      }
     }
   }
-
-  &__phase ::ng-deep .btn {
-    white-space: nowrap;
-  }
-
 
   &__timeline {
     min-width: 0;
 
-    // The NOW pill sits in the row above now, so the design system's chip row has nothing left
-    // to show. The node it draws on the rail stays — that is what marks the spot on the axis.
     ::ng-deep .timeline-slider__events {
       display: none;
     }
-  }
-
-  &__timeline-dates {
-    position: relative;
-    width: calc(100% - 42px);
-    height: $dates-h;
-    margin-bottom: $dates-gap;
-  }
-
-  &__timeline-date {
-    position: absolute;
-    bottom: 0;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    text-align: center;
-    width: max-content;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-family: inherit;
-    color: color("text-dim");
-    transition: color transition("fast");
-    user-select: none;
-    outline: none;
-
-    &:hover {
-      color: color("text-bright");
-    }
-
-    &--active {
-      color: color("text-bright");
-      font-weight: font-weight("semibold");
-    }
-
-    &--hot.dock__timeline-date--active {
-      color: color("accent");
-    }
-  }
-
-  &__timeline-sub {
-    align-self: center;
-    margin-inline: auto;
-    font-size: 8.5px;
-    font-weight: font-weight("semibold");
-    line-height: 1;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1px 5px;
-    border-radius: radius("pill");
-    margin-bottom: 2px;
-    background: color("btn-bg");
-    color: color("text-dim");
-    border: 1px solid color("line");
-    text-align: center;
-    transition: background transition("fast"), border-color transition("fast"), color transition("fast");
-
-    .dock__timeline-date--active & {
-      background: color("btn-active-blue");
-      border-color: color("btn-active-blue-border");
-      color: color("btn-active-blue-border");
-    }
-
-    .dock__timeline-date--hot.dock__timeline-date--active & {
-      background: color("btn-active-red");
-      border-color: color("btn-active-red-border");
-      color: color("btn-active-red-border");
-    }
-  }
-
-  &__timeline-label {
-    align-self: center;
-    margin-inline: auto;
-    text-align: center;
-    font-size: font-size("xxs");
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    line-height: 1.1;
   }
 }
 
@@ -350,14 +261,18 @@ $dates-gap: 4px;
 
 @include respond-to("mobile") {
   .dock-wrap {
-    left: 8px;
-    right: 8px;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    left: var(--dock-offset-x, 8px);
+    right: var(--dock-offset-x, 8px);
+    bottom: var(--dock-offset-bottom, calc(var(--dock-gap, 10px) + env(safe-area-inset-bottom, 0px)));
+    align-items: stretch;
   }
 
   .dock {
-    padding: 8px 8px 10px;
-    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: radius("card");
+    padding: 8px 10px 10px;
+    gap: 6px;
 
     &__header-group {
       gap: 5px;
@@ -377,6 +292,18 @@ $dates-gap: 4px;
       height: 5px;
     }
 
+    &__phase-badge {
+      height: 20px;
+      padding: 0 6px;
+      font-size: 11px;
+      gap: 4px;
+    }
+
+    &__phase-dot {
+      width: 5px;
+      height: 5px;
+    }
+
     &__date-pill {
       height: 20px;
       padding: 0 6px;
@@ -384,76 +311,77 @@ $dates-gap: 4px;
     }
 
     &__readout {
+      display: inline-flex;
+      align-items: baseline;
       gap: 4px;
     }
 
     &__readout-label {
       font-size: 9px;
+      line-height: 1;
+      align-self: baseline;
     }
 
     &__readout-val {
       font-size: font-size("xs");
+      line-height: 1;
+      align-self: baseline;
     }
 
-    &__divider {
-      height: 14px;
-      margin: 0 2px;
+    &__top {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      width: 100%;
     }
 
-    &__row--readout {
+    &__status-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      flex-wrap: nowrap;
+      width: 100%;
+      padding-bottom: 4px;
+    }
+
+    &__readout-group {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 6px;
       flex-wrap: nowrap;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px solid color("line");
     }
 
     &__row--enso {
-      padding-top: 6px;
-    }
-
-    &__row--phases {
-      justify-content: center;
-      gap: 4px;
-    }
-
-    // the date above the rail stays pinned to the NOW node
-    &__timeline-dates {
-      position: relative;
-      display: block;
-      width: calc(100% - 42px);
-      height: 18px;
-      margin-bottom: 2px;
-      margin-top: 0;
-    }
-
-    &__timeline-date {
-      position: absolute;
-      bottom: 0;
-      transform: translateX(-50%);
-      width: max-content;
-      text-align: center;
-    }
-
-    // four phase pills in one row at this width: let them shrink rather than wrap
-    &__phase ::ng-deep .btn {
-      padding: 4px 6px;
-      font-size: 10px;
-      white-space: nowrap;
+      padding-top: 4px;
     }
   }
 }
 
-// play button with the speed menu above it
+// play button with the speed menu
 .dock__play {
-  position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  flex: none;
+
+  @include respond-to("mobile") {
+    gap: 4px;
+  }
+
+  @include respond-to("mobile-landscape") {
+    gap: 4px;
+  }
 }
 
 .dock__speed {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
 
   ::ng-deep {
     .dropdown__chevron {
@@ -467,23 +395,12 @@ $dates-gap: 4px;
       min-width: 32px;
       padding: 0;
       border-radius: radius("control");
-      background: rgba(palette("neutral-900"), 0.05);
-      border: 1px solid rgba(palette("neutral-900"), 0.16);
-      color: color("text-main");
       justify-content: center;
-      transition: background transition("fast"), border-color transition("fast"), color transition("fast"), transform transition("fast");
 
-      &:hover:not(:disabled) {
-        background: rgba(palette("neutral-900"), 0.1);
-        border-color: rgba(palette("neutral-900"), 0.26);
-        color: color("text-bright");
-      }
-
-      &.btn--active,
-      &:active:not(:disabled) {
-        background: rgba(palette("neutral-900"), 0.14);
-        border-color: rgba(palette("neutral-900"), 0.32);
-        color: color("text-bright");
+      lucide-icon,
+      svg {
+        width: 15px;
+        height: 15px;
       }
     }
 
@@ -503,18 +420,189 @@ $dates-gap: 4px;
     }
   }
 
-  // on mobile, speed button sits to the left of the play button
   @include respond-to("mobile") {
-    position: static;
-    transform: none;
-    margin-right: 4px;
-
     ::ng-deep .btn {
       height: 30px;
       min-height: 30px;
       width: 30px;
       min-width: 30px;
-      padding: 0;
+
+      lucide-icon,
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
+  @include respond-to("mobile-landscape") {
+    ::ng-deep .btn {
+      height: 28px;
+      min-height: 28px;
+      width: 28px;
+      min-width: 28px;
+
+      lucide-icon,
+      svg {
+        width: 13px;
+        height: 13px;
+      }
+    }
+  }
+}
+
+.dock__play-btn {
+  display: inline-flex;
+  align-items: center;
+
+  ::ng-deep .btn {
+    height: 32px;
+    min-height: 32px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    justify-content: center;
+
+    lucide-icon,
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  @include respond-to("mobile") {
+    ::ng-deep .btn {
+      height: 30px;
+      min-height: 30px;
+      width: 30px;
+      min-width: 30px;
+
+      lucide-icon,
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
+  @include respond-to("mobile-landscape") {
+    ::ng-deep .btn {
+      height: 28px;
+      min-height: 28px;
+      width: 28px;
+      min-width: 28px;
+
+      lucide-icon,
+      svg {
+        width: 13px;
+        height: 13px;
+      }
+    }
+  }
+}
+
+@include respond-to("mobile-landscape") {
+  .dock-wrap {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: var(--dock-offset-bottom, max(8px, env(safe-area-inset-bottom, 8px)));
+    align-items: flex-end;
+    justify-content: center;
+    padding-left: max(var(--dock-offset-x, 8px), env(safe-area-inset-left, 8px));
+    padding-right: max(var(--dock-offset-x, 8px), env(safe-area-inset-right, 8px));
+  }
+
+  .dock {
+    width: 66vw;
+    max-width: 66vw;
+    margin: 0 auto;
+    padding: 6px 10px 8px;
+    gap: 6px;
+
+    &__header-group {
+      gap: 5px;
+    }
+
+    &__status-pill {
+      height: 20px;
+      padding: 0 5px;
+      font-size: 9px;
+      gap: 3px;
+    }
+
+    &__live-dot {
+      width: 5px;
+      height: 5px;
+    }
+
+    &__phase-badge {
+      height: 20px;
+      padding: 0 6px;
+      font-size: 11px;
+      gap: 4px;
+    }
+
+    &__phase-dot {
+      width: 5px;
+      height: 5px;
+    }
+
+    &__date-pill {
+      height: 20px;
+      padding: 0 6px;
+      font-size: 11px;
+    }
+
+    &__readout {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    &__readout-label {
+      font-size: 9px;
+      line-height: 1;
+      align-self: baseline;
+    }
+
+    &__readout-val {
+      font-size: font-size("xs");
+      line-height: 1;
+      align-self: baseline;
+    }
+
+    &__top {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: nowrap;
+    }
+
+    &__status-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: nowrap;
+      min-width: 0;
+      padding-bottom: 0;
+    }
+
+    &__readout-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      flex: none;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    &__row--enso {
+      padding-top: 4px;
     }
   }
 }
