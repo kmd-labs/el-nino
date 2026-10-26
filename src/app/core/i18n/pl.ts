@@ -190,10 +190,9 @@ export const PL: Dict = {
     title: 'O nas',
     kicker: 'laboratory',
     leads: [
-      'KMD Labs to trzyosobowy zespół wywodzący się z Viadrus AI – pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję UE ds. Programu Kosmicznego (EUSPA). Zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowej.',
-      'Adrian, Leszek i Marcin postanowili po finale połączyć moc obliczeniową swoich zwojów mózgowych. Choć każdy z nich ma inny background, łączy ich pasja do geoinformatyki, danych satelitarnych, detekcji anomalii, uczenia maszynowego i tworzenia oprogramowania.',
-      'KMD Labs wierzy, że popularyzacja geoinformatyki i technologii kosmicznych jest równie ważna jak ich rozwijanie. Dane satelitarne pomagają rozwiązywać realne problemy środowiska, miast i infrastruktury, ale w Polsce wciąż brakuje specjalistów, którzy potrafią przekuć je w praktyczne rozwiązania.',
-      'Dlatego KMD Labs szuka kolejnych danych, które warto pokazać. Jeśli masz pomysł na wizualizację albo zbiór danych, który chcesz zobaczyć w takiej formie, zapraszamy do współpracy – chętnie sprawdzimy, co da się z niego wyciągnąć.'
+      'kmd-lab to trzyosobowy zespół wywodzący się z Viadrus AI, pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję Unii Europejskiej ds. Programu Kosmicznego (EUSPA). Nasze zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowych.',
+      'Po finale postanowiliśmy połączyć moc obliczeniową naszych zwojów mózgowych. Każdy z nas przychodzi z innej dziedziny, ale łączy nas pasja do geoinformatyki i danych satelitarnych, a także do detekcji anomalii, uczenia maszynowego, tworzenia oprogramowania i geowizualizacji.',
+      'Masz dane i nie wiesz, jak je pokazać na mapie albo w przestrzeni? Napisz do nas!'
     ],
     refs: [
       {
@@ -207,6 +206,12 @@ export const PL: Dict = {
         href: 'https://www.cassini.eu/hackathons/portfolio',
         title: 'cassini.eu/hackathons/portfolio – Meet the Winners',
         aria: 'CASSINI Hackathons – portfolio zwycięskich zespołów'
+      },
+      {
+        label: 'kmd-lab na LinkedIn',
+        href: 'https://www.linkedin.com/company/kmd-lab',
+        title: 'linkedin.com/company/kmd-lab – kmd-lab',
+        aria: 'Profil firmowy kmd-lab na LinkedIn'
       }
     ],
     back: 'Wróć do globu',

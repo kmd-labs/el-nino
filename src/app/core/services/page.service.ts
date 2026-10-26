@@ -86,7 +86,9 @@ export class PageService {
       id: ABOUT,
       title: computed(() => this.i18n.t().about.title),
       component: AboutModalComponent,
-      componentInputs: { lang: this.i18n.lang() },
+      // Pass the app's own dictionary: without it the modal falls back to the
+      // design-system copy of the text, which this app does not maintain.
+      componentInputs: { lang: this.i18n.lang(), data: this.i18n.t().about },
       size: 'lg',
       actions: [
         {
