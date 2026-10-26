@@ -92,6 +92,10 @@ export interface SourceItem {
   url: string;
   license: string;
   desc: string;
+  /** The individual products behind a source, listed in a collapsible block under it. */
+  products?: { name: string; url: string }[];
+  /** List every article cited by the impact pins (EVENTS_META → SRC_URLS) under this source. */
+  pinArticles?: boolean;
 }
 
 export interface MethodologyText {
@@ -305,6 +309,8 @@ export interface Dict {
   dataSourcesTitle: string;
   dataSourcesSubtitle: string;
   sourcesList: SourceItem[];
+  sourceProducts: (count: number) => string;
+  sourcePinArticles: (count: number) => string;
 
   // globe inspection tooltip
   inspectCoords: (lat: number, lon: number) => string;

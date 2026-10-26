@@ -102,6 +102,55 @@
     line-height: 1.45;
   }
 
+  // Collapsible list of the products behind one source
+  &__products {
+    margin-top: 8px;
+    font-size: font-size("xs");
+
+    summary {
+      width: fit-content;
+      cursor: pointer;
+      font-weight: font-weight("semibold");
+      color: color("text-desc");
+
+      &:hover {
+        color: color("text-bright");
+      }
+
+      &:focus-visible {
+        outline: 2px solid color("accent");
+        outline-offset: 2px;
+        border-radius: radius("xs");
+      }
+    }
+
+    ul {
+      margin: 6px 0 0;
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  &__product {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    color: color("link-color");
+    text-decoration: none;
+    line-height: 1.45;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    lucide-icon {
+      display: inline-flex;
+      flex: none;
+    }
+  }
+
   // Attribution ("Built by KMD Labs")
   &__built {
     padding: 12px 14px;

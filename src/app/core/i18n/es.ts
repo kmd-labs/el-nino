@@ -380,23 +380,45 @@ export const ES: Dict = {
     },
     {
       name: 'NOAA CPC ENSO Diagnostics',
-      url: 'https://www.cpc.ncep.noaa.gov/',
+      url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml',
       license: 'Dominio público (Gobierno de EE. UU.)',
-      desc: 'Anomalías del Niño 3.4, discusiones diagnósticas mensuales y modelos probabilísticos de predicción ENSO del Centro de Predicción Climática.'
+      desc: 'Anomalías del Niño 3.4, discusiones diagnósticas mensuales y modelos probabilísticos de predicción ENSO del Centro de Predicción Climática.',
+      products: [
+        { name: 'Índice Oceánico de El Niño (ONI) – tabla desde 1950', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php' },
+        { name: 'Niño 3.4 – anomalías mensuales respecto a una climatología con corrección de tendencia (desde 1950)', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt' },
+        { name: 'Regiones Niño 1+2, 3, 4 y 3.4 – temperatura del mar y anomalías mensuales (desde 1982)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices' },
+        { name: 'Regiones Niño – temperatura del mar y anomalías semanales (normal 1991–2020)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/wksst9120.for' },
+        { name: 'Todos los índices climáticos del CPC (directorio)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/' }
+      ]
     },
     {
-      name: 'OMM · JRC (UE) · JMA Tokyo Climate Center',
-      url: 'https://wmo.int/',
+      name: 'OMM – Prepararse para El Niño (junio de 2026)',
+      url: 'https://wmo.int/news/media-centre/wmo-prepare-el-nino',
       license: 'Acceso abierto',
-      desc: 'Patrones continentales de anomalías de precipitación, cambios en el monzón y clasificaciones regionales de lluvia durante El Niño y La Niña.'
+      desc: 'Perspectiva de la Organización Meteorológica Mundial con un mapa de cómo El Niño altera las lluvias en junio–agosto de 2026: regiones más húmedas y más secas de lo normal.'
+    },
+    {
+      name: 'JRC de la UE – Se avecina un El Niño potencialmente histórico (junio de 2026)',
+      url: 'https://joint-research-centre.ec.europa.eu/jrc-news-and-updates/potentially-historic-el-nino-come-analysis-shows-humanitarian-toll-2026-06-15_en',
+      license: 'CC BY 4.0',
+      desc: 'Análisis del Centro Común de Investigación de la Comisión Europea con un mapa de los impactos esperados de El Niño en el clima, la seguridad alimentaria y el riesgo humanitario.'
+    },
+    {
+      name: 'JMA Tokyo Climate Center – Impactos de El Niño/La Niña y del IOD en el clima mundial',
+      url: 'https://ds.data.jma.go.jp/tcc/tcc/products/climate/ENSO/index.htm',
+      license: 'Acceso abierto',
+      desc: 'Mapas estadísticos de las anomalías de temperatura y precipitación típicas de El Niño, La Niña y el dipolo del océano Índico, estación por estación.'
     },
     {
       name: 'Registros de desastres e impactos históricos',
       url: 'https://es.wikipedia.org/wiki/El_Ni%C3%B1o-Oscilaci%C3%B3n_del_Sur',
       license: 'Abierto / CC BY-SA 4.0',
-      desc: 'Pérdidas económicas, inundaciones y sequías recopiladas directamente de informes de CDC MMWR, FAO GIEWS, FEMA, UNDRR y ReliefWeb de la ONU.'
+      desc: 'Pérdidas económicas, inundaciones y sequías recopiladas directamente de informes de CDC MMWR, FAO GIEWS, FEMA, UNDRR y ReliefWeb de la ONU.',
+      pinArticles: true
     }
   ],
+  sourceProducts: n => `Productos utilizados (${n})`,
+  sourcePinArticles: n => `Mostrar la lista completa de artículos (${n})`,
 
   regions: [
     { name: 'Indonesia y Filipinas', season: 'jun–feb' },

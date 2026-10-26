@@ -379,23 +379,45 @@ export const PL: Dict = {
     },
     {
       name: 'NOAA CPC ENSO Diagnostics',
-      url: 'https://www.cpc.ncep.noaa.gov/',
+      url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml',
       license: 'Domena publiczna (US Gov)',
-      desc: 'Anomalie temperatury w rejonie Niño 3.4, oficjalne miesięczne biuletyny diagnostyczne i prawdopodobieństwa faz ENSO z Climate Prediction Center.'
+      desc: 'Anomalie temperatury w rejonie Niño 3.4, oficjalne miesięczne biuletyny diagnostyczne i prawdopodobieństwa faz ENSO z Climate Prediction Center.',
+      products: [
+        { name: 'Oceaniczny Indeks Niño (ONI) – tabela od 1950', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php' },
+        { name: 'Niño 3.4 – miesięczne anomalie względem klimatologii z korektą trendu (od 1950)', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt' },
+        { name: 'Regiony Niño 1+2, 3, 4 i 3.4 – miesięczna temperatura oceanu i anomalie (od 1982)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices' },
+        { name: 'Regiony Niño – tygodniowa temperatura oceanu i anomalie (norma 1991–2020)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/wksst9120.for' },
+        { name: 'Wszystkie indeksy klimatyczne CPC (katalog)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/' }
+      ]
     },
     {
-      name: 'WMO · JRC (KE) · JMA Tokyo Climate Center',
-      url: 'https://wmo.int/',
+      name: 'WMO – Przygotujcie się na El Niño (czerwiec 2026)',
+      url: 'https://wmo.int/news/media-centre/wmo-prepare-el-nino',
       license: 'Wolny dostęp (Open Access)',
-      desc: 'Zasięgi anomalii opadów na kontynentach, przesunięcia cyrkulacji monsunowej oraz wzorce opadowe w fazach El Niño i La Niña.'
+      desc: 'Prognoza Światowej Organizacji Meteorologicznej z mapą zmian opadów wywołanych przez El Niño w czerwcu–sierpniu 2026: regiony wilgotniejsze i suchsze niż zwykle.'
+    },
+    {
+      name: 'JRC (KE) – Nadchodzi potencjalnie historyczne El Niño (czerwiec 2026)',
+      url: 'https://joint-research-centre.ec.europa.eu/jrc-news-and-updates/potentially-historic-el-nino-come-analysis-shows-humanitarian-toll-2026-06-15_en',
+      license: 'CC BY 4.0',
+      desc: 'Analiza Wspólnego Centrum Badawczego Komisji Europejskiej z mapą spodziewanych skutków El Niño dla klimatu, bezpieczeństwa żywnościowego i sytuacji humanitarnej.'
+    },
+    {
+      name: 'JMA Tokyo Climate Center – Wpływ El Niño/La Niña i IOD na globalny klimat',
+      url: 'https://ds.data.jma.go.jp/tcc/tcc/products/climate/ENSO/index.htm',
+      license: 'Wolny dostęp (Open Access)',
+      desc: 'Statystyczne mapy anomalii temperatury i opadów typowych dla El Niño, La Niña i dipola Oceanu Indyjskiego, w podziale na pory roku.'
     },
     {
       name: 'Bazy zdarzeń i skutków historycznych',
-      url: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o_%E2%80%93_Oscylacja_Po%C5%82udniowa',
+      url: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Oscylacja_Po%C5%82udniowa',
       license: 'Otwarte / CC BY-SA 4.0',
-      desc: 'Dane o szkodach gospodarczych, powodziach i suszach zebrane bezpośrednio z raportów CDC MMWR, FAO GIEWS, FEMA, UNDRR oraz ONZ OCHA ReliefWeb.'
+      desc: 'Dane o szkodach gospodarczych, powodziach i suszach zebrane bezpośrednio z raportów CDC MMWR, FAO GIEWS, FEMA, UNDRR oraz ONZ OCHA ReliefWeb.',
+      pinArticles: true
     }
   ],
+  sourceProducts: n => `Wykorzystane produkty (${n})`,
+  sourcePinArticles: n => `Pokaż pełną listę artykułów (${n})`,
 
   regions: [
     { name: 'Indonezja i Filipiny', season: 'cze–lut' },

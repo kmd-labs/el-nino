@@ -16,6 +16,22 @@
             </div>
           </div>
           <p class="sources-popup__desc">{{ s.desc }}</p>
+          @let extra = extraLinks(s);
+          @if (extra) {
+            <details class="sources-popup__products">
+              <summary>{{ extra.label }}</summary>
+              <ul>
+                @for (p of extra.items; track p.url) {
+                  <li>
+                    <a [href]="p.url" target="_blank" rel="noopener noreferrer" class="sources-popup__product">
+                      <span>{{ p.name }}</span>
+                      <lucide-icon [img]="externalLinkIcon" [size]="11"></lucide-icon>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </details>
+          }
         </article>
       }
     </div>

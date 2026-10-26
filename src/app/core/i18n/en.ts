@@ -379,23 +379,45 @@ export const EN: Dict = {
     },
     {
       name: 'NOAA CPC ENSO Diagnostics',
-      url: 'https://www.cpc.ncep.noaa.gov/',
+      url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml',
       license: 'Public Domain (US Gov)',
-      desc: 'Climate Prediction Center Niño 3.4 baseline SST anomalies, official monthly diagnostic discussions, and probabilistic ENSO outlook models.'
+      desc: 'Climate Prediction Center Niño 3.4 baseline SST anomalies, official monthly diagnostic discussions, and probabilistic ENSO outlook models.',
+      products: [
+        { name: 'Oceanic Niño Index (ONI) – table since 1950', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php' },
+        { name: 'Niño 3.4 – monthly anomalies against a trend-adjusted climatology (since 1950)', url: 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt' },
+        { name: 'Niño 1+2, 3, 4 and 3.4 – monthly sea temperature and anomalies (since 1982)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices' },
+        { name: 'Niño regions – weekly sea temperature and anomalies (1991–2020 normal)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/wksst9120.for' },
+        { name: 'All CPC climate indices (directory)', url: 'https://www.cpc.ncep.noaa.gov/data/indices/' }
+      ]
     },
     {
-      name: 'WMO · EU JRC · JMA Tokyo Climate Center',
-      url: 'https://wmo.int/',
+      name: 'WMO – Prepare for El Niño (June 2026)',
+      url: 'https://wmo.int/news/media-centre/wmo-prepare-el-nino',
       license: 'Open Access',
-      desc: 'Global precipitation anomaly maps, seasonal monsoon shifts, and regional rainfall pattern classifications during El Niño and La Niña.'
+      desc: 'World Meteorological Organization outlook with a map of how El Niño shifts rainfall in June–August 2026: regions wetter and drier than normal.'
+    },
+    {
+      name: 'EU JRC – Potentially historic El Niño to come (June 2026)',
+      url: 'https://joint-research-centre.ec.europa.eu/jrc-news-and-updates/potentially-historic-el-nino-come-analysis-shows-humanitarian-toll-2026-06-15_en',
+      license: 'CC BY 4.0',
+      desc: 'European Commission Joint Research Centre analysis with a map of expected El Niño impacts on climate, food security and humanitarian risk.'
+    },
+    {
+      name: 'JMA Tokyo Climate Center – Impacts of El Niño/La Niña and IOD on the global climate',
+      url: 'https://ds.data.jma.go.jp/tcc/tcc/products/climate/ENSO/index.htm',
+      license: 'Open Access',
+      desc: 'Statistical maps of the temperature and precipitation anomalies typical of El Niño, La Niña and Indian Ocean Dipole events, season by season.'
     },
     {
       name: 'Disaster Records & Historical Impact Data',
       url: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation',
       license: 'Open / CC BY-SA 4.0',
-      desc: 'Curated socio-economic impact figures, flood and drought records sourced directly from CDC MMWR, FAO GIEWS, FEMA, UNDRR, and UN OCHA ReliefWeb.'
+      desc: 'Curated socio-economic impact figures, flood and drought records sourced directly from CDC MMWR, FAO GIEWS, FEMA, UNDRR, and UN OCHA ReliefWeb.',
+      pinArticles: true
     }
   ],
+  sourceProducts: n => `Products used (${n})`,
+  sourcePinArticles: n => `Show full list of articles (${n})`,
 
   regions: [
     { name: 'Indonesia and the Philippines', season: 'Jun–Feb' },
