@@ -54,7 +54,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: min(520px, calc(100vw - 220px));
+    max-width: min(680px, calc(100vw - 220px));
   }
 
   &__box {
@@ -154,8 +154,22 @@
     top: 60px;
     bottom: var(--dock-clearance);
 
+    &__step {
+      padding: 6px 10px;
+      border-radius: radius("card");
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 8px;
+    }
+
     &__title {
-      max-width: calc(100vw - 190px);
+      max-width: 100%;
+      white-space: normal;
+      line-height: 1.25;
+      font-size: font-size("xxs");
+      order: 3;
+      flex-basis: 100%;
+      text-align: center;
     }
   }
 }
@@ -170,11 +184,16 @@
     &__step {
       padding: 2px 4px;
       gap: 5px;
+      border-radius: radius("pill");
+      flex-wrap: nowrap;
     }
 
     &__title {
       max-width: calc(100vw - 210px);
       font-size: 11px;
+      white-space: nowrap;
+      order: initial;
+      flex-basis: auto;
     }
   }
 }

@@ -22,6 +22,7 @@
     border-radius: radius("card");
     font-size: font-size("xs");
     color: color("text-main");
+    min-width: 0;
   }
 
   &__head-left {
@@ -30,6 +31,7 @@
     gap: 8px;
     flex-wrap: nowrap;
     min-width: 0;
+    flex: 1;
   }
 
   &__head-right {
@@ -44,16 +46,24 @@
     font-weight: font-weight("semibold");
     color: color("text-bright");
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   &__meta {
     font-size: font-size("xxs");
     color: color("text-dim");
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 2;
 
     &--prov {
       color: color("phase-super");
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
     }
   }
 
@@ -317,6 +327,10 @@
     &__legend {
       display: none;
     }
+
+    &__meta {
+      max-width: 320px;
+    }
   }
 }
 
@@ -355,6 +369,10 @@
 
     &__meta,
     &__legend {
+      display: none;
+    }
+
+    &__btn-text {
       display: none;
     }
   }

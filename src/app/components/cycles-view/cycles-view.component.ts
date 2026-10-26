@@ -196,10 +196,10 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     const cSuper = this.theme.getTokenColor('phase-super', '#dc2626');
     const cAccent = this.theme.getTokenColor('accent', '#d37400');
 
-    const padL = 42;
-    const padR = 12;
-    const padT = 14;
-    const padB = 26;
+    const padL = 44;
+    const padR = 16;
+    const padT = 16;
+    const padB = 36;
     const plotW = Math.max(10, Wd - padL - padR);
     const plotH = Math.max(10, Hd - padT - padB);
 
@@ -241,32 +241,57 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     // so all 24 only ever fit on a very wide canvas.
     const widest = Math.max(...t.months.map(m => ctx.measureText(m).width));
     const step = this.monthStep(plotW, widest);
+    const textY = padT + plotH + 13;
     for (let i = 0; i < SPAN; i += step) {
       const label = t.months[i % 12] ?? '';
       const half = ctx.measureText(label).width / 2;
       const x = X(i);
       // keep the first and last label inside the canvas instead of centring them off the edge
-      if (x - half < 2) {
+      if (x - half < padL + 2) {
         ctx.textAlign = 'left';
-        ctx.fillText(label, 2, Hd - 14);
-      } else if (x + half > Wd - 2) {
+        ctx.fillText(label, padL + 2, textY);
+      } else if (x + half > Wd - padR - 2) {
         ctx.textAlign = 'right';
-        ctx.fillText(label, Wd - 2, Hd - 14);
+        ctx.fillText(label, Wd - padR - 2, textY);
       } else {
         ctx.textAlign = 'center';
-        ctx.fillText(label, x, Hd - 14);
+        ctx.fillText(label, x, textY);
       }
     }
+
     // year divider between the two calendar years
     ctx.strokeStyle = lineStrong;
     ctx.beginPath();
     ctx.moveTo(X(11.5), padT);
     ctx.lineTo(X(11.5), padT + plotH);
     ctx.stroke();
-    ctx.fillStyle = dim;
-    ctx.textAlign = 'center';
-    ctx.fillText(t.cyclesYearN(1), X(5.5), Hd - 3);
-    ctx.fillText(t.cyclesYearN(2), X(17.5), Hd - 3);
+
+    const drawYearBadge = (text: string, cx: number) => {
+      ctx.font = `600 10px ${font}`;
+      const tw = ctx.measureText(text).width;
+      const bw = tw + 14;
+      const bh = 16;
+      const bx = cx - bw / 2;
+      const by = padT + plotH + 20;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, 8);
+      ctx.fillStyle = this.theme.getTokenColor('panel-bg', 'rgba(255,255,255,0.7)');
+      ctx.fill();
+      ctx.strokeStyle = line;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = dim;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, cx, by + bh / 2);
+      ctx.restore();
+    };
+
+    drawYearBadge(t.cyclesYearN(1), (X(0) + X(11.5)) / 2);
+    drawYearBadge(t.cyclesYearN(2), (X(11.5) + X(23)) / 2);
 
     ctx.save();
     ctx.translate(12, padT + plotH / 2);
@@ -319,7 +344,22 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
       return (y - seasonYear0) * 12 + (m - 1) + (day - 0.5) / days - 0.5;
     };
 
+    // ── the month still in progress: weekly data, so a hollow marker on a dotted stub ──
+    const prov = data.provisional;
+    const provIdx = prov ? axisPos(Number(prov.month.slice(0, 4)), Number(prov.month.slice(5))) + 0.5 : -1;
+    const provOnAxis = prov !== null && provIdx >= 0 && provIdx <= SPAN - 1;
+
+    let lastIdx = -1;
+    for (let i = 0; i < Math.min(SPAN, current.trajectory.length); i++) {
+      if (current.trajectory[i] !== null) lastIdx = i;
+    }
+    const lastVal = lastIdx >= 0 ? current.trajectory[lastIdx] : null;
+
+    const labelIdx = prov && provOnAxis ? provIdx : lastIdx;
+    const labelVal = prov && provOnAxis ? prov.oni : lastVal;
+
     // ── where the dock's time slider currently sits ──
+    let sliderRect: { x: number; y: number; w: number; h: number; lineX: number } | null = null;
     const sliderDate = this.sliderDate();
     if (sliderDate) {
       const pos = axisPos(
@@ -328,23 +368,41 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
         sliderDate.getUTCDate()
       );
       if (pos >= 0 && pos <= SPAN - 1) {
+        const lineX = X(pos);
         ctx.setLineDash([5, 4]);
         ctx.strokeStyle = dim;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(X(pos), padT);
-        ctx.lineTo(X(pos), padT + plotH);
+        ctx.moveTo(lineX, padT);
+        ctx.lineTo(lineX, padT + plotH);
         ctx.stroke();
         ctx.setLineDash([]);
 
+        const dateStr = this.dayLabel(sliderDate);
         ctx.font = `600 10px ${font}`;
+        const dtw = ctx.measureText(dateStr).width;
+        const dbw = dtw + 12;
+        const dbh = 18;
+        let dbx = pos > SPAN * 0.75 ? lineX - dbw - 4 : lineX + 4;
+        dbx = Math.max(padL + 2, Math.min(Wd - padR - dbw - 2, dbx));
+        const dby = padT + 4;
+
+        sliderRect = { x: dbx, y: dby, w: dbw, h: dbh, lineX };
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(dbx, dby, dbw, dbh, 4);
+        ctx.fillStyle = this.theme.getTokenColor('panel-bg-solid', '#ffffff');
+        ctx.fill();
+        ctx.strokeStyle = lineStrong;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
         ctx.fillStyle = dim;
-        ctx.textAlign = pos > SPAN * 0.75 ? 'right' : 'left';
-        ctx.fillText(
-          this.dayLabel(sliderDate),
-          X(pos) + (pos > SPAN * 0.75 ? -5 : 5),
-          padT + 9
-        );
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(dateStr, dbx + dbw / 2, dby + dbh / 2);
+        ctx.restore();
       }
     }
 
@@ -410,11 +468,6 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     // ── the event in progress, drawn last so it sits on top ──
     strokeTrajectory(current.trajectory, cSuper, 3, 1);
 
-    let lastIdx = -1;
-    for (let i = 0; i < Math.min(SPAN, current.trajectory.length); i++) {
-      if (current.trajectory[i] !== null) lastIdx = i;
-    }
-    const lastVal = lastIdx >= 0 ? current.trajectory[lastIdx] : null;
     if (lastIdx >= 0 && lastVal !== null) {
       ctx.fillStyle = cSuper;
       ctx.beginPath();
@@ -423,10 +476,6 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     }
 
     // ── the month still in progress: weekly data, so a hollow marker on a dotted stub ──
-    const prov = data.provisional;
-    const provIdx = prov ? axisPos(Number(prov.month.slice(0, 4)), Number(prov.month.slice(5))) + 0.5 : -1;
-    const provOnAxis = prov !== null && provIdx >= 0 && provIdx <= SPAN - 1;
-
     if (prov && provOnAxis) {
       const py = Y(Math.min(ONI_MAX, prov.oni));
       if (lastIdx >= 0 && lastVal !== null) {
@@ -448,26 +497,114 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
       ctx.stroke();
     }
 
-    // ── one label, on whichever point is the newest ──
-    const labelIdx = prov && provOnAxis ? provIdx : lastIdx;
-    const labelVal = prov && provOnAxis ? prov.oni : lastVal;
+    // ── one label card, on whichever point is the newest ──
     if (labelIdx >= 0 && labelVal !== null) {
-      const right = labelIdx > SPAN * 0.7;
+      const line1 = `${current.season} ${this.formatOni(labelVal, 1)} °C`;
+      const line2 = prov && provOnAxis ? t.cyclesProvisional(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month);
+
+      ctx.font = `600 11px ${font}`;
+      const w1 = ctx.measureText(line1).width;
+      ctx.font = `500 10px ${font}`;
+      const w2 = ctx.measureText(line2).width;
+
+      const padX = 10;
+      const padY = 6;
+      const cardW = Math.max(w1 + 14, w2) + padX * 2;
+      const cardH = 34;
+
+      const ptX = X(labelIdx);
+      const ptY = Y(Math.min(ONI_MAX, labelVal));
+
+      const preferLeft = labelIdx > SPAN * 0.65;
+      let cardX = preferLeft ? ptX - cardW - 10 : ptX + 10;
+      cardX = Math.max(padL + 6, Math.min(Wd - padR - cardW - 6, cardX));
+
+      let cardY = ptY - cardH / 2;
+      cardY = Math.max(padT + 4, Math.min(padT + plotH - cardH - 4, cardY));
+
+      // Avoid overlapping with the slider date pill
+      let isDisplaced = false;
+      if (sliderRect) {
+        const pad = 8;
+        const overlapsX =
+          (cardX - pad < sliderRect.x + sliderRect.w && cardX + cardW + pad > sliderRect.x) ||
+          (sliderRect.lineX >= cardX - pad && sliderRect.lineX <= cardX + cardW + pad);
+        const overlapsY = cardY - pad < sliderRect.y + sliderRect.h && cardY + cardH + pad > sliderRect.y;
+
+        if (overlapsX && overlapsY) {
+          // 1. Try placing the card on the opposite horizontal side of ptX if it fits cleanly
+          const altSideX = preferLeft ? ptX + 10 : ptX - cardW - 10;
+          const fitsAltSide = altSideX >= padL + 6 && altSideX + cardW <= Wd - padR - 6;
+          const altOverlapsX =
+            (altSideX - pad < sliderRect.x + sliderRect.w && altSideX + cardW + pad > sliderRect.x) ||
+            (sliderRect.lineX >= altSideX - pad && sliderRect.lineX <= altSideX + cardW + pad);
+
+          if (fitsAltSide && !altOverlapsX) {
+            cardX = altSideX;
+            isDisplaced = true;
+          } else {
+            // 2. Shift the card vertically below the slider pill
+            const belowY = Math.max(ptY + 14, sliderRect.y + sliderRect.h + 8);
+            if (belowY + cardH <= padT + plotH - 4) {
+              cardY = belowY;
+              isDisplaced = true;
+            } else {
+              // 3. If near the bottom edge, shift above
+              const aboveY = Math.min(ptY - cardH - 12, sliderRect.y - cardH - 8);
+              if (aboveY >= padT + 4) {
+                cardY = aboveY;
+                isDisplaced = true;
+              }
+            }
+          }
+        }
+      }
+
+      // If the card was moved away from the target point, draw a subtle leader connector
+      if (isDisplaced) {
+        ctx.save();
+        ctx.strokeStyle = cSuper;
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.5;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        const edgeX = ptX < cardX ? cardX : ptX > cardX + cardW ? cardX + cardW : ptX;
+        const edgeY = ptY < cardY ? cardY : ptY > cardY + cardH ? cardY + cardH : ptY;
+        ctx.moveTo(edgeX, edgeY);
+        ctx.lineTo(ptX, ptY);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 2;
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 6);
+      ctx.fillStyle = this.theme.getTokenColor('panel-bg-solid', '#ffffff');
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = this.theme.getTokenColor('line-strong', 'rgba(15,23,42,0.18)');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Semantic colored dot for the active phase
+      ctx.beginPath();
+      ctx.arc(cardX + padX + 3, cardY + padY + 6, 3, 0, Math.PI * 2);
+      ctx.fillStyle = cSuper;
+      ctx.fill();
+
       ctx.font = `600 11px ${font}`;
       ctx.fillStyle = ink;
-      ctx.textAlign = right ? 'right' : 'left';
-      const dx = right ? -8 : 8;
-      // On a short canvas (the phone layout) a near-maximum point sits barely 13px below padT, so
-      // the two-line label would land above the top edge — keep it inside the plot.
-      const labelY = Math.max(padT + 8, Y(Math.min(ONI_MAX, labelVal)) - 20);
-      ctx.fillText(`${current.season} ${this.formatOni(labelVal, 1)} °C`, X(labelIdx) + dx, labelY);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(line1, cardX + padX + 11, cardY + padY + 9);
+
       ctx.font = `500 10px ${font}`;
       ctx.fillStyle = dim;
-      ctx.fillText(
-        prov && provOnAxis ? t.cyclesProvisional(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month),
-        X(labelIdx) + dx,
-        labelY + 12
-      );
+      ctx.fillText(line2, cardX + padX, cardY + padY + 22);
+      ctx.restore();
     }
   }
 }

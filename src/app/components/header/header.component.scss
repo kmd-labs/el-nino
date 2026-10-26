@@ -224,7 +224,7 @@
     align-items: center;
     padding: 4px;
     border-radius: radius("pill");
-    width: 196px;
+    width: 254px;
     box-sizing: border-box;
     flex-shrink: 0;
 
@@ -250,7 +250,7 @@
 
   @include respond-to("tablet") {
     &__view {
-      width: 176px;
+      width: 196px;
     }
   }
 
@@ -510,7 +510,7 @@
     }
 
     &__view {
-      width: 210px;
+      width: 224px;
       height: 34px;
       padding: 2px;
       flex-shrink: 0;
