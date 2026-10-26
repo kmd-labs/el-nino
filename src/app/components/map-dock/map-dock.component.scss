@@ -261,25 +261,18 @@
 
 @include respond-to("mobile") {
   .dock-wrap {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+    left: var(--dock-offset-x, 8px);
+    right: var(--dock-offset-x, 8px);
+    bottom: var(--dock-offset-bottom, calc(var(--dock-gap, 10px) + env(safe-area-inset-bottom, 0px)));
     align-items: stretch;
   }
 
   .dock {
     width: 100%;
     max-width: 100%;
-    margin: 0;
-    border-radius: radius("card") radius("card") 0 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    padding: 6px 12px max(8px, env(safe-area-inset-bottom, 8px));
-    gap: 4px;
+    border-radius: radius("card");
+    padding: 8px 10px 10px;
+    gap: 6px;
 
     &__header-group {
       gap: 5px;
