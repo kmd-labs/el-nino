@@ -190,7 +190,7 @@ export const PL: Dict = {
     title: 'O nas',
     kicker: 'laboratory',
     leads: [
-      'kmd-lab to trzyosobowy zespół wywodzący się z Viadrus AI, pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję Unii Europejskiej ds. Programu Kosmicznego (EUSPA). Nasze zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowych.',
+      'kmd-labs to trzyosobowy zespół wywodzący się z Viadrus AI, pierwszej polskiej drużyny, która wygrała europejski finał hackathonu CASSINI organizowanego przez Agencję Unii Europejskiej ds. Programu Kosmicznego (EUSPA). Nasze zwycięskie rozwiązanie wykorzystywało dane satelitarne do wczesnego wykrywania wycieków z sieci wodociągowych.',
       'Po finale postanowiliśmy połączyć moc obliczeniową naszych zwojów mózgowych. Każdy z nas przychodzi z innej dziedziny, ale łączy nas pasja do geoinformatyki i danych satelitarnych, a także do detekcji anomalii, uczenia maszynowego, tworzenia oprogramowania i geowizualizacji.',
       'Masz dane i nie wiesz, jak je pokazać na mapie albo w przestrzeni? Napisz do nas!'
     ],
@@ -208,10 +208,10 @@ export const PL: Dict = {
         aria: 'CASSINI Hackathons – portfolio zwycięskich zespołów'
       },
       {
-        label: 'kmd-lab na LinkedIn',
+        label: 'kmd-labs na LinkedIn',
         href: 'https://www.linkedin.com/company/kmd-lab',
-        title: 'linkedin.com/company/kmd-lab – kmd-lab',
-        aria: 'Profil firmowy kmd-lab na LinkedIn'
+        title: 'linkedin.com/company/kmd-lab – kmd-labs',
+        aria: 'Profil firmowy kmd-labs na LinkedIn'
       }
     ],
     back: 'Wróć do globu',
