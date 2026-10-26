@@ -369,7 +369,12 @@ export const PL: Dict = {
       name: 'NOAA OISST v2.1',
       url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
       license: 'Domena publiczna (US Gov)',
-      desc: 'Dobowa siatka 0,5° temperatury powierzchni oceanu opracowywana na podstawie radiometrów satelitarnych, boi dryfujących i statków badawczych.'
+      desc: 'Dobowa siatka 0,5° temperatury powierzchni oceanu opracowywana na podstawie radiometrów satelitarnych, boi dryfujących i statków badawczych.',
+      products: [
+        { name: 'Dzienne pliki OISST v2.1 AVHRR-only (NetCDF, 0,25°, wersje ostateczne i wstępne) – temperatura i anomalie', url: 'https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/' },
+        { name: 'Opis zbioru danych i sposób cytowania (DOI 10.25921/RE9P-PT57)', url: 'https://doi.org/10.25921/RE9P-PT57' },
+        { name: 'Huang i in. (2021) – Ulepszenia dziennego OISST w wersji 2.1, Journal of Climate', url: 'https://doi.org/10.1175/JCLI-D-20-0166.1' }
+      ]
     },
     {
       name: 'Open-Meteo',

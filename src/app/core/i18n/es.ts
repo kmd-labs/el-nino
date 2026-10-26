@@ -370,7 +370,12 @@ export const ES: Dict = {
       name: 'NOAA OISST v2.1',
       url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
       license: 'Dominio público (Gobierno de EE. UU.)',
-      desc: 'Análisis diario de 0,5° de temperatura de la superficie del mar a partir de radiómetros satelitales, boyas a la deriva y buques de investigación.'
+      desc: 'Análisis diario de 0,5° de temperatura de la superficie del mar a partir de radiómetros satelitales, boyas a la deriva y buques de investigación.',
+      products: [
+        { name: 'Archivos diarios OISST v2.1 solo AVHRR (NetCDF, 0,25°, finales y preliminares) – temperatura y anomalía', url: 'https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/' },
+        { name: 'Ficha del conjunto de datos y cita (DOI 10.25921/RE9P-PT57)', url: 'https://doi.org/10.25921/RE9P-PT57' },
+        { name: 'Huang et al. (2021) – Mejoras del OISST diario versión 2.1, Journal of Climate', url: 'https://doi.org/10.1175/JCLI-D-20-0166.1' }
+      ]
     },
     {
       name: 'Open-Meteo',

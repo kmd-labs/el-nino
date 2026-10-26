@@ -369,7 +369,12 @@ export const EN: Dict = {
       name: 'NOAA OISST v2.1',
       url: 'https://www.ncei.noaa.gov/products/optimum-interpolation-sst',
       license: 'Public Domain (US Gov)',
-      desc: 'High-resolution daily sea surface temperature analysis (0.5° grid) produced from infrared/microwave satellite radiometers, drifting buoys, and research vessels.'
+      desc: 'High-resolution daily sea surface temperature analysis (0.5° grid) produced from infrared/microwave satellite radiometers, drifting buoys, and research vessels.',
+      products: [
+        { name: 'Daily OISST v2.1 AVHRR-only files (NetCDF, 0.25°, final and preliminary) – sea temperature and anomaly', url: 'https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/' },
+        { name: 'Dataset record and citation (DOI 10.25921/RE9P-PT57)', url: 'https://doi.org/10.25921/RE9P-PT57' },
+        { name: 'Huang et al. (2021) – Improvements of the Daily OISST Version 2.1, Journal of Climate', url: 'https://doi.org/10.1175/JCLI-D-20-0166.1' }
+      ]
     },
     {
       name: 'Open-Meteo',
