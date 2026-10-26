@@ -305,7 +305,11 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.lineTo(W, this.zY(16));
     ctx.stroke();
     ctx.restore();
-    this.text(L.tropopause, W - 8, this.zY(16) - 6, 'right', this.ink('text-dim', 0.95, '#64748b'));
+    this.textBadge(L.tropopause, W - 8, this.zY(16) - 6, 'right', this.ink('text-dim', 0.95, '#64748b'), {
+      bg: 'rgba(245, 247, 251, 0.85)',
+      border: 'rgba(15, 23, 42, 0.08)',
+      clampCanvas: true
+    });
 
     this.drawOcean(s);
     this.drawThermocline(s);
@@ -372,6 +376,63 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = color;
     ctx.fillText(str, x, y);
+  }
+
+  private textBadge(
+    str: string,
+    x: number,
+    y: number,
+    align: CanvasTextAlign,
+    color: string,
+    opts: {
+      bold?: boolean;
+      bg?: string;
+      border?: string;
+      padX?: number;
+      padY?: number;
+      radius?: number;
+      clampCanvas?: boolean;
+    } = {}
+  ) {
+    const ctx = this.ctx;
+    const bold = opts.bold ?? false;
+    ctx.font = `${bold ? '600 ' : ''}${this.labelPx}px ${this.theme.getFontFamily()}`;
+    const tw = ctx.measureText(str).width;
+    const px = opts.padX ?? 6;
+    const py = opts.padY ?? 3;
+    const radius = opts.radius ?? 4;
+    const bw = tw + px * 2;
+    const bh = this.labelPx + py * 2;
+
+    let bx = align === 'center' ? x - bw / 2 : align === 'right' ? x - bw + px : x - px;
+    let by = y - this.labelPx + 1 - py;
+
+    if (opts.clampCanvas) {
+      bx = Math.max(6, Math.min(this.W - bw - 6, bx));
+      by = Math.max(6, Math.min(this.H - bh - 6, by));
+    }
+
+    if (opts.bg) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, radius);
+      ctx.fillStyle = opts.bg;
+      ctx.fill();
+      if (opts.border) {
+        ctx.strokeStyle = opts.border;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    const tx = align === 'center' ? bx + bw / 2 : align === 'right' ? bx + bw - px : bx + px;
+    const ty = by + py + this.labelPx - 1;
+
+    ctx.textAlign = align;
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = color;
+    ctx.fillText(str, tx, ty);
   }
 
   private drawOcean(s: number) {
@@ -473,7 +534,15 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.arc(x, y, rx, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    this.text(label, x, this.dY(28), 'center', `rgba(255, 255, 255, ${a})`, true);
+    this.textBadge(label, x, this.dY(28), 'center', `rgba(255, 255, 255, ${a})`, {
+      bold: true,
+      bg: `rgba(8, 20, 38, ${0.75 * a})`,
+      border: `rgba(255, 170, 70, ${0.5 * a})`,
+      padX: 7,
+      padY: 3,
+      radius: 4,
+      clampCanvas: true
+    });
   }
 
   /**
@@ -512,8 +581,18 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     coast(0, left - 1);
     coast(right + 1, n - 1);
 
-    this.text(indonesia, this.X(100.5), this.zY(2.2), 'left', this.ink('text-main', 0.9, '#1e293b'));
-    this.text(andes, this.W - 8, this.zY(5.2), 'right', this.ink('text-main', 0.9, '#1e293b'));
+    this.textBadge(indonesia, Math.max(8, this.X(100.5)), this.zY(2.2), 'left', this.ink('text-main', 0.9, '#1e293b'), {
+      bold: true,
+      bg: 'rgba(245, 247, 251, 0.88)',
+      border: 'rgba(15, 23, 42, 0.1)',
+      clampCanvas: true
+    });
+    this.textBadge(andes, this.W - 8, this.zY(5.2), 'right', this.ink('text-main', 0.9, '#1e293b'), {
+      bold: true,
+      bg: 'rgba(245, 247, 251, 0.88)',
+      border: 'rgba(15, 23, 42, 0.1)',
+      clampCanvas: true
+    });
   }
 
   private drawNinoBox() {
@@ -528,7 +607,14 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.restore();
     // inside the box rather than above it: at the larger label size the sky band over the surface
     // already carries the trade-wind label
-    this.text('Niño 3.4', x0 + 4, this.ys + this.labelPx + 1, 'left', 'rgba(255, 255, 255, 0.95)', true);
+    this.textBadge('Niño 3.4', x0 + 5, this.ys + this.labelPx + 3, 'left', 'rgba(255, 255, 255, 0.95)', {
+      bold: true,
+      bg: 'rgba(8, 20, 38, 0.72)',
+      border: 'rgba(255, 255, 255, 0.22)',
+      padX: 5,
+      padY: 2,
+      radius: 3
+    });
   }
 
   private drawCell(ps: Particle[], lonW: number, lonE: number, dir: number, strength: number, dt: number) {
@@ -646,30 +732,73 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const sea = (k: Focus) => `rgba(255, 255, 255, ${(0.55 + 0.45 * this.fa[k]).toFixed(2)})`;
     // a dimmed label still has to be readable, hence the 0.45 floor rather than 0.15
     const eA = this.math.clamp(eS, 0.45, 1);
+
+    const skyBadge = (k: Focus, gate = 1) => {
+      const a = gate * (0.45 + 0.55 * this.fa[k]);
+      return {
+        bg: `rgba(245, 247, 251, ${(0.86 * a).toFixed(2)})`,
+        border: `rgba(15, 23, 42, ${(0.09 * a).toFixed(2)})`,
+        clampCanvas: true
+      };
+    };
+
+    const seaBadge = (k: Focus) => {
+      const a = 0.55 + 0.45 * this.fa[k];
+      return {
+        bg: `rgba(6, 18, 34, ${(0.72 * a).toFixed(2)})`,
+        border: `rgba(255, 255, 255, ${(0.2 * a).toFixed(2)})`,
+        clampCanvas: true
+      };
+    };
+
     if (268 - xc > 30) {
-      this.text(L.trades, this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', skyInk('wind', eA), true);
-      this.text(L.aloft, this.X((xc + 268) / 2 + 8), this.zY(14.4), 'center', this.ink('text-dim', eA * (0.5 + 0.5 * this.fa.aloft), '#64748b'));
-      this.text(L.sinkDry, this.X(266), this.zY(8.2), 'right', skyInk('sink', eA));
+      this.textBadge(L.trades, this.X((xc + 268) / 2 + 8), this.zY(0.35) - 3, 'center', skyInk('wind', eA), {
+        bold: true,
+        ...skyBadge('wind', eA)
+      });
+      this.textBadge(
+        L.aloft,
+        this.X((xc + 268) / 2 + 8),
+        this.zY(14.4),
+        'center',
+        this.ink('text-dim', eA * (0.5 + 0.5 * this.fa.aloft), '#64748b'),
+        skyBadge('aloft', eA)
+      );
+      this.textBadge(L.sinkDry, this.X(266), this.zY(8.2), 'right', skyInk('sink', eA), skyBadge('sink', eA));
     }
-    this.text(L.rising, this.X(xc), this.zY(15), 'center', skyInk('convection'), true);
+    this.textBadge(L.rising, this.X(xc), this.zY(15), 'center', skyInk('convection'), {
+      bold: true,
+      ...skyBadge('convection')
+    });
     // east of the Indonesian coast (117.9°E) and drawn after drawLand(), so the land cannot bury it
-    this.text(L.thermocline, this.X(122), this.dY(this.thermoDepth(122, s)) - 6, 'left', sea('thermo'));
+    this.textBadge(L.thermocline, this.X(122), this.dY(this.thermoDepth(122, s)) - 6, 'left', sea('thermo'), seaBadge('thermo'));
     if (wS > 0.05) {
-      this.text(L.sinkDrought, this.X(113), this.zY(8.2), 'left', this.ink('accent', 0.45 + 0.55 * wS, '#d37400'), true);
-      this.text(L.westerly, this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', this.ink('accent', 0.4 + 0.5 * wS, '#d37400'));
+      this.textBadge(L.sinkDrought, this.X(113), this.zY(8.2), 'left', this.ink('accent', 0.45 + 0.55 * wS, '#d37400'), {
+        bold: true,
+        ...skyBadge('sink', wS)
+      });
+      this.textBadge(L.westerly, this.X((112 + xc) / 2), this.zY(0.35) - 3, 'center', this.ink('accent', 0.4 + 0.5 * wS, '#d37400'), skyBadge('wind', wS));
     }
     if (s < 1) {
-      this.text(L.warmPool, this.X(134), this.dY(26), 'center', sea('ocean'), true);
+      this.textBadge(L.warmPool, this.X(134), this.dY(52), 'center', sea('ocean'), {
+        bold: true,
+        ...seaBadge('ocean')
+      });
     }
     if (s < 0.6) {
-      this.text(L.coldTongue, this.X(254), this.dY(26), 'center', sea('ocean'), true);
+      this.textBadge(L.coldTongue, this.X(264), this.dY(52), 'center', sea('ocean'), {
+        bold: true,
+        ...seaBadge('ocean')
+      });
     }
   }
 
   private drawAxis() {
     const ticks: [number, string][] = [[120, '120°E'], [150, '150°E'], [180, '180°'], [210, '150°W'], [240, '120°W'], [270, '90°W']];
     for (const [lon, label] of ticks) {
-      this.text(label, this.X(lon), this.H - 6, 'center', this.ink('text-dim', 0.95, '#64748b'));
+      const half = this.ctx.measureText(label).width / 2;
+      const x = Math.max(half + 4, Math.min(this.W - half - 4, this.X(lon)));
+      this.text(label, x, this.H - 6, 'center', this.ink('text-dim', 0.95, '#64748b'));
     }
   }
 }

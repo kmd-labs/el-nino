@@ -71,14 +71,11 @@
 
   <app-button
     variant="ghost"
-    [iconOnly]="iconOnly()"
+    [iconOnly]="true"
     [ariaLabel]="t.dataSourcesTitle"
     [titleText]="t.dataSourcesTitle"
     (btnClick)="openSourcesPopup()">
     <lucide-icon [img]="databaseIcon" [size]="15"></lucide-icon>
-    @if (!iconOnly()) {
-      <span class="legend-panel__btn-text">{{ t.dataSources }}</span>
-    }
   </app-button>
 
   <span class="legend-panel__divider" aria-hidden="true"></span>
