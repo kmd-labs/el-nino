@@ -26,12 +26,12 @@ export const IMPACT_SOURCES: ImpactSourceMeta[] = [
   {
     id: 'wmo',
     short: 'WMO',
-    url: 'https://wmo.int/sites/default/files/styles/prose_1x/public/2026-06/EL%20Nino%20chamges%20rainfall%20patterns.png?itok=WKVfDATj'
+    url: 'https://wmo.int/news/media-centre/wmo-prepare-el-nino'
   },
   {
     id: 'jrc',
     short: 'JRC',
-    url: 'https://joint-research-centre.ec.europa.eu/sites/default/files/styles/embed_large/public/2026-06/ENSO_report_map_impacts.jpg?itok=1IGJ3duJ'
+    url: 'https://joint-research-centre.ec.europa.eu/jrc-news-and-updates/potentially-historic-el-nino-come-analysis-shows-humanitarian-toll-2026-06-15_en'
   },
   {
     id: 'jma',
