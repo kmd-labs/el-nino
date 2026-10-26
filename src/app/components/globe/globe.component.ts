@@ -1867,16 +1867,7 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-
-    // Measure occupied space at top (header) and bottom (dock) so the globe is centered in the empty space between them
-    const headerEl = document.querySelector(portrait ? '.header' : '.header__left');
-    const dockEl = document.querySelector('.dock-wrap');
-    const topOccupied = headerEl ? Math.max(0, headerEl.getBoundingClientRect().bottom) : (portrait ? 140 : isLand ? 42 : 52);
-    const bottomOccupied = dockEl ? Math.max(0, h - dockEl.getBoundingClientRect().top) : (isLand ? 85 : 130);
-
-    // Positive offsetY shifts the globe up; negative offsetY shifts the globe down
-    const offsetY = (bottomOccupied - topOccupied) / 2;
-    this.camera.setViewOffset(w, h, 0, offsetY, w, h);
+    this.camera.clearViewOffset();
     this.controls.minDistance = isLand ? 5.8 : (portrait ? 11 : 7.5);
 
     this.camera.updateProjectionMatrix();

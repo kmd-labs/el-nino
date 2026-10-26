@@ -2,9 +2,9 @@
 
 .dock-wrap {
   position: fixed;
-  left: var(--dock-offset-x);
-  right: var(--dock-offset-x);
-  bottom: var(--dock-offset-bottom);
+  left: var(--dock-offset-x, 16px);
+  right: var(--dock-offset-x, 16px);
+  bottom: var(--dock-offset-bottom, calc(16px + env(safe-area-inset-bottom, 0px)));
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -261,14 +261,25 @@
 
 @include respond-to("mobile") {
   .dock-wrap {
-    left: var(--dock-offset-x);
-    right: var(--dock-offset-x);
-    bottom: var(--dock-offset-bottom);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    align-items: stretch;
   }
 
   .dock {
-    padding: 8px 8px 10px;
-    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: radius("card") radius("card") 0 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    padding: 6px 12px max(8px, env(safe-area-inset-bottom, 8px));
+    gap: 4px;
 
     &__header-group {
       gap: 5px;
@@ -339,7 +350,7 @@
       gap: 6px;
       flex-wrap: nowrap;
       width: 100%;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
     }
 
     &__readout-group {
@@ -349,12 +360,12 @@
       gap: 6px;
       flex-wrap: nowrap;
       width: 100%;
-      padding-top: 6px;
+      padding-top: 4px;
       border-top: 1px solid color("line");
     }
 
     &__row--enso {
-      padding-top: 6px;
+      padding-top: 4px;
     }
   }
 }
@@ -502,11 +513,11 @@
     left: 0;
     right: 0;
     top: auto;
-    bottom: var(--dock-offset-bottom);
+    bottom: var(--dock-offset-bottom, max(8px, env(safe-area-inset-bottom, 8px)));
     align-items: flex-end;
     justify-content: center;
-    padding-left: max(var(--dock-offset-x), env(safe-area-inset-left, 8px));
-    padding-right: max(var(--dock-offset-x), env(safe-area-inset-right, 8px));
+    padding-left: max(var(--dock-offset-x, 8px), env(safe-area-inset-left, 8px));
+    padding-right: max(var(--dock-offset-x, 8px), env(safe-area-inset-right, 8px));
   }
 
   .dock {
