@@ -3,6 +3,16 @@ import { EnsoMathService } from '../../core/services/enso-math.service';
 import { CurrentWeatherService, WaveSample, WindSample } from '../../core/services/current-weather.service';
 
 /**
+ * A wind streak lives 6–10 s. At 0.55°/s per m/s that is ~25–40° of travel: long enough for a full
+ * trail, short enough that streaks respawn before they drain into a convergence point of the 10°
+ * snapshot grid (a low between grid nodes interpolates to a pure sink, #83).
+ */
+const WIND_LIFE_MIN = 6;
+const WIND_LIFE_SPAN = 4;
+/** Below this speed (m/s) a streak is sitting in a sink; respawn it instead of letting heads stack up. */
+const WIND_MIN_SPEED = 0.8;
+
+/**
  * Real surface wind streaks and ocean wave crests interpolated across
  * temperature keyframes (from La Niña cold peak through current situation to Super El Niño forecast).
  */
@@ -16,6 +26,8 @@ export class CurrentWeatherLayer {
   private wLat: Float32Array;
   private wAge: Float32Array;
   private wLife: Float32Array;
+  /** Wind speed at each streak's head, for its own colour and opacity. */
+  private wSpd: Float32Array;
   private wHist: Float32Array;
   private wPos: Float32Array;
   private wCol: Float32Array;
@@ -70,6 +82,7 @@ export class CurrentWeatherLayer {
     this.wLat = new Float32Array(this.NW);
     this.wAge = new Float32Array(this.NW);
     this.wLife = new Float32Array(this.NW);
+    this.wSpd = new Float32Array(this.NW);
     this.wHist = new Float32Array(this.NW * this.TRAIL * 3);
 
     this.vLon = new Float32Array(this.NV);
@@ -113,7 +126,7 @@ export class CurrentWeatherLayer {
     this.wLon[i] = lon;
     this.wLat[i] = lat;
     this.wAge[i] = 0;
-    this.wLife[i] = 14.0 + Math.random() * 14.0;
+    this.wLife[i] = WIND_LIFE_MIN + Math.random() * WIND_LIFE_SPAN;
     this.math.pos(lon, lat, this.math.R * 1.013, this.p);
     const o = i * this.TRAIL * 3;
     for (let k = 0; k < this.TRAIL; k++) {
@@ -229,10 +242,16 @@ export class CurrentWeatherLayer {
     for (let i = 0; i < this.NW; i++) {
       this.wAge[i] += dt;
       const lat0 = this.wLat[i];
-      if (this.wAge[i] > this.wLife[i] || Math.abs(lat0) > this.MAX_LAT + 1 || !this.weather.wind(this.wLon[i], lat0, s, this.wind)) {
+      const alive = this.wAge[i] <= this.wLife[i]
+        && Math.abs(lat0) <= this.MAX_LAT + 1
+        && this.weather.wind(this.wLon[i], lat0, s, this.wind)
+        && Math.hypot(this.wind.u, this.wind.v) >= WIND_MIN_SPEED;
+      if (!alive) {
         this.spawnWind(i);
         this.weather.wind(this.wLon[i], this.wLat[i], s, this.wind);
+        this.wSpd[i] = Math.hypot(this.wind.u, this.wind.v);
       } else {
+        this.wSpd[i] = Math.hypot(this.wind.u, this.wind.v);
         this.wLon[i] += this.wind.u * degPerMs * dt / Math.max(0.25, Math.cos(lat0 * this.math.DEG));
         this.wLat[i] += this.wind.v * degPerMs * dt;
         if (this.wLon[i] > 180) this.wLon[i] -= 360;
@@ -251,7 +270,7 @@ export class CurrentWeatherLayer {
     const T = this.TRAIL;
     let w = 0;
     for (let i = 0; i < this.NW; i++) {
-      const speed = Math.hypot(this.wind.u, this.wind.v);
+      const speed = this.wSpd[i];
       const k = Math.min(1, speed / 16);
       const r = this.cWind.r + (this.cStrong.r - this.cWind.r) * k * k;
       const g = this.cWind.g + (this.cStrong.g - this.cWind.g) * k * k;

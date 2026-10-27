@@ -618,9 +618,10 @@ export class CurrentWeatherService {
       // Under La Niña (ds < 0), westward anomaly (-u) intensifies the easterly trades
       u += ds * 4.8 * eqGauss * pacWeight;
 
-      // Meridional convergence towards the equator
+      // Meridional convergence towards the equator, kept gentle: any convergence in this
+      // steady field is a sink the streaks drain into (#83)
       const vConv = -Math.sign(lat) * Math.sin(eqDist * DEG * 3.5);
-      v += ds * 1.5 * vConv * pacWeight;
+      v += ds * 0.5 * vConv * pacWeight;
     }
 
     // Western Pacific (-160° to 120°): Westerly wind bursts and monsoonal shifts
