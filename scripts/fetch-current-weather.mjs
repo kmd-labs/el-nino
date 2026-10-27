@@ -337,16 +337,49 @@ async function fetchWeeklyAirGrids(validDates, existingMeta, existingBin) {
 // Generate weekly dates from Nov 6, 2024 to present
 const START_DATE = new Date('2024-11-06T12:00:00Z');
 
+function dateItem(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return { ym: `${y}${m}`, ymd: `${y}${m}${day}`, iso: d.toISOString().slice(0, 10) };
+}
+
 function generateWeeklyDates() {
   const dates = [];
   const now = new Date();
   for (let d = new Date(START_DATE); d <= now; d.setUTCDate(d.getUTCDate() + 7)) {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    dates.push({ ym: `${y}${m}`, ymd: `${y}${m}${day}`, iso: d.toISOString().slice(0, 10) });
+    dates.push(dateItem(d));
   }
   return dates;
+}
+
+/** How far back to look for the newest daily file (NOAA publishes with about a day's delay). */
+const LATEST_DAILY_LOOKBACK = 6;
+
+/** Decodes one OISST day: the 0.5° SST grid plus the Niño 3.4 anomaly. Null when the file is missing. */
+async function readOisstFrame(item) {
+  const buf = await getOisstNetcdf(item);
+  if (!buf) return null;
+  await h5wasm.ready;
+  const tempName = resolve(CACHE_DIR, `temp-${process.pid}.nc`);
+  await writeFile(tempName, buf);
+  const f = new h5wasm.File(tempName, 'r');
+  try {
+    const dsSst = f.get('sst');
+    const rawSst = dsSst.value;
+    const scaleSst = Number(dsSst.attrs['scale_factor'].value[0]);
+    const fillSst = Number(dsSst.attrs['_FillValue'].value[0]);
+
+    const dsAnom = f.get('anom');
+    const rawAnom = dsAnom.value;
+    const scaleAnom = Number(dsAnom.attrs['scale_factor'].value[0]);
+    const fillAnom = Number(dsAnom.attrs['_FillValue'].value[0]);
+    const nino34 = round1(computeNino34FromRaw(rawAnom, scaleAnom, fillAnom));
+
+    return { grid: downsampleSst05(rawSst, scaleSst, fillSst), nino34 };
+  } finally {
+    f.close();
+  }
 }
 
 async function ensureCacheDir() {
@@ -560,6 +593,7 @@ async function main() {
   });
 
   const weeklyDates = generateWeeklyDates();
+  const weeklyIsoSet = new Set(weeklyDates.map(w => w.iso));
   console.log(`Targeting ${weeklyDates.length} weekly dates up to present...`);
 
   let grids = [];
@@ -573,6 +607,8 @@ async function main() {
     console.log(`Found existing dataset with ${existingCount} observed frames.`);
 
     for (let i = 0; i < existingCount; i++) {
+      // A previous run's latest-daily frame is off the weekly schedule; it is replaced below
+      if (!weeklyIsoSet.has(existingObservedKfs[i].date)) continue;
       const slice = existingBin.subarray(i * FRAME_POINTS, (i + 1) * FRAME_POINTS);
       grids.push(new Uint8Array(slice));
       validDates.push({ iso: existingObservedKfs[i].date });
@@ -586,37 +622,42 @@ async function main() {
 
   if (missingWeeklyDates.length > 0) {
     console.log(`Fetching ${missingWeeklyDates.length} missing weekly dates from NOAA OISST...`);
-    await h5wasm.ready;
 
     for (const item of missingWeeklyDates) {
       try {
-        const buf = await getOisstNetcdf(item);
-        if (!buf) continue;
-        const tempName = resolve(CACHE_DIR, `temp-${process.pid}.nc`);
-        await writeFile(tempName, buf);
-        const f = new h5wasm.File(tempName, 'r');
-        const dsSst = f.get('sst');
-        const rawSst = dsSst.value;
-        const scaleSst = Number(dsSst.attrs['scale_factor'].value[0]);
-        const fillSst = Number(dsSst.attrs['_FillValue'].value[0]);
-
-        const dsAnom = f.get('anom');
-        const rawAnom = dsAnom.value;
-        const scaleAnom = Number(dsAnom.attrs['scale_factor'].value[0]);
-        const fillAnom = Number(dsAnom.attrs['_FillValue'].value[0]);
-        const nino34 = round1(computeNino34FromRaw(rawAnom, scaleAnom, fillAnom));
-
-        f.close();
-        const grid = downsampleSst05(rawSst, scaleSst, fillSst);
-        grids.push(grid);
+        const frame = await readOisstFrame(item);
+        if (!frame) continue;
+        grids.push(frame.grid);
         validDates.push(item);
-        nino34Values.push(nino34);
+        nino34Values.push(frame.nino34);
       } catch (err) {
         console.warn(`Could not process ${item.iso}:`, err.message);
       }
     }
   } else {
     console.log('All weekly dates up to present are already cached!');
+  }
+
+  // The weekly frames can lag NOAA by up to 6 days. Append the newest daily file (final or
+  // preliminary) as the "now" frame when it is newer than the last weekly one.
+  const lastIso = validDates.map(d => d.iso).sort().at(-1) ?? '';
+  for (let back = 1; back <= LATEST_DAILY_LOOKBACK; back++) {
+    const d = new Date();
+    d.setUTCHours(12, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() - back);
+    const item = dateItem(d);
+    if (item.iso <= lastIso) break;
+    try {
+      const frame = await readOisstFrame(item);
+      if (!frame) continue;
+      grids.push(frame.grid);
+      validDates.push(item);
+      nino34Values.push(frame.nino34);
+      console.log(`Added the latest daily frame ${item.iso} after the last weekly frame ${lastIso}.`);
+      break;
+    } catch (err) {
+      console.warn(`Could not process daily ${item.iso}:`, err.message);
+    }
   }
 
   if (grids.length === 0) {
