@@ -25,7 +25,8 @@ describe('SharePopupComponent', () => {
           provide: ShareLinkService,
           useValue: {
             currentDate: signal('2023-11-15'),
-            buildUrl: (mode: string) => `https://example.com/?${mode}=val`
+            buildUrl: (mode: string) => `https://example.com/?${mode}=val`,
+            appUrl: () => 'https://kmd-labs.github.io/el-nino/?lang=en'
           }
         }
       ]
@@ -36,10 +37,10 @@ describe('SharePopupComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and generate QR code SVG for canonical URL', async () => {
+  it('should create and generate a QR code for the app URL in the current language', async () => {
     expect(component).toBeTruthy();
     await fixture.whenStable();
-    expect(component.appUrl()).toBe('https://kmd-labs.github.io/el-nino/');
+    expect(component.appUrl()).toBe('https://kmd-labs.github.io/el-nino/?lang=en');
     expect(component.qrSvg()).toBeTruthy();
   });
 

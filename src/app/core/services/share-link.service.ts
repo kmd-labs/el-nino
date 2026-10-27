@@ -79,7 +79,14 @@ export class ShareLinkService {
     return this.weather.dateIsoAt(this.state.sTarget());
   }
 
-  /** Link to the current view plus either the shown day or the ENSO state. */
+  /** The app's start page in the current language (copy link, QR code). */
+  appUrl(): string {
+    const url = new URL(APP_CANONICAL_URL);
+    url.searchParams.set('lang', this.i18n.lang());
+    return url.toString();
+  }
+
+  /** Link to the current view plus either the shown day or the ENSO state, in the current language. */
   buildUrl(mode: ShareMode): string {
     const url = new URL(APP_CANONICAL_URL);
     url.search = '';
@@ -90,6 +97,7 @@ export class ShareLinkService {
     const date = mode === 'date' ? this.currentDate() : null;
     if (date) params.set('date', date);
     else params.set('state', this.formatStrength(this.state.sTarget()));
+    params.set('lang', this.i18n.lang());
     return url.toString();
   }
 

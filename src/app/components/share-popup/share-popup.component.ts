@@ -11,7 +11,7 @@ import {
   QrCode
 } from 'lucide-angular';
 import QRCode from 'qrcode';
-import { APP_CANONICAL_URL, ShareLinkService } from '../../core/services/share-link.service';
+import { ShareLinkService } from '../../core/services/share-link.service';
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -58,9 +58,11 @@ export class SharePopupComponent implements OnInit {
   readonly stateUrl = computed(() => this.shareLink.buildUrl('state'));
 
   async ngOnInit() {
-    this.appUrl.set(APP_CANONICAL_URL);
+    // Links carry the current language, so recipients start in it too
+    const appUrl = this.shareLink.appUrl();
+    this.appUrl.set(appUrl);
     try {
-      const svgString = await QRCode.toString(APP_CANONICAL_URL, {
+      const svgString = await QRCode.toString(appUrl, {
         type: 'svg',
         margin: 1,
         color: {

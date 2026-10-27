@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CurrentWeatherService, TimelineMeta } from './current-weather.service';
 import { EnsoStateService } from './enso-state.service';
+import { I18nService } from '../i18n/i18n.service';
 import { ShareLinkService } from './share-link.service';
 
 const META = {
@@ -33,6 +34,7 @@ describe('ShareLinkService', () => {
     const share = TestBed.inject(ShareLinkService);
     const state = TestBed.inject(EnsoStateService);
     const weather = TestBed.inject(CurrentWeatherService);
+    TestBed.inject(I18nService).setLang('en');
     return { share, state, weather };
   };
 
@@ -92,7 +94,7 @@ describe('ShareLinkService', () => {
     TestBed.tick();
 
     state.setPreset(-1.16);
-    expect(new URL(share.buildUrl('state')).search).toBe('?state=nina');
+    expect(new URL(share.buildUrl('state')).search).toBe('?state=nina&lang=en');
   });
 
   it('builds state links with preset names or rounded values', () => {
@@ -100,14 +102,14 @@ describe('ShareLinkService', () => {
 
     state.setView('impacts');
     state.setPreset(-1.6);
-    expect(new URL(share.buildUrl('state')).search).toBe('?view=impacts&state=nina');
+    expect(new URL(share.buildUrl('state')).search).toBe('?view=impacts&state=nina&lang=en');
 
     state.setView('globe');
     state.setStrengthTarget(0.8567);
-    expect(new URL(share.buildUrl('state')).search).toBe('?state=0.86');
+    expect(new URL(share.buildUrl('state')).search).toBe('?state=0.86&lang=en');
 
     state.setStrengthTarget(1.4);
-    expect(new URL(share.buildUrl('state')).search).toBe('?state=nino');
+    expect(new URL(share.buildUrl('state')).search).toBe('?state=nino&lang=en');
   });
 
   it('builds date links from the day shown on the timeline', () => {
@@ -115,6 +117,6 @@ describe('ShareLinkService', () => {
     weather.meta.set(META);
     state.setView('walker');
     state.setStrengthTarget(1.4);
-    expect(new URL(share.buildUrl('date')).search).toBe('?view=walker&date=2026-10-21');
+    expect(new URL(share.buildUrl('date')).search).toBe('?view=walker&date=2026-10-21&lang=en');
   });
 });
