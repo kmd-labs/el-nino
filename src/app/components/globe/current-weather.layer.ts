@@ -13,8 +13,23 @@ const WIND_LIFE_SPAN = 4;
 const WIND_MIN_SPEED = 0.8;
 
 /**
- * Real surface wind streaks and ocean wave crests interpolated across
- * temperature keyframes (from La Niña cold peak through current situation to Super El Niño forecast).
+ * Ocean waves are drawn as short crests across their direction of travel (#85): a small wave
+ * train of CRESTS marks, the leading one brightest. A train lives 4–8 s, so it never has time to
+ * pile up where the 10° direction field converges.
+ */
+const WAVE_LIFE_MIN = 4;
+const WAVE_LIFE_SPAN = 4;
+const CRESTS = 3;
+const CREST_WEIGHT = [1, 0.55, 0.25];
+/** Interpolated direction shorter than this means neighbouring swells cancel out: respawn there. */
+const WAVE_MIN_DIR = 0.35;
+/** Line segments per crest: tip – centre – tip, bowed forward like a real wave front. */
+const CREST_SEGMENTS = 2;
+
+/**
+ * Real surface wind streaks (trails along the flow) and ocean wave crests (short marks across the
+ * direction of travel), interpolated across temperature keyframes (from the La Niña cold peak
+ * through the current situation to the Super El Niño forecast).
  */
 export class CurrentWeatherLayer {
   readonly group = new THREE.Group();
@@ -34,12 +49,15 @@ export class CurrentWeatherLayer {
   private wGeo = new THREE.BufferGeometry();
 
   private readonly NV: number;
-  private readonly V_TRAIL: number;
   private vLon: Float32Array;
   private vLat: Float32Array;
   private vAge: Float32Array;
   private vLife: Float32Array;
-  private vHist: Float32Array;
+  /** Unit direction of travel (east, north) and wave height / period at each train's lead crest. */
+  private vDx: Float32Array;
+  private vDy: Float32Array;
+  private vH: Float32Array;
+  private vPer: Float32Array;
   private vPos: Float32Array;
   private vCol: Float32Array;
   private vGeo = new THREE.BufferGeometry();
@@ -52,7 +70,6 @@ export class CurrentWeatherLayer {
   private lastS = 1.4;
 
   private readonly wDecay: Float32Array;
-  private readonly vDecay: Float32Array;
 
   constructor(
     private math: EnsoMathService,
@@ -67,15 +84,10 @@ export class CurrentWeatherLayer {
     this.NW = 450;
     this.TRAIL = 260;
     this.NV = 650;
-    this.V_TRAIL = 350;
 
     this.wDecay = new Float32Array(this.TRAIL);
     for (let k = 0; k < this.TRAIL; k++) {
       this.wDecay[k] = (1 - k / (this.TRAIL - 1)) ** 0.75;
-    }
-    this.vDecay = new Float32Array(this.V_TRAIL);
-    for (let k = 0; k < this.V_TRAIL; k++) {
-      this.vDecay[k] = (1 - k / (this.V_TRAIL - 1)) ** 0.70;
     }
 
     this.wLon = new Float32Array(this.NW);
@@ -89,7 +101,10 @@ export class CurrentWeatherLayer {
     this.vLat = new Float32Array(this.NV);
     this.vAge = new Float32Array(this.NV);
     this.vLife = new Float32Array(this.NV);
-    this.vHist = new Float32Array(this.NV * this.V_TRAIL * 3);
+    this.vDx = new Float32Array(this.NV);
+    this.vDy = new Float32Array(this.NV);
+    this.vH = new Float32Array(this.NV);
+    this.vPer = new Float32Array(this.NV);
 
     const mat = () => new THREE.LineBasicMaterial({
       vertexColors: true,
@@ -104,8 +119,8 @@ export class CurrentWeatherLayer {
     this.wGeo.setAttribute('position', new THREE.BufferAttribute(this.wPos, 3));
     this.wGeo.setAttribute('color', new THREE.BufferAttribute(this.wCol, 4));
 
-    // Streamlines showcasing water flow direction: (V_TRAIL - 1) line segments per line
-    const vSeg = this.NV * (this.V_TRAIL - 1) * 2;
+    // Wave trains: CRESTS crests of CREST_SEGMENTS line segments each
+    const vSeg = this.NV * CRESTS * CREST_SEGMENTS * 2;
     this.vPos = new Float32Array(vSeg * 3);
     this.vCol = new Float32Array(vSeg * 4);
     this.vGeo.setAttribute('position', new THREE.BufferAttribute(this.vPos, 3));
@@ -146,14 +161,7 @@ export class CurrentWeatherLayer {
       }
     }
     this.vAge[i] = 0;
-    this.vLife[i] = 16.0 + Math.random() * 16.0;
-    this.math.pos(this.vLon[i], this.vLat[i], this.math.R * 1.011, this.p);
-    const o = i * this.V_TRAIL * 3;
-    for (let k = 0; k < this.V_TRAIL; k++) {
-      this.vHist[o + k * 3] = this.p.x;
-      this.vHist[o + k * 3 + 1] = this.p.y;
-      this.vHist[o + k * 3 + 2] = this.p.z;
-    }
+    this.vLife[i] = WAVE_LIFE_MIN + Math.random() * WAVE_LIFE_SPAN;
   }
 
   update(dt: number, s: number = 1.2) {
@@ -181,7 +189,7 @@ export class CurrentWeatherLayer {
     this.cWaveCur.copy(this.cWaveCold).lerp(this.cWaveWarm, wT);
 
     // If the user scrubs rapidly across the timeline (large delta in s),
-    // partially flush trail histories towards current positions so trails adapt quickly
+    // partially flush wind trail histories towards current positions so trails adapt quickly
     const dS = Math.abs(s - this.lastS);
     if (dS > 0.04) {
       this.adaptTrailsToTimeline(s, dS);
@@ -197,7 +205,6 @@ export class CurrentWeatherLayer {
   private adaptTrailsToTimeline(s: number, dS: number) {
     const shiftFrac = Math.min(1, dS * 6);
     const R_wind = this.math.R * 1.013;
-    const R_wave = this.math.R * 1.011;
 
     // Adapt wind streaks
     const stepsW = Math.max(2, Math.round(this.TRAIL * shiftFrac * 0.35));
@@ -213,23 +220,6 @@ export class CurrentWeatherLayer {
         this.wHist[o + k * 3] = this.p.x;
         this.wHist[o + k * 3 + 1] = this.p.y;
         this.wHist[o + k * 3 + 2] = this.p.z;
-      }
-    }
-
-    // Adapt water streamlines
-    const stepsV = Math.max(3, Math.round(this.V_TRAIL * shiftFrac * 0.35));
-    for (let i = 0; i < this.NV; i++) {
-      this.math.pos(this.vLon[i], this.vLat[i], R_wave, this.p);
-      const o = i * this.V_TRAIL * 3;
-      for (let k = this.V_TRAIL - 1; k >= stepsV; k--) {
-        this.vHist[o + k * 3] = this.vHist[o + (k - stepsV) * 3];
-        this.vHist[o + k * 3 + 1] = this.vHist[o + (k - stepsV) * 3 + 1];
-        this.vHist[o + k * 3 + 2] = this.vHist[o + (k - stepsV) * 3 + 2];
-      }
-      for (let k = 0; k < stepsV; k++) {
-        this.vHist[o + k * 3] = this.p.x;
-        this.vHist[o + k * 3 + 1] = this.p.y;
-        this.vHist[o + k * 3 + 2] = this.p.z;
       }
     }
   }
@@ -296,60 +286,88 @@ export class CurrentWeatherLayer {
   }
 
   private stepWaves(dt: number, s: number) {
-    const R = this.math.R * 1.011;
     const D = this.math.DEG;
-    const VT = this.V_TRAIL;
     const degPerMs = 1.2;
 
     for (let i = 0; i < this.NV; i++) {
       this.vAge[i] += dt;
-      let ok = this.weather.waves(this.vLon[i], this.vLat[i], s, this.wave);
-      if (this.vAge[i] > this.vLife[i] || !ok || this.isLand(this.vLon[i], this.vLat[i])) {
+      let ok = this.vAge[i] <= this.vLife[i]
+        && !this.isLand(this.vLon[i], this.vLat[i])
+        && this.sampleWave(i, s);
+      if (!ok) {
         this.spawnWave(i, s);
-        ok = this.weather.waves(this.vLon[i], this.vLat[i], s, this.wave);
+        ok = this.sampleWave(i, s);
       }
-      if (!ok) continue;
+      if (!ok) {
+        // nowhere usable found this frame: keep the train invisible until the next respawn
+        this.vAge[i] = this.vLife[i];
+        continue;
+      }
 
-      const { period, dx, dy } = this.wave;
-      const lat0 = this.vLat[i];
-      const cosLat = Math.max(0.25, Math.cos(lat0 * D));
-      const speed = 0.9 + 0.14 * Math.min(period, 16);
-      this.vLon[i] += dx * speed * degPerMs * dt / cosLat;
-      this.vLat[i] += dy * speed * degPerMs * dt;
+      const cosLat = Math.max(0.25, Math.cos(this.vLat[i] * D));
+      const speed = (0.9 + 0.14 * Math.min(this.vPer[i], 16)) * degPerMs;
+      this.vLon[i] += this.vDx[i] * speed * dt / cosLat;
+      this.vLat[i] += this.vDy[i] * speed * dt;
       if (this.vLon[i] > 180) this.vLon[i] -= 360;
       if (this.vLon[i] < -180) this.vLon[i] += 360;
-
-      const o = i * VT * 3;
-      this.math.pos(this.vLon[i], this.vLat[i], R, this.p);
-      this.vHist.copyWithin(o + 3, o, o + (VT - 1) * 3);
-      this.vHist[o] = this.p.x;
-      this.vHist[o + 1] = this.p.y;
-      this.vHist[o + 2] = this.p.z;
     }
   }
 
+  /** Reads the wave field at train i; false where there is no data or opposing swells cancel out. */
+  private sampleWave(i: number, s: number): boolean {
+    if (!this.weather.waves(this.vLon[i], this.vLat[i], s, this.wave)) return false;
+    const len = Math.hypot(this.wave.dx, this.wave.dy);
+    if (len < WAVE_MIN_DIR) return false;
+    this.vDx[i] = this.wave.dx / len;
+    this.vDy[i] = this.wave.dy / len;
+    this.vH[i] = this.wave.h;
+    this.vPer[i] = this.wave.period;
+    return true;
+  }
+
   private buildWaveGeometry() {
-    const VT = this.V_TRAIL;
-    let vPtr = 0;
+    const D = this.math.DEG;
+    const R = this.math.R * 1.011;
     const r = this.cWaveCur.r;
     const g = this.cWaveCur.g;
     const b = this.cWaveCur.b;
+    let v = 0;
+
+    const put = (lon: number, lat: number, alpha: number) => {
+      this.math.pos(lon, lat, R, this.p);
+      this.vPos[v * 3] = this.p.x;
+      this.vPos[v * 3 + 1] = this.p.y;
+      this.vPos[v * 3 + 2] = this.p.z;
+      this.vCol[v * 4] = r;
+      this.vCol[v * 4 + 1] = g;
+      this.vCol[v * 4 + 2] = b;
+      this.vCol[v * 4 + 3] = alpha;
+      v++;
+    };
 
     for (let i = 0; i < this.NV; i++) {
-      const life = this.vAge[i] / this.vLife[i];
-      const a = Math.sin(Math.PI * life) * 0.38;
-      const o = i * VT * 3;
+      const life = Math.min(1, this.vAge[i] / this.vLife[i]);
+      const h = this.vH[i];
+      const a = 0.55 * Math.sin(Math.PI * life) * (0.5 + 0.5 * Math.min(1, h / 3));
+      const lon0 = this.vLon[i];
+      const lat0 = this.vLat[i];
+      const k = 1 / Math.max(0.25, Math.cos(lat0 * D));
+      // along travel (dx, dy) and across it (-dy, dx), in degrees of lon / lat
+      const fx = this.vDx[i] * k, fy = this.vDy[i];
+      const px = -this.vDy[i] * k, py = this.vDx[i];
+      const half = 0.6 + 0.3 * Math.min(h, 5); // longer crests for higher waves
+      const bow = 0.25 * half; // tips trail the centre, like a real wave front
+      const spacing = 0.12 * Math.min(Math.max(this.vPer[i], 4), 16); // longer period, longer wavelength
 
-      for (let sIdx = 0; sIdx < VT - 1; sIdx++) {
-        for (let j = 0; j < 6; j++) {
-          this.vPos[vPtr * 3 + j] = this.vHist[o + sIdx * 3 + j];
-        }
-        const c = vPtr * 4;
-        const a1 = a * this.vDecay[sIdx];
-        const a2 = a * this.vDecay[sIdx + 1];
-        this.vCol[c] = r; this.vCol[c + 1] = g; this.vCol[c + 2] = b; this.vCol[c + 3] = a1;
-        this.vCol[c + 4] = r; this.vCol[c + 5] = g; this.vCol[c + 6] = b; this.vCol[c + 7] = a2;
-        vPtr += 2;
+      for (let c = 0; c < CRESTS; c++) {
+        const cl = lon0 - fx * spacing * c;
+        const ct = lat0 - fy * spacing * c;
+        const ac = a * CREST_WEIGHT[c];
+        const tipA = ac * 0.15;
+        const lLon = cl + px * half - fx * bow, lLat = ct + py * half - fy * bow;
+        const rLon = cl - px * half - fx * bow, rLat = ct - py * half - fy * bow;
+        put(lLon, lLat, tipA); put(cl, ct, ac);
+        put(cl, ct, ac); put(rLon, rLat, tipA);
       }
     }
     this.vGeo.attributes['position'].needsUpdate = true;
