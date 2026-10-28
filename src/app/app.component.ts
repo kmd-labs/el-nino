@@ -16,6 +16,7 @@ import { SeoService } from './core/services/seo.service';
 import { EnsoHistoryService } from './core/services/enso-history.service';
 import { CurrentWeatherService } from './core/services/current-weather.service';
 import { AnalyticsService } from './core/services/analytics.service';
+import { ProperNounGuardService } from './core/services/proper-noun-guard.service';
 import { EquatorProfileService } from './core/services/equator-profile.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
 
@@ -46,6 +47,7 @@ export class AppComponent {
   private history = inject(EnsoHistoryService);
   private weather = inject(CurrentWeatherService);
   private analytics = inject(AnalyticsService);
+  private properNouns = inject(ProperNounGuardService);
   private profile = inject(EquatorProfileService);
   private bp = inject(BreakpointService);
 
@@ -55,6 +57,7 @@ export class AppComponent {
     this.history.load();
     this.page.initFromUrl();
     this.analytics.init();
+    this.properNouns.start();
 
     // Each failure and the load time are reported once per visit
     const reported = new Set<string>();

@@ -8,7 +8,7 @@
   <div class="cycles__head glass-panel">
     <div class="cycles__head-left">
       <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
-      <span class="cycles__title">{{ t.cyclesTitle }}</span>
+      <span class="cycles__title" [innerHTML]="t.cyclesTitle | properNouns"></span>
       @if (prov) {
         <span class="cycles__meta cycles__meta--prov">
           {{ monthLabel(prov.month) }} {{ formatOni(prov.oni, 1) }} °C ·
@@ -56,7 +56,7 @@
     <div class="cycles-details__grid">
       <!-- 1. Strongest El Niño Events Catalogue -->
       <div class="cycles-details__panel glass-panel">
-        <h3>{{ t.cyclesCatalogue }}</h3>
+        <h3 [innerHTML]="t.cyclesCatalogue | properNouns"></h3>
         <table class="cycles__table">
           <thead>
             <tr>
@@ -84,8 +84,8 @@
       <!-- 2. Analog Members Breakdown -->
       @if (forecast) {
         <div class="cycles-details__panel glass-panel">
-          <h3>{{ t.cyclesAnalogTitle }}</h3>
-          <p class="cycles__sub">{{ t.cyclesAnalogNote(forecast.windowMonths, forecast.analogs.length) }}</p>
+          <h3 [innerHTML]="t.cyclesAnalogTitle | properNouns"></h3>
+          <p class="cycles__sub" [innerHTML]="t.cyclesAnalogNote(forecast.windowMonths, forecast.analogs.length) | properNouns"></p>
           <ul class="cycles__analogs">
             @for (a of forecast.analogs; track a.season) {
               <li>
@@ -96,7 +96,7 @@
             }
           </ul>
           @if (range) {
-            <p class="cycles__peak">{{ t.cyclesForecastPeak(range.lo, range.hi, range.window) }}</p>
+            <p class="cycles__peak" [innerHTML]="t.cyclesForecastPeak(range.lo, range.hi, range.window) | properNouns"></p>
           }
         </div>
       }
@@ -105,10 +105,10 @@
     <!-- 3. Notes & Methodology Footer -->
     <div class="cycles-details__foot">
       @if (data) {
-        <p class="cycles__record-note">{{ t.cyclesRecordNote(data.index.firstMonth, data.index.lastMonth) }}</p>
+        <p class="cycles__record-note" [innerHTML]="t.cyclesRecordNote(data.index.firstMonth, data.index.lastMonth) | properNouns"></p>
       }
-      <p class="cycles__note">{{ t.cyclesNote }}</p>
-      <p class="cycles__note cycles__note--warn">{{ t.cyclesBarrier }}</p>
+      <p class="cycles__note" [innerHTML]="t.cyclesNote | properNouns"></p>
+      <p class="cycles__note cycles__note--warn" [innerHTML]="t.cyclesBarrier | properNouns"></p>
       @if (data) {
         <p class="cycles__sources">
           @for (s of data.sources; track s.id) {

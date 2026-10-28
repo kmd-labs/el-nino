@@ -23,7 +23,7 @@
     </div>
 
     <span class="walker__badge" [class.walker__badge--cycle]="state.isPlaying()">{{ badge() }}</span>
-    <span class="walker__title">{{ caption() }}</span>
+    <span class="walker__title" [innerHTML]="caption() | properNouns"></span>
 
     <button
       type="button"

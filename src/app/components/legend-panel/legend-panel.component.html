@@ -36,13 +36,13 @@
             <i aria-hidden="true"></i>{{ t.flowWaveLabel }}
           </span>
         </div>
-        <p class="legend-panel__flow-desc">{{ t.flowDesc }}</p>
+        <p class="legend-panel__flow-desc" [innerHTML]="t.flowDesc | properNouns"></p>
       </div>
 
       @if (showImpactsLegend()) {
         <!-- Historical Impact Pins Legend -->
         <div class="legend-panel__group legend-panel__group--divider">
-          <div class="legend-panel__section-title">{{ t.pinLegendTitle(state.category().name) }}</div>
+          <div class="legend-panel__section-title" [innerHTML]="t.pinLegendTitle(state.category().name) | properNouns"></div>
           <div class="legend-panel__grid">
             <span class="legend-panel__item legend-panel__item--dry"><i></i>{{ t.kindDry }}</span>
             <span class="legend-panel__item legend-panel__item--fire"><i></i>{{ t.kindFire }}</span>
@@ -53,7 +53,7 @@
 
         <!-- Continental Rainfall Anomaly Legend -->
         <div class="legend-panel__group legend-panel__group--divider">
-          <div class="legend-panel__section-title">{{ rainTitle() }}</div>
+          <div class="legend-panel__section-title" [innerHTML]="rainTitle() | properNouns"></div>
           <div class="legend-panel__items">
             <span class="legend-panel__item legend-panel__item--rain-dry">
               <i></i>{{ t.rainDry }}

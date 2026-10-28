@@ -5,11 +5,12 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 @Component({
   selector: 'app-impact-modal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, BadgeComponent],
+  imports: [ProperNounsPipe, CommonModule, LucideAngularModule, BadgeComponent],
   templateUrl: './impact-modal.component.html',
   styleUrl: './impact-modal.component.scss'
 })

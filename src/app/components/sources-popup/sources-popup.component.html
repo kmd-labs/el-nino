@@ -15,7 +15,7 @@
               <span class="sources-popup__badge">{{ s.license }}</span>
             </div>
           </div>
-          <p class="sources-popup__desc">{{ s.desc }}</p>
+          <p class="sources-popup__desc" [innerHTML]="s.desc | properNouns"></p>
           @let extra = extraLinks(s);
           @if (extra) {
             <details class="sources-popup__products">
@@ -45,14 +45,14 @@
       @for (m of t.methodology.items; track m.label) {
         <article class="sources-popup__card">
           <div class="sources-popup__card-header">
-            <h4 class="sources-popup__mlabel">{{ m.label }}</h4>
+            <h4 class="sources-popup__mlabel" [innerHTML]="m.label | properNouns"></h4>
             <div class="sources-popup__badges">
               @for (tag of splitTags(m.area); track tag) {
                 <span class="sources-popup__badge">{{ tag }}</span>
               }
             </div>
           </div>
-          <p class="sources-popup__desc">{{ m.text }}</p>
+          <p class="sources-popup__desc" [innerHTML]="m.text | properNouns"></p>
         </article>
       }
     </div>

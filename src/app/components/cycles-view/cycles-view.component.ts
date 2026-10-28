@@ -20,6 +20,7 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoHistoryEvent, EnsoHistoryService } from '../../core/services/enso-history.service';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 /** Months covered by the x axis: January of the first season year → December of the second. */
 const SPAN = 24;
@@ -33,7 +34,7 @@ const ONI_MAX = 3.2;
 @Component({
   selector: 'app-cycles-view',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, ButtonComponent, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, BadgeComponent, ButtonComponent, LucideAngularModule],
   templateUrl: './cycles-view.component.html',
   styleUrl: './cycles-view.component.scss'
 })

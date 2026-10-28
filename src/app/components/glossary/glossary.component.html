@@ -20,7 +20,7 @@
             <div class="gl__item">
               <dt>{{ term.term }}</dt>
               <dd>
-                {{ term.text }}
+                <span [innerHTML]="term.text | properNouns"></span>
                 <a class="gl__wiki" [href]="term.wiki" target="_blank" rel="noopener noreferrer">
                   <span>Wikipedia{{ t.wikiIn[term.wikiLang] }}</span>
                   <lucide-icon [img]="externalLinkIcon" [size]="12"></lucide-icon>
@@ -39,9 +39,9 @@
         <div class="gl__mlist">
           @for (m of methodologyItems(); track m.label) {
             <article class="gl__mitem">
-              <h4 class="gl__mlabel">{{ m.label }}</h4>
+              <h4 class="gl__mlabel" [innerHTML]="m.label | properNouns"></h4>
               <span class="gl__marea">{{ m.area }}</span>
-              <p class="gl__mtext">{{ m.text }}</p>
+              <p class="gl__mtext" [innerHTML]="m.text | properNouns"></p>
             </article>
           }
         </div>

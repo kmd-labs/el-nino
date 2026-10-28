@@ -22,11 +22,12 @@ import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
  * 3. Searchable Glossary modal trigger
  */
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 @Component({
   selector: 'app-legend-panel',
   standalone: true,
-  imports: [CommonModule, DropdownComponent, ButtonComponent, TooltipDirective, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, DropdownComponent, ButtonComponent, TooltipDirective, LucideAngularModule],
   providers: [LocaleTempPipe],
   templateUrl: './legend-panel.component.html',
   styleUrl: './legend-panel.component.scss'

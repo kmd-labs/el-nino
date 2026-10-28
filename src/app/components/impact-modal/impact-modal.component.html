@@ -10,16 +10,16 @@
       <dl class="ev__dl">
         @if (e.area) {
           <dt>{{ t.mArea }}</dt>
-          <dd>{{ e.area }}</dd>
+          <dd [innerHTML]="e.area | properNouns"></dd>
         }
         <dt>{{ t.mAnomaly }}</dt>
-        <dd>{{ e.type }}</dd>
+        <dd [innerHTML]="e.type | properNouns"></dd>
         <dt>{{ t.mScale }}</dt>
-        <dd>{{ e.aff }}</dd>
+        <dd [innerHTML]="e.aff | properNouns"></dd>
       </dl>
 
       @if (e.note) {
-        <div class="ev__note">{{ t.mRole }} {{ e.note }}</div>
+        <div class="ev__note" [innerHTML]="t.mRole + ' ' + e.note | properNouns"></div>
       }
 
       <a class="ev__link" [href]="e.src[1]" target="_blank" rel="noopener noreferrer">

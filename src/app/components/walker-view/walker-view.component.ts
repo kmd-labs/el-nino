@@ -20,6 +20,7 @@ import { EquatorProfileService } from '../../core/services/equator-profile.servi
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WalkerCanvasText } from '../../core/i18n/i18n.types';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 /** Parts of the picture a step can put in focus; everything else is dimmed. */
 type Focus = 'all' | 'wind' | 'ocean' | 'thermo' | 'upwell' | 'convection' | 'aloft' | 'sink' | 'kelvin';
@@ -64,7 +65,7 @@ const SEA_DEPTH = 300; // m shown below the surface
 @Component({
   selector: 'app-walker-view',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TooltipDirective],
+  imports: [ProperNounsPipe, CommonModule, LucideAngularModule, TooltipDirective],
   templateUrl: './walker-view.component.html',
   styleUrl: './walker-view.component.scss'
 })

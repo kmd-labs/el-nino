@@ -6,12 +6,13 @@ import { SourceItem } from '../../core/i18n/i18n.types';
 import { EVENTS_META, SRC_URLS } from '../../core/constants/enso-data';
 import { PageService } from '../../core/services/page.service';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 /** Modal popup content displaying scientific data sources, licenses, and project attribution. */
 @Component({
   selector: 'app-sources-popup',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, LucideAngularModule],
   templateUrl: './sources-popup.component.html',
   styleUrl: './sources-popup.component.scss'
 })

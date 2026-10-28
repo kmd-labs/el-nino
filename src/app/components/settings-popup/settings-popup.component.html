@@ -13,7 +13,7 @@
           role="radio"
           [attr.aria-checked]="i18n.lang() === l.id"
           (click)="selectLang(l.id)">
-          <span class="settings__badge">{{ l.id.toUpperCase() }}</span>
+          <span class="settings__badge" translate="no">{{ l.id.toUpperCase() }}</span>
           <span class="settings__name">{{ l.label }}</span>
         </button>
       }

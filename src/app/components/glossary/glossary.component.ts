@@ -5,12 +5,13 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { GlossaryGroup } from '../../core/i18n/i18n.types';
 import { PageService } from '../../core/services/page.service';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
+import { ProperNounsPipe } from '../../core/pipes/proper-nouns.pipe';
 
 /** Searchable glossary projected inside the Design System Popup. */
 @Component({
   selector: 'app-glossary',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, LucideAngularModule],
   templateUrl: './glossary.component.html',
   styleUrl: './glossary.component.scss'
 })
