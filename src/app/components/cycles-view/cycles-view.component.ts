@@ -345,7 +345,7 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     };
 
     // ── the month still in progress: weekly data, so a hollow marker on a dotted stub ──
-    const prov = data.provisional;
+    const prov = data.estimated ?? data.provisional;
     const provIdx = prov ? axisPos(Number(prov.month.slice(0, 4)), Number(prov.month.slice(5))) + 0.5 : -1;
     const provOnAxis = prov !== null && provIdx >= 0 && provIdx <= SPAN - 1;
 
