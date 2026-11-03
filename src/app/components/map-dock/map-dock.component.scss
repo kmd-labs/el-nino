@@ -153,15 +153,30 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
-    cursor: help;
     min-width: 0;
-    padding: 2px 6px;
+    padding: 2px 4px;
     border-radius: radius("card");
-    transition: background transition("fast");
+  }
+
+  &__info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    color: color("text-dim");
+    cursor: help;
+    flex-shrink: 0;
+    transition: color transition("fast"), background transition("fast");
 
     &:hover,
     &:focus-visible {
-      background: rgba(0, 0, 0, 0.04);
+      color: color("accent");
+      background: rgba(0, 0, 0, 0.06);
       outline: none;
     }
   }
@@ -176,6 +191,7 @@
     flex: none;
     line-height: 1.1;
 
+    &--oni,
     &--prov {
       .dock__readout-label {
         font-size: 10px;
@@ -368,6 +384,7 @@
       justify-content: flex-start;
       gap: 4px;
 
+      &--oni,
       &--prov {
         .dock__readout-label {
           font-size: 8.5px;
@@ -637,6 +654,7 @@
       justify-content: flex-start;
       gap: 4px;
 
+      &--oni,
       &--prov {
         .dock__readout-label {
           font-size: 8.5px;

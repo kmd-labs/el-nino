@@ -125,7 +125,7 @@ describe('MapDockComponent', () => {
     expect(document.documentElement.style.getPropertyValue('--dock-clearance')).toBeTruthy();
   });
 
-  it('renders separate provisional (3-mo mean) and current readouts with tooltip', () => {
+  it('renders separate estimated ONI (3-mo mean) and current readouts with info icon and tooltip', () => {
     const { dock, state, history, i18n, fixture } = setup(RECORD);
     history.data.set({
       schema: 1,
@@ -160,21 +160,24 @@ describe('MapDockComponent', () => {
     i18n.setTempUnit('C');
     fixture.detectChanges();
 
-    expect(dock.isProvisional()).toBe(true);
+    expect(dock.isEstimated()).toBe(true);
     expect(dock.formattedOni()).toContain('+2.9');
     expect(dock.formattedNino()).toContain('+3.1');
 
     const readouts: HTMLElement = fixture.nativeElement.querySelector('.dock__readouts');
     expect(readouts).toBeTruthy();
     expect(dock.anomalyTooltip()).toContain('Current');
-    expect(dock.anomalyTooltip()).toContain('Provisional');
+    expect(dock.anomalyTooltip()).toContain('estimated by us');
 
-    const provRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--prov');
+    const infoBtn: HTMLElement = fixture.nativeElement.querySelector('.dock__info-btn');
+    expect(infoBtn).toBeTruthy();
+
+    const oniRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--oni');
     const currRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--current');
-    expect(provRow).toBeTruthy();
+    expect(oniRow).toBeTruthy();
     expect(currRow).toBeTruthy();
-    expect(provRow.textContent).toContain('Provisional');
-    expect(provRow.textContent).toContain('+2.9');
+    expect(oniRow.textContent).toContain('Estimated');
+    expect(oniRow.textContent).toContain('+2.9');
     expect(currRow.textContent).toContain('Current');
     expect(currRow.textContent).toContain('+3.1');
   });

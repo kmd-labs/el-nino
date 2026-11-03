@@ -119,9 +119,12 @@ export interface Dict {
   // header & settings
   readoutTitle: string;
   readoutCurrent: string;
+  readoutEstimated: string;
   readoutProvisional: string;
   readoutOni: string;
+  anomalyInfoAria: string;
   anomalyTooltip: string;
+  estimatedTooltip: string;
   provisionalTooltip: string;
   readoutSource: string;
   loadingMap: string;
@@ -288,6 +291,7 @@ export interface Dict {
   cyclesColLength: string;
   cyclesMonthsShort: (n: number) => string;
   cyclesOngoing: string;
+  cyclesEstimated: (date: string) => string;
   cyclesProvisional: (date: string) => string;
   cyclesAnalogTitle: string;
   cyclesAnalogNote: (window: number, members: number) => string;

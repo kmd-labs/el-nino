@@ -460,6 +460,7 @@ async function main() {
     },
     /** The month in progress, from the weekly product — incomplete, so never folded into `index`. */
     provisional,
+    estimated: provisional,
     regions: {
       firstMonth: monthKey(sstoi[0].y, sstoi[0].m),
       lastMonth: monthKey(sstoi[sstoi.length - 1].y, sstoi[sstoi.length - 1].m),

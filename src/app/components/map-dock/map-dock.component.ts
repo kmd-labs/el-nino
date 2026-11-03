@@ -13,7 +13,8 @@ import {
   LucideAngularModule,
   Pause,
   Play,
-  Gauge
+  Gauge,
+  Info
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { PHASE_THRESHOLDS } from '../../core/services/enso-math.service';
@@ -61,6 +62,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
   readonly speedIcon = Gauge;
+  readonly infoIcon = Info;
 
   /** Playback speed menu options formatted as 0.5x, 1x, 1.5x, 2x, etc. */
   readonly speedOptions = computed<DropdownOption<number>[]>(() => {
@@ -101,29 +103,38 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return this.localeTemp.transform(this.state.nino34Value(), 'delta');
   });
 
-  /** Whether the current playhead date falls in the provisional in-progress month */
-  readonly isProvisional = computed<boolean>(() => {
+  /** Whether the current playhead month is estimated by us from spliced or weekly data */
+  readonly isEstimated = computed<boolean>(() => {
     const s = this.state.sCur();
     const ms = this.weather.interpolatedDateMs(s);
-    const prov = this.history.provisional();
-    if (!prov) return false;
+    const d = this.history.data();
+    if (!d) return false;
+    const est = this.history.estimated();
     if (ms != null) {
       const isoMonth = new Date(ms).toISOString().slice(0, 7);
-      return isoMonth === prov.month;
+      if (est && isoMonth === est.month) return true;
+      if (d.index.spliceFrom && isoMonth >= d.index.spliceFrom) return true;
     }
     return this.isNow();
   });
 
-  /** 3-month running mean (ONI), or provisional value if at the in-progress month */
+  /** Alias isProvisional for backward compatibility */
+  readonly isProvisional = this.isEstimated;
+
+  /** 3-month running mean (ONI), or estimated value if at the in-progress month */
   readonly oniValue = computed<number | null>(() => {
     const s = this.state.sCur();
     const ms = this.weather.interpolatedDateMs(s);
-    if (this.isProvisional()) {
-      return this.history.provisional()?.oni ?? null;
-    }
+    const est = this.history.estimated();
     if (ms != null) {
       const iso = new Date(ms).toISOString().slice(0, 10);
+      if (est && iso.slice(0, 7) === est.month) {
+        return est.oni;
+      }
       return this.history.oniAt(iso);
+    }
+    if (this.isNow()) {
+      return est?.oni ?? this.history.data()?.current?.oniNow ?? null;
     }
     return null;
   });
@@ -140,10 +151,10 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
 
   readonly anomalyAriaLabel = computed<string>(() => {
     const t = this.i18n.t();
-    const provLabel = this.isProvisional() ? t.readoutProvisional : t.readoutOni;
+    const oniLabel = this.isEstimated() ? t.readoutEstimated : t.readoutOni;
     const oni = this.formattedOni();
     const current = this.formattedNino();
-    return oni ? `${provLabel}: ${oni}, ${t.readoutCurrent}: ${current}` : `${t.readoutCurrent}: ${current}`;
+    return oni ? `${oniLabel}: ${oni}, ${t.readoutCurrent}: ${current}` : `${t.readoutCurrent}: ${current}`;
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */

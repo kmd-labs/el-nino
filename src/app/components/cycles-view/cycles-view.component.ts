@@ -501,7 +501,7 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     // ── one label card, on whichever point is the newest ──
     if (labelIdx >= 0 && labelVal !== null) {
       const line1 = `${current.season} ${this.formatOni(labelVal, 1)} °C`;
-      const line2 = prov && provOnAxis ? t.cyclesProvisional(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month);
+      const line2 = prov && provOnAxis ? t.cyclesEstimated(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month);
 
       ctx.font = `600 11px ${font}`;
       const w1 = ctx.measureText(line1).width;
