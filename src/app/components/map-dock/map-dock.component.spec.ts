@@ -4,6 +4,7 @@ import { CurrentWeatherService, TimelineMeta } from '../../core/services/current
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { EnsoStateService } from '../../core/services/enso-state.service';
+import { EnsoHistoryService } from '../../core/services/enso-history.service';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 
 /**
@@ -46,13 +47,14 @@ describe('MapDockComponent', () => {
     const weather = TestBed.inject(CurrentWeatherService);
     const localeDate = TestBed.inject(LocaleDatePipe);
     const state = TestBed.inject(EnsoStateService);
+    const history = TestBed.inject(EnsoHistoryService);
     const i18n = TestBed.inject(I18nService);
     i18n.setLang('en');
     weather.meta.set(meta(frames));
     const fixture = TestBed.createComponent(MapDockComponent);
     const dock = fixture.componentInstance;
     const month = (iso: string) => localeDate.transform(new Date(`${iso}T12:00:00Z`), 'monthYear');
-    return { weather, dock, state, i18n, month };
+    return { weather, dock, state, history, i18n, month, fixture };
   };
 
   afterEach(() => TestBed.resetTestingModule());
@@ -121,5 +123,59 @@ describe('MapDockComponent', () => {
     fixture.detectChanges();
     fixture.componentInstance.updateDockMetrics();
     expect(document.documentElement.style.getPropertyValue('--dock-clearance')).toBeTruthy();
+  });
+
+  it('renders separate provisional (3-mo mean) and current readouts with tooltip', () => {
+    const { dock, state, history, i18n, fixture } = setup(RECORD);
+    history.data.set({
+      schema: 1,
+      fetchedAt: '2026-10-22T00:00:00.000Z',
+      sources: [],
+      tiers: { super: 2.0, strong: 1.5, moderate: 1.0, weak: 0.5 },
+      index: {
+        product: 'test',
+        firstMonth: '2024-11',
+        lastMonth: '2026-09',
+        spliceFrom: null,
+        spliceOffset: 0,
+        anom: [-0.2, -1.2],
+        oni: [null, -0.7]
+      },
+      provisional: {
+        month: '2026-10',
+        anom: 3.36,
+        oni: 2.93,
+        weeks: 2,
+        lastWeek: '2026-10-14',
+        weeklyAnom: 3.3,
+        offset: 0.06
+      },
+      regions: { firstMonth: '2024-11', lastMonth: '2026-09', nino12: [], nino3: [], nino4: [], nino34: [] },
+      events: [],
+      current: null,
+      forecast: null
+    });
+
+    state.sCur.set(1.4); // At now (2026-10-21 / live keyframe)
+    i18n.setTempUnit('C');
+    fixture.detectChanges();
+
+    expect(dock.isProvisional()).toBe(true);
+    expect(dock.formattedOni()).toContain('+2.9');
+    expect(dock.formattedNino()).toContain('+3.1');
+
+    const readouts: HTMLElement = fixture.nativeElement.querySelector('.dock__readouts');
+    expect(readouts).toBeTruthy();
+    expect(dock.anomalyTooltip()).toContain('Current');
+    expect(dock.anomalyTooltip()).toContain('Provisional');
+
+    const provRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--prov');
+    const currRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--current');
+    expect(provRow).toBeTruthy();
+    expect(currRow).toBeTruthy();
+    expect(provRow.textContent).toContain('Provisional');
+    expect(provRow.textContent).toContain('+2.9');
+    expect(currRow.textContent).toContain('Current');
+    expect(currRow.textContent).toContain('+3.1');
   });
 });

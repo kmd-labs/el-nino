@@ -26,9 +26,11 @@ import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
 import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/timeline-slider.component';
+import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { EnsoHistoryService } from '../../core/services/enso-history.service';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 
@@ -41,6 +43,7 @@ import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
     DropdownComponent,
     TimelineSliderComponent,
     LegendPanelComponent,
+    TooltipDirective,
     LucideAngularModule
   ],
   providers: [LocaleTempPipe, LocaleDatePipe],
@@ -51,6 +54,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
+  history = inject(EnsoHistoryService);
   private localeTemp = inject(LocaleTempPipe);
   private localeDate = inject(LocaleDatePipe);
 
@@ -95,6 +99,51 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
    */
   readonly formattedNino = computed(() => {
     return this.localeTemp.transform(this.state.nino34Value(), 'delta');
+  });
+
+  /** Whether the current playhead date falls in the provisional in-progress month */
+  readonly isProvisional = computed<boolean>(() => {
+    const s = this.state.sCur();
+    const ms = this.weather.interpolatedDateMs(s);
+    const prov = this.history.provisional();
+    if (!prov) return false;
+    if (ms != null) {
+      const isoMonth = new Date(ms).toISOString().slice(0, 7);
+      return isoMonth === prov.month;
+    }
+    return this.isNow();
+  });
+
+  /** 3-month running mean (ONI), or provisional value if at the in-progress month */
+  readonly oniValue = computed<number | null>(() => {
+    const s = this.state.sCur();
+    const ms = this.weather.interpolatedDateMs(s);
+    if (this.isProvisional()) {
+      return this.history.provisional()?.oni ?? null;
+    }
+    if (ms != null) {
+      const iso = new Date(ms).toISOString().slice(0, 10);
+      return this.history.oniAt(iso);
+    }
+    return null;
+  });
+
+  /** Formatted ONI / 3-month running mean delta, e.g. "+2.9 °C" */
+  readonly formattedOni = computed<string | null>(() => {
+    const v = this.oniValue();
+    return v != null ? this.localeTemp.transform(v, 'delta') : null;
+  });
+
+  readonly anomalyTooltip = computed<string>(() => {
+    return this.i18n.t().anomalyTooltip;
+  });
+
+  readonly anomalyAriaLabel = computed<string>(() => {
+    const t = this.i18n.t();
+    const provLabel = this.isProvisional() ? t.readoutProvisional : t.readoutOni;
+    const oni = this.formattedOni();
+    const current = this.formattedNino();
+    return oni ? `${provLabel}: ${oni}, ${t.readoutCurrent}: ${current}` : `${t.readoutCurrent}: ${current}`;
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */

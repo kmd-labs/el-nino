@@ -118,6 +118,11 @@ export interface Dict {
 
   // header & settings
   readoutTitle: string;
+  readoutCurrent: string;
+  readoutProvisional: string;
+  readoutOni: string;
+  anomalyTooltip: string;
+  provisionalTooltip: string;
   readoutSource: string;
   loadingMap: string;
   mapError: string;

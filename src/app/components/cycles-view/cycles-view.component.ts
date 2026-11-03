@@ -34,7 +34,7 @@ const ONI_MAX = 3.2;
 @Component({
   selector: 'app-cycles-view',
   standalone: true,
-  imports: [ProperNounsPipe, CommonModule, BadgeComponent, ButtonComponent, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, BadgeComponent, ButtonComponent, TooltipDirective, LucideAngularModule],
   templateUrl: './cycles-view.component.html',
   styleUrl: './cycles-view.component.scss'
 })

@@ -18,6 +18,11 @@ export const PL: Dict = {
 
   readoutSource: 'Źródło danych: temperatura powierzchni morza NOAA OISST v2.1',
   readoutTitle: 'Anomalia',
+  readoutCurrent: 'Bieżąca',
+  readoutProvisional: 'Tymczasowa (śr. z 3 mies.)',
+  readoutOni: 'Średnia 3-mies. (ONI)',
+  anomalyTooltip: 'Bieżąca: Tygodniowe odchylenie temperatury powierzchni morza w rejonie Niño 3.4 od normy wieloletniej (1971–2000). Tymczasowa: 3-miesięczna średnia krocząca (wskaźnik ONI) z ostatnich 3 miesięcy, wygładzająca krótkoterminowe wahania.',
+  provisionalTooltip: 'Tymczasowa anomalia (wskaźnik ONI): 3-miesięczna średnia krocząca obejmująca dwa poprzednie miesiące oraz bieżący miesiąc do chwili obecnej, wygładzająca krótkoterminowe wahania.',
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
   changeLanguage: 'Język',
@@ -258,7 +263,7 @@ export const PL: Dict = {
   cyclesColLength: 'Czas',
   cyclesMonthsShort: n => `${n} mies.`,
   cyclesOngoing: 'w toku',
-  cyclesProvisional: date => `prowizorycznie · tydzień do ${date}`,
+  cyclesProvisional: date => `tymczasowa (śr. z 3 mies.) · tydzień do ${date}`,
   cyclesAnalogTitle: 'Najbliższe analogi',
   cyclesAnalogNote: (window, members) =>
     `Dopasowanie po ostatnich ${window} miesiącach indeksu; ${members} najlepszych sezonów, każdy przesunięty tak, by zaczynał od dzisiejszego poziomu.`,

@@ -10,7 +10,10 @@
       <app-badge [text]="state.category().name" [backgroundColor]="state.category().col"></app-badge>
       <span class="cycles__title" [innerHTML]="t.cyclesTitle | properNouns"></span>
       @if (prov) {
-        <span class="cycles__meta cycles__meta--prov">
+        <span
+          class="cycles__meta cycles__meta--prov"
+          [appTooltip]="t.provisionalTooltip"
+          tabindex="0">
           {{ monthLabel(prov.month) }} {{ formatOni(prov.oni, 1) }} °C ·
           {{ t.cyclesProvisional(dayLabel(prov.lastWeek)) }}
         </span>

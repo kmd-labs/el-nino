@@ -18,6 +18,11 @@ export const ES: Dict = {
 
   readoutSource: 'Fuente de los datos: temperatura superficial del mar NOAA OISST v2.1',
   readoutTitle: 'Anomalía',
+  readoutCurrent: 'Actual',
+  readoutProvisional: 'Provisional (media de 3 meses)',
+  readoutOni: 'Media de 3 meses (ONI)',
+  anomalyTooltip: 'Actual: Desviación semanal de la temperatura superficial en el área Niño 3.4 respecto a la normal 1971–2000. Provisional: Media móvil de 3 meses (índice ONI) de los últimos 3 meses, que suaviza los picos semanales.',
+  provisionalTooltip: 'Anomalía provisional (índice ONI): Media móvil de 3 meses que promedia los dos meses anteriores y el mes en curso hasta la fecha, suavizando las fluctuaciones semanales.',
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',
   changeLanguage: 'Idioma',
@@ -259,7 +264,7 @@ export const ES: Dict = {
   cyclesColLength: 'Duración',
   cyclesMonthsShort: n => `${n} meses`,
   cyclesOngoing: 'en curso',
-  cyclesProvisional: date => `provisional · semana hasta ${date}`,
+  cyclesProvisional: date => `provisional (media de 3 meses) · semana hasta ${date}`,
   cyclesAnalogTitle: 'Analogías más cercanas',
   cyclesAnalogNote: (window, members) =>
     `Ajuste según los últimos ${window} meses del índice; las ${members} mejores temporadas, cada una desplazada para continuar desde el nivel actual.`,

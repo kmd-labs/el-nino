@@ -18,6 +18,11 @@ export const EN: Dict = {
 
   readoutSource: 'Data source: NOAA OISST v2.1 sea surface temperature',
   readoutTitle: 'Anomaly',
+  readoutCurrent: 'Current',
+  readoutProvisional: 'Provisional (mean from last 3 months)',
+  readoutOni: '3-month mean (ONI)',
+  anomalyTooltip: 'Current: Weekly sea surface temperature departure from the 1971–2000 normal in the Niño 3.4 box. Provisional: 3-month running mean (Oceanic Niño Index / ONI) based on the last 3 months, smoothing short-term weekly spikes.',
+  provisionalTooltip: 'Provisional anomaly (Oceanic Niño Index / ONI): 3-month running mean averaging the previous two months and the partial month in progress to date, smoothing short-term weekly fluctuations.',
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',
   changeLanguage: 'Language',
@@ -258,7 +263,7 @@ export const EN: Dict = {
   cyclesColLength: 'Length',
   cyclesMonthsShort: n => `${n} mo`,
   cyclesOngoing: 'in progress',
-  cyclesProvisional: date => `provisional · week to ${date}`,
+  cyclesProvisional: date => `provisional (mean from last 3 months) · week to ${date}`,
   cyclesAnalogTitle: 'Closest analogs',
   cyclesAnalogNote: (window, members) =>
     `Matched on the last ${window} months of the index; the ${members} best seasons, each shifted to continue from today's level.`,
