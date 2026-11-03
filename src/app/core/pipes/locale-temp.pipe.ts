@@ -34,6 +34,8 @@ export class LocaleTempPipe implements PipeTransform {
       sign = '−';
     } else if (showSign && converted > 0.04) {
       sign = '+';
+    } else if (showSign) {
+      sign = '\u00A0';
     }
 
     return `${sign}${formatted} °${unit}`;

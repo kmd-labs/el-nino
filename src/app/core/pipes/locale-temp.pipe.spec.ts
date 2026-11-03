@@ -35,10 +35,13 @@ describe('LocaleTempPipe', () => {
     i18n.setTempUnit('C');
     expect(pipe.transform(1.5, 'delta')).toBe('+1.5 °C');
     expect(pipe.transform(-0.8, 'delta')).toBe('−0.8 °C');
+    // 0.0 includes a leading space placeholder so the layout does not shift
+    expect(pipe.transform(0, 'delta')).toBe('\u00A00.0 °C');
 
     i18n.setTempUnit('F');
     // delta: +1.5 °C * 1.8 = +2.7 °F
     expect(pipe.transform(1.5, 'delta')).toBe('+2.7 °F');
+    expect(pipe.transform(0, 'delta')).toBe('\u00A00.0 °F');
   });
 
   it('shows a dash for missing or invalid values', () => {
