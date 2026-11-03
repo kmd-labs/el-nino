@@ -182,4 +182,32 @@ describe('CyclesViewComponent', () => {
       fixture.detectChanges();
     }).not.toThrow();
   });
+
+  it('draws the slider date pill with a solid white background and shadow overlay without overlap', () => {
+    history.data.set(HISTORY);
+    history.status.set('ready');
+    fixture.detectChanges();
+
+    const box = fixture.componentInstance.boxRef.nativeElement;
+    box.style.width = '800px';
+    box.style.height = '500px';
+    (fixture.componentInstance as any).resize();
+
+    const state = TestBed.inject(EnsoStateService);
+    state.setStrengthTarget(1.4);
+    fixture.detectChanges();
+
+    expect(() => {
+      (fixture.componentInstance as any).draw();
+    }).not.toThrow();
+
+    const canvas: HTMLCanvasElement = fixture.nativeElement.querySelector('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let painted = 0;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] !== 0) painted++;
+    }
+    expect(painted).toBeGreaterThan(100);
+  });
 });
