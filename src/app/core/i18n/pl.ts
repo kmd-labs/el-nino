@@ -18,6 +18,9 @@ export const PL: Dict = {
 
   readoutSource: 'Źródło danych: temperatura powierzchni morza NOAA OISST v2.1',
   readoutTitle: 'Anomalia',
+  readoutCurrent: 'Bieżąca anomalia',
+  readoutEstimated: 'Szacowana średnia 3-mies. anomalia',
+  readoutOni: 'Średnia 3-mies. anomalia',
   loadingMap: 'Ładowanie mapy kontynentów…',
   mapError: 'Nie udało się wczytać konturów lądów.',
   changeLanguage: 'Język',
@@ -258,7 +261,8 @@ export const PL: Dict = {
   cyclesColLength: 'Czas',
   cyclesMonthsShort: n => `${n} mies.`,
   cyclesOngoing: 'w toku',
-  cyclesProvisional: date => `prowizorycznie · tydzień do ${date}`,
+  cyclesEstimated: date => `szacowana (śr. z 3 mies.) · tydzień do ${date}`,
+  cyclesProvisional: date => `szacowana (śr. z 3 mies.) · tydzień do ${date}`,
   cyclesAnalogTitle: 'Najbliższe analogi',
   cyclesAnalogNote: (window, members) =>
     `Dopasowanie po ostatnich ${window} miesiącach indeksu; ${members} najlepszych sezonów, każdy przesunięty tak, by zaczynał od dzisiejszego poziomu.`,
@@ -291,6 +295,7 @@ export const PL: Dict = {
         { term: 'Super El Niño', text: 'Potoczna nazwa bardzo silnego El Niño, gdy anomalia w regionie Niño 3.4 przekracza około +2 °C. Takie zdarzenia były w latach 1982–83, 1997–98 i 2015–16 i mają skutki na całym świecie.', wiki: 'https://pl.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'pl' },
         { term: 'Oscylacja Południowa', text: 'Atmosferyczna „połowa” ENSO: przeciwstawne zmiany ciśnienia powietrza nad Tahiti i nad Darwin w Australii. Gdy różnica ciśnień maleje, słabną pasaty – i zaczyna się El Niño.', wiki: 'https://pl.wikipedia.org/wiki/Oscylacja_Po%C5%82udniowa', wikiLang: 'pl' },
         { term: 'Niño 3.4', text: 'Prostokąt na równikowym Pacyfiku (5°S–5°N, 170°W–120°W). Średnia anomalia temperatury wody w nim to podstawowa miara siły ENSO: powyżej +0,5 °C – El Niño, poniżej −0,5 °C – La Niña.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'Oceanic Niño Index (ONI)', text: 'Podstawowy wskaźnik NOAA obliczany jako 3-miesięczna średnia ruchoma anomalii temperatury powierzchni morza w strefie Niño 3.4. Uśredniając trzy kolejne nakładające się miesiące, wygładza krótkoterminowy szum pogodowy i mierzy trwałe sprzężenie oceanu z atmosferą. Utrzymanie anomalii na poziomie +0,5 °C lub wyższym przez co najmniej 5 kolejnych sezonów oznacza oficjalny epizod El Niño, a od +2,0 °C Super El Niño.', wiki: 'https://en.wikipedia.org/wiki/Oceanic_Ni%C3%B1o_Index', wikiLang: 'en' },
         { term: 'Anomalia temperatury', text: 'Różnica między obecną temperaturą a średnią z wielu lat dla tego miejsca i pory roku. Anomalia +2 °C znaczy „o 2 °C cieplej niż zwykle”, a nie „2 °C”.', wiki: 'https://en.wikipedia.org/wiki/Temperature_anomaly', wikiLang: 'en' }
       ]
     },
@@ -331,6 +336,16 @@ export const PL: Dict = {
     title: 'Dane i metodologia',
     subtitle: 'Jak mierzone są temperatury, anomalia oraz brane pod uwagę obszary',
     items: [
+      {
+        label: 'Wskaźnik Oceanic Niño Index (ONI) i średnia 3-miesięczna',
+        area: 'Obszar Niño 3.4 (5°S–5°N, 170°W–120°W) · Standard klimatyczny NOAA',
+        text: 'Oficjalny standard stosowany przez NOAA Climate Prediction Center do wyznaczania faz ENSO. Chwilowe odczyty dzienne lub tygodniowe rejestrują przejściowe zjawiska i lokalny szum pogodowy (np. pojedyncze skoki tygodniowe), podczas gdy ENSO jest zjawiskiem wielkoskalowym wymagającym trwałego nagromadzenia ciepła. 3-miesięczna średnia ruchoma działa jak filtr dolnoprzepustowy, izolując rzeczywisty sygnał klimatyczny. Trwałe anomalie od +0,5 °C oznaczają El Niño, powyżej +2,0 °C Super El Niño, a poniżej −0,5 °C La Niña.'
+      },
+      {
+        label: 'Metodologia szacowania w czasie rzeczywistym KMD Labs',
+        area: 'Bieżący monitoring · Harmonizacja NOAA OISST v2.1 i CPC',
+        text: 'Oficjalne wartości ONI publikowane przez NOAA CPC ukazują się z miesięcznym opóźnieniem, po zakończeniu pełnego miesiąca kalendarzowego i kontroli jakości danych. Aby umożliwić bieżące śledzenie zjawiska w aplikacji przed publikacją oficjalnego indeksu NOAA, KMD Labs oblicza szacowany wskaźnik ONI dla bieżących i niedawnych dat. Uśredniamy dwa poprzednie, zatwierdzone przez NOAA miesiące z naszą bieżącą dzienną średnią anomalii OISST v2.1 dla aktywnego miesiąca. Gdy NOAA CPC opublikuje oficjalny indeks, wartość oficjalna automatycznie zastępuje naszą estymację.'
+      },
       {
         label: 'Anomalia temperatury Niño 3.4',
         area: 'Obszar Niño 3.4 (5°S–5°N, 170°W–120°W) · ~6,2 mln km²',

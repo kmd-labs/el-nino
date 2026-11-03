@@ -17,6 +17,7 @@ import { dirname, resolve } from 'node:path';
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(DIR, '../src/assets/data/enso-history.json');
+const TIMELINE_META = resolve(DIR, '../src/assets/data/timeline-meta.json');
 
 const URL_DETREND = 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt';
 const URL_SSTOI = 'https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices';
@@ -105,11 +106,11 @@ function parseWeekly(text) {
 /**
  * The weekly product uses a different climatology base than the monthly series, so the current
  * partial month is bias-corrected against the overlapping complete months before being reported.
- * The result is explicitly provisional: it is kept out of `index`, which stays whole months only.
+ * If the weekly file has not yet recorded the new month (e.g. early in the month before NOAA's weekly
+ * update), we fall back to the newest daily NOAA OISST keyframes from timeline-meta.json.
+ * The result is explicitly provisional/estimated: it is kept out of `index`, which stays whole months only.
  */
-function buildProvisional(months, weekly) {
-  if (!weekly.length) return null;
-
+function buildProvisional(months, weekly, timelineMeta) {
   const byMonth = new Map();
   for (const w of weekly) {
     const key = monthKey(w.y, w.m);
@@ -125,8 +126,7 @@ function buildProvisional(months, weekly) {
     const mean = weeks.reduce((a, w) => a + w.a34, 0) / weeks.length;
     diffs.push({ key, diff: monthly.anom - mean });
   }
-  if (diffs.length < 12) return null;
-  const offset = round2(median(diffs.slice(-24).map(d => d.diff)));
+  const offset = diffs.length >= 12 ? round2(median(diffs.slice(-24).map(d => d.diff))) : 0;
 
   const last = months[months.length - 1];
   const lastIdx = last.y * 12 + last.m;
@@ -134,21 +134,63 @@ function buildProvisional(months, weekly) {
     .map(([key, weeks]) => ({ key, weeks, idx: Number(key.slice(0, 4)) * 12 + Number(key.slice(5)) }))
     .filter(e => e.idx > lastIdx)
     .sort((a, b) => a.idx - b.idx)[0];
-  if (!partial) return null;
 
-  const anom = round2(partial.weeks.reduce((a, w) => a + w.a34, 0) / partial.weeks.length + offset);
-  const prev = months.slice(-2).map(d => d.anom);
-  const lastWeek = partial.weeks[partial.weeks.length - 1];
+  if (partial) {
+    const anom = round2(partial.weeks.reduce((a, w) => a + w.a34, 0) / partial.weeks.length + offset);
+    const prev = months.slice(-2).map(d => d.anom);
+    const lastWeek = partial.weeks[partial.weeks.length - 1];
 
-  return {
-    month: partial.key,
-    anom,
-    oni: round2((prev[0] + prev[1] + anom) / 3),
-    weeks: partial.weeks.length,
-    lastWeek: `${lastWeek.y}-${String(lastWeek.m).padStart(2, '0')}-${String(lastWeek.d).padStart(2, '0')}`,
-    weeklyAnom: lastWeek.a34,
-    offset
-  };
+    return {
+      month: partial.key,
+      anom,
+      oni: round2((prev[0] + prev[1] + anom) / 3),
+      weeks: partial.weeks.length,
+      lastWeek: `${lastWeek.y}-${String(lastWeek.m).padStart(2, '0')}-${String(lastWeek.d).padStart(2, '0')}`,
+      weeklyAnom: lastWeek.a34,
+      offset
+    };
+  }
+
+  // Fallback: If weekly product has not yet published the new month,
+  // derive the estimated current month from the daily NOAA OISST keyframes in timeline-meta.json
+  if (timelineMeta?.keyframes) {
+    const futKfs = timelineMeta.keyframes
+      .filter(k => !k.forecast && k.date && k.nino34 != null)
+      .filter(k => {
+        const [ky, km] = k.date.slice(0, 7).split('-').map(Number);
+        return ky * 12 + km > lastIdx;
+      });
+
+    if (futKfs.length) {
+      const byFutMonth = new Map();
+      for (const k of futKfs) {
+        const mk = k.date.slice(0, 7);
+        if (!byFutMonth.has(mk)) byFutMonth.set(mk, []);
+        byFutMonth.get(mk).push(k);
+      }
+      const firstFut = [...byFutMonth.entries()]
+        .map(([key, kfs]) => ({ key, kfs, idx: Number(key.slice(0, 4)) * 12 + Number(key.slice(5)) }))
+        .sort((a, b) => a.idx - b.idx)[0];
+
+      if (firstFut) {
+        const lastKf = firstFut.kfs[firstFut.kfs.length - 1];
+        const meanAnom = firstFut.kfs.reduce((a, k) => a + k.nino34, 0) / firstFut.kfs.length;
+        const anom = round2(meanAnom + offset);
+        const prev = months.slice(-2).map(d => d.anom);
+        return {
+          month: firstFut.key,
+          anom,
+          oni: round2((prev[0] + prev[1] + anom) / 3),
+          weeks: firstFut.kfs.length,
+          lastWeek: lastKf.date,
+          weeklyAnom: lastKf.nino34,
+          offset
+        };
+      }
+    }
+  }
+
+  return null;
 }
 
 const median = arr => {
@@ -273,18 +315,23 @@ function trajectoryFor(year0, months, oni) {
  * Analog ensemble: find the past windows whose last WINDOW months of ONI best match the current
  * trajectory, then carry their following HORIZON months forward as forecast members.
  */
-function buildForecast(months, oni, events) {
-  const n = months.length;
+function buildForecast(months, oni, events, provisional) {
+  const allMonths = provisional
+    ? [...months, { y: Number(provisional.month.slice(0, 4)), m: Number(provisional.month.slice(5)), key: provisional.month }]
+    : months;
+  const allOni = provisional ? [...oni, provisional.oni] : oni;
+
+  const n = allMonths.length;
   const last = n - 1;
-  const current = oni.slice(last - WINDOW + 1, last + 1);
+  const current = allOni.slice(last - WINDOW + 1, last + 1);
   if (current.some(v => v === null)) return null;
 
   const candidates = [];
   for (let t = WINDOW - 1; t <= n - 1 - HORIZON; t++) {
     // Keep analogs clear of the event in progress so it cannot match itself.
     if (last - t < 24) continue;
-    const win = oni.slice(t - WINDOW + 1, t + 1);
-    const fut = oni.slice(t + 1, t + 1 + HORIZON);
+    const win = allOni.slice(t - WINDOW + 1, t + 1);
+    const fut = allOni.slice(t + 1, t + 1 + HORIZON);
     if (win.some(v => v === null) || fut.some(v => v === null)) continue;
     let se = 0;
     for (let k = 0; k < WINDOW; k++) se += (win[k] - current[k]) ** 2;
@@ -298,7 +345,7 @@ function buildForecast(months, oni, events) {
   const picked = [];
   const usedSeasons = new Set();
   for (const c of candidates) {
-    const cm = months[c.t];
+    const cm = allMonths[c.t];
     const year0 = cm.m <= 6 ? cm.y - 1 : cm.y;
     const season = events.find(e => e.year0 === year0 && e.phase === 'nino')?.season ?? `${year0}/${String((year0 + 1) % 100).padStart(2, '0')}`;
     if (usedSeasons.has(season)) continue;
@@ -310,7 +357,7 @@ function buildForecast(months, oni, events) {
   const weights = picked.map(p => 1 / (p.rmse + 0.1));
   const wSum = weights.reduce((a, b) => a + b, 0);
 
-  const lastMonth = months[last];
+  const lastMonth = allMonths[last];
   const futureMonths = [];
   for (let k = 0; k < HORIZON; k++) {
     const t = lastMonth.y * 12 + (lastMonth.m - 1) + 1 + k;
@@ -326,7 +373,7 @@ function buildForecast(months, oni, events) {
   // Anchor each member to the current level: carry forward its month-to-month evolution, not its
   // own absolute level, so a weaker analog cannot imply an impossible jump at the splice point.
   const members = picked.map((p, i) => {
-    const anchor = round2(current[WINDOW - 1] - oni[p.t]);
+    const anchor = round2(current[WINDOW - 1] - allOni[p.t]);
     const future = p.fut.map(v => round2(v + anchor));
     return {
       season: p.season,
@@ -404,11 +451,16 @@ async function main() {
   console.log(`Series: ${months[0].key} → ${months[months.length - 1].key} (${months.length} months), `
     + `spliced ${spliceCount} month(s) from sstoi with offset ${offset >= 0 ? '+' : ''}${offset} °C`);
 
-  const provisional = buildProvisional(months, parseWeekly(weeklyText));
+  let timelineMeta = null;
+  try {
+    timelineMeta = JSON.parse(await readFile(TIMELINE_META, 'utf8'));
+  } catch {}
+
+  const provisional = buildProvisional(months, parseWeekly(weeklyText), timelineMeta);
   if (provisional) {
-    console.log(`Provisional ${provisional.month}: ONI ${provisional.oni >= 0 ? '+' : ''}${provisional.oni} `
-      + `from ${provisional.weeks} week(s) to ${provisional.lastWeek} `
-      + `(weekly anomaly ${provisional.weeklyAnom}, base correction ${provisional.offset >= 0 ? '+' : ''}${provisional.offset})`);
+    console.log(`Provisional/Estimated ${provisional.month}: ONI ${provisional.oni >= 0 ? '+' : ''}${provisional.oni} `
+      + `from ${provisional.weeks} observation(s) to ${provisional.lastWeek} `
+      + `(anomaly ${provisional.weeklyAnom}, base correction ${provisional.offset >= 0 ? '+' : ''}${provisional.offset})`);
   } else {
     console.log('No partial month beyond the monthly series.');
   }
@@ -419,7 +471,7 @@ async function main() {
     + `${events.length - nino.length} La Niña`);
 
   const current = events[events.length - 1];
-  const forecast = buildForecast(months, oni, events);
+  const forecast = buildForecast(months, oni, events, provisional);
   if (forecast) {
     console.log(`Analogs: ${forecast.analogs.map(a => `${a.season} (rmse ${a.rmse})`).join(', ')}`);
   } else {
@@ -458,8 +510,9 @@ async function main() {
       anom: months.map(d => round2(d.anom)),
       oni
     },
-    /** The month in progress, from the weekly product — incomplete, so never folded into `index`. */
+    /** The month in progress, from the weekly product or daily OISST — incomplete, so never folded into `index`. */
     provisional,
+    estimated: provisional,
     regions: {
       firstMonth: monthKey(sstoi[0].y, sstoi[0].m),
       lastMonth: monthKey(sstoi[sstoi.length - 1].y, sstoi[sstoi.length - 1].m),
@@ -486,10 +539,10 @@ async function main() {
           season: current.season,
           phase: current.phase,
           tier: current.tier,
-          oniNow: oni[oni.length - 1],
-          month: months[months.length - 1].key,
-          peakSoFar: current.peakOni,
-          peakMonthSoFar: current.peakMonth,
+          oniNow: provisional ? provisional.oni : oni[oni.length - 1],
+          month: provisional ? provisional.month : months[months.length - 1].key,
+          peakSoFar: provisional ? Math.max(current.peakOni, provisional.oni) : current.peakOni,
+          peakMonthSoFar: provisional && provisional.oni > current.peakOni ? provisional.month : current.peakMonth,
           trajectory: trajectoryFor(current.year0, months, oni)
         }
       : null,

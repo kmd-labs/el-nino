@@ -118,6 +118,9 @@ export interface Dict {
 
   // header & settings
   readoutTitle: string;
+  readoutCurrent: string;
+  readoutEstimated: string;
+  readoutOni: string;
   readoutSource: string;
   loadingMap: string;
   mapError: string;
@@ -283,6 +286,7 @@ export interface Dict {
   cyclesColLength: string;
   cyclesMonthsShort: (n: number) => string;
   cyclesOngoing: string;
+  cyclesEstimated: (date: string) => string;
   cyclesProvisional: (date: string) => string;
   cyclesAnalogTitle: string;
   cyclesAnalogNote: (window: number, members: number) => string;

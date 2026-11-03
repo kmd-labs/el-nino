@@ -13,7 +13,6 @@ import { LucideAngularModule, ExternalLink, Table } from 'lucide-angular';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
-import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { TemplateRef } from '@angular/core';
 import { EnsoStateService } from '../../core/services/enso-state.service';
@@ -339,6 +338,11 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     if (!current) return;
     const seasonYear0 = Number(current.season.slice(0, 4));
 
+    const idxOf = (key: string) => {
+      const [y, m] = key.split('-').map(Number);
+      return (y - seasonYear0) * 12 + (m - 1);
+    };
+
     /** Fractional x position of a date on the season axis; day-of-month makes the cursor glide. */
     const axisPos = (y: number, m: number, day = 15) => {
       const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -346,8 +350,8 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     };
 
     // ── the month still in progress: weekly data, so a hollow marker on a dotted stub ──
-    const prov = data.provisional;
-    const provIdx = prov ? axisPos(Number(prov.month.slice(0, 4)), Number(prov.month.slice(5))) + 0.5 : -1;
+    const prov = data.estimated ?? data.provisional;
+    const provIdx = prov ? idxOf(prov.month) : -1;
     const provOnAxis = prov !== null && provIdx >= 0 && provIdx <= SPAN - 1;
 
     let lastIdx = -1;
@@ -360,7 +364,7 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     const labelVal = prov && provOnAxis ? prov.oni : lastVal;
 
     // ── where the dock's time slider currently sits ──
-    let sliderRect: { x: number; y: number; w: number; h: number; lineX: number } | null = null;
+    let sliderRect: { x: number; y: number; w: number; h: number; lineX: number; text: string } | null = null;
     const sliderDate = this.sliderDate();
     if (sliderDate) {
       const pos = axisPos(
@@ -382,28 +386,13 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
         const dateStr = this.dayLabel(sliderDate);
         ctx.font = `600 10px ${font}`;
         const dtw = ctx.measureText(dateStr).width;
-        const dbw = dtw + 12;
-        const dbh = 18;
+        const dbw = dtw + 14;
+        const dbh = 20;
         let dbx = pos > SPAN * 0.75 ? lineX - dbw - 4 : lineX + 4;
         dbx = Math.max(padL + 2, Math.min(Wd - padR - dbw - 2, dbx));
         const dby = padT + 4;
 
-        sliderRect = { x: dbx, y: dby, w: dbw, h: dbh, lineX };
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(dbx, dby, dbw, dbh, 4);
-        ctx.fillStyle = this.theme.getTokenColor('panel-bg-solid', '#ffffff');
-        ctx.fill();
-        ctx.strokeStyle = lineStrong;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.fillStyle = dim;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(dateStr, dbx + dbw / 2, dby + dbh / 2);
-        ctx.restore();
+        sliderRect = { x: dbx, y: dby, w: dbw, h: dbh, lineX, text: dateStr };
       }
     }
 
@@ -428,17 +417,15 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     // ── forecast fan, continuing the current event on the same axis ──
     const f = data.forecast;
     if (f) {
-      const idxOf = (key: string) => {
-        const [y, m] = key.split('-').map(Number);
-        return (y - seasonYear0) * 12 + (m - 1);
-      };
       const pts = f.futureMonths
         .map((key, k) => ({ i: idxOf(key), p10: f.p10[k], p90: f.p90[k], med: f.median[k] }))
         .filter(p => p.i >= 0 && p.i < SPAN);
 
       if (pts.length) {
-        const anchorIdx = idxOf(f.fromMonth);
-        const band = [{ i: anchorIdx, p10: f.fromOni, p90: f.fromOni, med: f.fromOni }, ...pts];
+        const anchorIdx = prov && provOnAxis ? provIdx : idxOf(f.fromMonth);
+        const anchorOni = prov && provOnAxis ? prov.oni : f.fromOni;
+        const futurePts = pts.filter(p => p.i > anchorIdx);
+        const band = [{ i: anchorIdx, p10: anchorOni, p90: anchorOni, med: anchorOni }, ...futurePts];
 
         ctx.fillStyle = cSuper;
         ctx.globalAlpha = 0.14;
@@ -501,7 +488,7 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
     // ── one label card, on whichever point is the newest ──
     if (labelIdx >= 0 && labelVal !== null) {
       const line1 = `${current.season} ${this.formatOni(labelVal, 1)} °C`;
-      const line2 = prov && provOnAxis ? t.cyclesProvisional(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month);
+      const line2 = prov && provOnAxis ? t.cyclesEstimated(this.dayLabel(prov.lastWeek)) : this.monthLabel(current.month);
 
       ctx.font = `600 11px ${font}`;
       const w1 = ctx.measureText(line1).width;
@@ -605,6 +592,29 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
       ctx.font = `500 10px ${font}`;
       ctx.fillStyle = dim;
       ctx.fillText(line2, cardX + padX, cardY + padY + 22);
+      ctx.restore();
+    }
+
+    // ── slider date pill drawn on the top overlay so nothing washes over it ──
+    if (sliderRect) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 2;
+      ctx.beginPath();
+      ctx.roundRect(sliderRect.x, sliderRect.y, sliderRect.w, sliderRect.h, 6);
+      ctx.fillStyle = this.theme.getTokenColor('panel-bg-solid', '#ffffff');
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = this.theme.getTokenColor('line-strong', 'rgba(15, 23, 42, 0.18)');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.font = `600 10px ${font}`;
+      ctx.fillStyle = ink;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(sliderRect.text, sliderRect.x + sliderRect.w / 2, sliderRect.y + sliderRect.h / 2);
       ctx.restore();
     }
   }

@@ -18,6 +18,9 @@ export const ES: Dict = {
 
   readoutSource: 'Fuente de los datos: temperatura superficial del mar NOAA OISST v2.1',
   readoutTitle: 'Anomalía',
+  readoutCurrent: 'Anomalía actual',
+  readoutEstimated: 'Anomalía media estimada (3 meses)',
+  readoutOni: 'Anomalía media de 3 meses',
   loadingMap: 'Cargando continentes…',
   mapError: 'No se pudieron cargar los contornos de tierra.',
   changeLanguage: 'Idioma',
@@ -259,7 +262,8 @@ export const ES: Dict = {
   cyclesColLength: 'Duración',
   cyclesMonthsShort: n => `${n} meses`,
   cyclesOngoing: 'en curso',
-  cyclesProvisional: date => `provisional · semana hasta ${date}`,
+  cyclesEstimated: date => `estimada (media de 3 meses) · semana hasta ${date}`,
+  cyclesProvisional: date => `estimada (media de 3 meses) · semana hasta ${date}`,
   cyclesAnalogTitle: 'Analogías más cercanas',
   cyclesAnalogNote: (window, members) =>
     `Ajuste según los últimos ${window} meses del índice; las ${members} mejores temporadas, cada una desplazada para continuar desde el nivel actual.`,
@@ -292,6 +296,7 @@ export const ES: Dict = {
         { term: 'Súper El Niño', text: 'Nombre informal de un El Niño muy fuerte, cuando la anomalía en la región Niño 3.4 supera unos +2 °C. Ocurrió en 1982–83, 1997–98 y 2015–16, con impactos en todo el mundo.', wiki: 'https://es.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'es' },
         { term: 'Oscilación del Sur', text: 'La “mitad” atmosférica de ENSO: cambios opuestos de la presión del aire sobre Tahití y sobre Darwin, en Australia. Cuando la diferencia de presión disminuye, los alisios se debilitan… y empieza El Niño.', wiki: 'https://es.wikipedia.org/wiki/Oscilaci%C3%B3n_del_Sur', wikiLang: 'es' },
         { term: 'Niño 3.4', text: 'Un recuadro en el Pacífico ecuatorial (5°S–5°N, 170°O–120°O). La anomalía media de la temperatura del agua en él es la principal medida de la intensidad de ENSO: por encima de +0,5 °C, El Niño; por debajo de −0,5 °C, La Niña.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'Índice Oceánico del Niño (ONI)', text: 'El índice principal de la NOAA calculado como la media móvil de 3 meses de las anomalías de temperatura superficial en la región Niño 3.4. Al promediar tres meses consecutivos superpuestos, suaviza el ruido meteorológico semanal para medir el acoplamiento océano-atmósfera sostenido. Una anomalía de +0,5 °C o más mantenida durante al menos 5 trimestres consecutivos define un episodio oficial de El Niño, y a partir de +2,0 °C un Super El Niño.', wiki: 'https://en.wikipedia.org/wiki/Oceanic_Ni%C3%B1o_Index', wikiLang: 'en' },
         { term: 'Anomalía de temperatura', text: 'La diferencia entre la temperatura actual y el promedio de muchos años para ese lugar y época del año. Una anomalía de +2 °C significa “2 °C más cálido de lo normal”, no “2 °C”.', wiki: 'https://es.wikipedia.org/wiki/Anomal%C3%ADa_de_temperatura', wikiLang: 'es' }
       ]
     },
@@ -332,6 +337,16 @@ export const ES: Dict = {
     title: 'Datos y metodología',
     subtitle: 'Cómo se calculan las temperaturas, anomalías y las áreas geográficas',
     items: [
+      {
+        label: 'Índice Oceánico del Niño (ONI) y media móvil de 3 meses',
+        area: 'Área Niño 3.4 (5°S–5°N, 170°W–120°W) · Referencia climática NOAA',
+        text: 'El estándar oficial empleado por el NOAA Climate Prediction Center para definir los eventos ENSO. Las lecturas diarias o semanales capturan fluctuaciones transitorias y ruido meteorológico local (como picos semanales puntuales), mientras que ENSO es un fenómeno acoplado de gran escala que requiere calor sostenido. La media móvil de 3 meses actúa como un filtro de paso bajo que aísla la señal climática planetaria. Anomalías sostenidas de +0,5 °C o más denotan El Niño, por encima de +2,0 °C Super El Niño, y por debajo de −0,5 °C La Niña.'
+      },
+      {
+        label: 'Metodología de estimación en tiempo real de KMD Labs',
+        area: 'Seguimiento en tiempo real · Armonización NOAA OISST v2.1 y CPC',
+        text: 'Los valores oficiales del ONI de NOAA CPC se publican con retraso mensual, tras concluir el mes natural y completar el control de calidad. Para ofrecer un seguimiento actualizado en la aplicación antes de la publicación oficial de la NOAA, KMD Labs calcula un ONI estimado para las fechas actuales y recientes promediando los dos meses anteriores ya consolidados por NOAA con nuestra media diaria en curso de anomalías OISST v2.1 del mes activo. En cuanto NOAA CPC publica el índice mensual oficial, el registro consolidado sustituye automáticamente a nuestra estimación.'
+      },
       {
         label: 'Anomalía de temperatura Niño 3.4',
         area: 'Región Niño 3.4 (5°S–5°N, 170°W–120°W) · ~6,2 millones de km²',

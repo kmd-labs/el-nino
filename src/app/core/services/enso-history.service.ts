@@ -56,7 +56,7 @@ export interface EnsoForecast {
 }
 
 /** The month in progress, averaged from CPC's weekly product and bias-corrected to the monthly one. */
-export interface EnsoProvisional {
+export interface EnsoEstimated {
   month: string;
   anom: number;
   /** 3-month mean ending in the partial month — comparable with `index.oni`, but incomplete. */
@@ -66,6 +66,7 @@ export interface EnsoProvisional {
   weeklyAnom: number;
   offset: number;
 }
+export type EnsoProvisional = EnsoEstimated;
 
 export interface EnsoHistoryCurrent {
   season: string;
@@ -93,6 +94,7 @@ export interface EnsoHistory {
     oni: (number | null)[];
   };
   provisional: EnsoProvisional | null;
+  estimated?: EnsoEstimated | null;
   regions: {
     firstMonth: string;
     lastMonth: string;
@@ -119,7 +121,8 @@ export class EnsoHistoryService {
   readonly status = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
   readonly events = computed<EnsoHistoryEvent[]>(() => this.data()?.events ?? []);
-  readonly provisional = computed<EnsoProvisional | null>(() => this.data()?.provisional ?? null);
+  readonly estimated = computed<EnsoEstimated | null>(() => this.data()?.estimated ?? this.data()?.provisional ?? null);
+  readonly provisional = this.estimated;
   readonly current = computed<EnsoHistoryCurrent | null>(() => this.data()?.current ?? null);
   readonly forecast = computed<EnsoForecast | null>(() => this.data()?.forecast ?? null);
 
@@ -180,7 +183,8 @@ export class EnsoHistoryService {
     const d = this.data();
     if (!d) return null;
     const key = iso.slice(0, 7);
-    if (d.provisional?.month === key) return d.provisional.oni;
+    const est = d.estimated ?? d.provisional;
+    if (est?.month === key) return est.oni;
     const [y0, m0] = d.index.firstMonth.split('-').map(Number);
     const [y, m] = key.split('-').map(Number);
     if (!Number.isFinite(y) || !Number.isFinite(m)) return null;

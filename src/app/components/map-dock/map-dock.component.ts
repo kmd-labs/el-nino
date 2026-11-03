@@ -29,6 +29,7 @@ import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/t
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
+import { EnsoHistoryService } from '../../core/services/enso-history.service';
 import { LocaleTempPipe } from '../../core/pipes/locale-temp.pipe';
 import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
 
@@ -51,6 +52,7 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   state = inject(EnsoStateService);
   i18n = inject(I18nService);
   weather = inject(CurrentWeatherService);
+  history = inject(EnsoHistoryService);
   private localeTemp = inject(LocaleTempPipe);
   private localeDate = inject(LocaleDatePipe);
 
@@ -95,6 +97,54 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
    */
   readonly formattedNino = computed(() => {
     return this.localeTemp.transform(this.state.nino34Value(), 'delta');
+  });
+
+  /** Whether the current playhead month is estimated by us from weekly/incomplete data */
+  readonly isEstimated = computed<boolean>(() => {
+    const s = this.state.sCur();
+    const ms = this.weather.interpolatedDateMs(s);
+    const est = this.history.estimated();
+    if (ms != null) {
+      const isoMonth = new Date(ms).toISOString().slice(0, 7);
+      if (est && isoMonth === est.month) return true;
+      return false;
+    }
+    return this.isNow();
+  });
+
+  /** Alias isProvisional for backward compatibility */
+  readonly isProvisional = this.isEstimated;
+
+  /** 3-month running mean (ONI), or estimated value if at the in-progress month */
+  readonly oniValue = computed<number | null>(() => {
+    const s = this.state.sCur();
+    const ms = this.weather.interpolatedDateMs(s);
+    const est = this.history.estimated();
+    if (ms != null) {
+      const iso = new Date(ms).toISOString().slice(0, 10);
+      if (est && iso.slice(0, 7) === est.month) {
+        return est.oni;
+      }
+      return this.history.oniAt(iso);
+    }
+    if (this.isNow()) {
+      return est?.oni ?? this.history.data()?.current?.oniNow ?? null;
+    }
+    return null;
+  });
+
+  /** Formatted ONI / 3-month running mean delta, e.g. "+2.9 °C" */
+  readonly formattedOni = computed<string | null>(() => {
+    const v = this.oniValue();
+    return v != null ? this.localeTemp.transform(v, 'delta') : null;
+  });
+
+  readonly anomalyAriaLabel = computed<string>(() => {
+    const t = this.i18n.t();
+    const oniLabel = this.isEstimated() ? t.readoutEstimated : t.readoutOni;
+    const oni = this.formattedOni();
+    const current = this.formattedNino();
+    return oni ? `${oniLabel}: ${oni}, ${t.readoutCurrent}: ${current}` : `${t.readoutCurrent}: ${current}`;
   });
 
   /** Formatted numeric date for the date lozenge, e.g. "10/24/2026" */

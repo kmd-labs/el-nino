@@ -32,9 +32,19 @@
       </div>
 
       <div class="dock__readout-group" role="group" [attr.aria-label]="t.readoutTitle">
-        <div class="dock__readout">
-          <span class="dock__readout-label">{{ t.readoutTitle }}</span>
-          <span class="dock__readout-val">{{ formattedNino() }}</span>
+        <div
+          class="dock__readouts"
+          [attr.aria-label]="anomalyAriaLabel()">
+          @if (formattedOni()) {
+            <div class="dock__readout dock__readout--oni">
+              <span class="dock__readout-label">{{ isEstimated() ? t.readoutEstimated : t.readoutOni }}</span>
+              <span class="dock__readout-val">{{ formattedOni() }}</span>
+            </div>
+          }
+          <div class="dock__readout dock__readout--current">
+            <span class="dock__readout-label">{{ t.readoutCurrent }}</span>
+            <span class="dock__readout-val">{{ formattedNino() }}</span>
+          </div>
         </div>
 
         <app-legend-panel></app-legend-panel>
