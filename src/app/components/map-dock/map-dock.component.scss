@@ -175,8 +175,6 @@
         color: color("text-dim");
       }
       .dock__readout-val {
-        font-size: font-size("xs");
-        font-weight: font-weight("semibold");
         color: color("phase-super");
       }
     }
@@ -187,8 +185,6 @@
         color: color("text-dim");
       }
       .dock__readout-val {
-        font-size: font-size("sm");
-        font-weight: font-weight("bold");
         color: color("text-bright");
       }
     }
@@ -360,15 +356,7 @@
       gap: 4px;
 
       &--oni,
-      &--prov {
-        .dock__readout-label {
-          font-size: 8.5px;
-        }
-        .dock__readout-val {
-          font-size: 10.5px;
-        }
-      }
-
+      &--prov,
       &--current {
         .dock__readout-label {
           font-size: 8.5px;
@@ -630,15 +618,7 @@
       gap: 4px;
 
       &--oni,
-      &--prov {
-        .dock__readout-label {
-          font-size: 8.5px;
-        }
-        .dock__readout-val {
-          font-size: 10.5px;
-        }
-      }
-
+      &--prov,
       &--current {
         .dock__readout-label {
           font-size: 8.5px;
