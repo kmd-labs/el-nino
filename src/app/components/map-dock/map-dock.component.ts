@@ -99,17 +99,15 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
     return this.localeTemp.transform(this.state.nino34Value(), 'delta');
   });
 
-  /** Whether the current playhead month is estimated by us from spliced or weekly data */
+  /** Whether the current playhead month is estimated by us from weekly/incomplete data */
   readonly isEstimated = computed<boolean>(() => {
     const s = this.state.sCur();
     const ms = this.weather.interpolatedDateMs(s);
-    const d = this.history.data();
-    if (!d) return false;
     const est = this.history.estimated();
     if (ms != null) {
       const isoMonth = new Date(ms).toISOString().slice(0, 7);
       if (est && isoMonth === est.month) return true;
-      if (d.index.spliceFrom && isoMonth >= d.index.spliceFrom) return true;
+      return false;
     }
     return this.isNow();
   });
