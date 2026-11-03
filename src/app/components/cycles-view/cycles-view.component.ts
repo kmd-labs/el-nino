@@ -13,7 +13,6 @@ import { LucideAngularModule, ExternalLink, Table } from 'lucide-angular';
 import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { BadgeComponent } from '@kmd/design-system/ui/badge/badge.component';
 import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
-import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { PopupService } from '@kmd/design-system/ui/popup/popup.service';
 import { TemplateRef } from '@angular/core';
 import { EnsoStateService } from '../../core/services/enso-state.service';
@@ -34,7 +33,7 @@ const ONI_MAX = 3.2;
 @Component({
   selector: 'app-cycles-view',
   standalone: true,
-  imports: [ProperNounsPipe, CommonModule, BadgeComponent, ButtonComponent, TooltipDirective, LucideAngularModule],
+  imports: [ProperNounsPipe, CommonModule, BadgeComponent, ButtonComponent, LucideAngularModule],
   templateUrl: './cycles-view.component.html',
   styleUrl: './cycles-view.component.scss'
 })

@@ -166,11 +166,7 @@ describe('MapDockComponent', () => {
 
     const readouts: HTMLElement = fixture.nativeElement.querySelector('.dock__readouts');
     expect(readouts).toBeTruthy();
-    expect(dock.anomalyTooltip()).toContain('Current');
-    expect(dock.anomalyTooltip()).toContain('estimated by us');
-
-    const infoBtn: HTMLElement = fixture.nativeElement.querySelector('.dock__info-btn');
-    expect(infoBtn).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.dock__info-btn')).toBeNull();
 
     const oniRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--oni');
     const currRow: HTMLElement = fixture.nativeElement.querySelector('.dock__readout--current');
@@ -180,5 +176,7 @@ describe('MapDockComponent', () => {
     expect(oniRow.textContent).toContain('+2.9');
     expect(currRow.textContent).toContain('Current');
     expect(currRow.textContent).toContain('+3.1');
+    expect(dock.anomalyAriaLabel()).toContain('Estimated');
+    expect(dock.anomalyAriaLabel()).toContain('Current');
   });
 });

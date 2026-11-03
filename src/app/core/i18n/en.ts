@@ -20,12 +20,7 @@ export const EN: Dict = {
   readoutTitle: 'Anomaly',
   readoutCurrent: 'Current anomaly',
   readoutEstimated: 'Estimated ONI (3-month mean)',
-  readoutProvisional: 'Estimated ONI (3-month mean)',
   readoutOni: 'ONI (3-month mean)',
-  anomalyInfoAria: 'Anomaly and ONI information',
-  anomalyTooltip: 'Current anomaly: Weekly sea surface temperature departure from the 1971–2000 normal in the Niño 3.4 box (NOAA OISST). ONI (3-month running mean): The Oceanic Niño Index, smoothing weekly fluctuations over 3 consecutive months; the latest values are estimated by us from NOAA SSTOI observations.',
-  estimatedTooltip: 'Estimated ONI (3-month running mean): Calculated by us by averaging 3 consecutive months and harmonizing with the NOAA detrended climatology to smooth short-term weekly fluctuations.',
-  provisionalTooltip: 'Estimated ONI (3-month running mean): Calculated by us by averaging 3 consecutive months and harmonizing with the NOAA detrended climatology to smooth short-term weekly fluctuations.',
   loadingMap: 'Loading continents…',
   mapError: 'Could not load land outlines.',
   changeLanguage: 'Language',
@@ -300,6 +295,7 @@ export const EN: Dict = {
         { term: 'Super El Niño', text: 'An informal name for a very strong El Niño, when the anomaly in the Niño 3.4 region exceeds about +2 °C. Such events happened in 1982–83, 1997–98 and 2015–16 and had worldwide impacts.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o', wikiLang: 'en' },
         { term: 'Southern Oscillation', text: 'The atmospheric “half” of ENSO: opposite swings in air pressure over Tahiti and over Darwin in Australia. When the pressure difference shrinks, the trade winds weaken – and El Niño begins.', wiki: 'https://en.wikipedia.org/wiki/Southern_Oscillation', wikiLang: 'en' },
         { term: 'Niño 3.4', text: 'A box in the equatorial Pacific (5°S–5°N, 170°W–120°W). The average water temperature anomaly in it is the main measure of ENSO strength: above +0.5 °C – El Niño, below −0.5 °C – La Niña.', wiki: 'https://en.wikipedia.org/wiki/El_Ni%C3%B1o%E2%80%93Southern_Oscillation', wikiLang: 'en' },
+        { term: 'Oceanic Niño Index (ONI)', text: 'NOAA’s primary 3-month running mean index of sea-surface temperature anomalies in the Niño 3.4 region. By averaging three consecutive overlapping months, it smooths out high-frequency weekly weather noise to measure persistent ocean-atmosphere coupling. An anomaly of +0.5 °C or above sustained for at least five consecutive overlapping seasons marks an official El Niño episode, while +2.0 °C marks a Super El Niño.', wiki: 'https://en.wikipedia.org/wiki/Oceanic_Ni%C3%B1o_Index', wikiLang: 'en' },
         { term: 'Temperature anomaly', text: 'The difference between the current temperature and the long-term average for that place and season. An anomaly of +2 °C means “2 °C warmer than usual”, not “2 °C”.', wiki: 'https://en.wikipedia.org/wiki/Temperature_anomaly', wikiLang: 'en' }
       ]
     },
@@ -340,6 +336,16 @@ export const EN: Dict = {
     title: 'Data & Methodology',
     subtitle: 'How temperatures, anomalies and geographic areas are measured',
     items: [
+      {
+        label: 'Oceanic Niño Index (ONI) & 3-Month Running Mean',
+        area: 'Niño 3.4 Box (5°S–5°N, 170°W–120°W) · NOAA Climate Benchmark',
+        text: 'The official standard used by NOAA Climate Prediction Center to define ENSO events. High-frequency daily or weekly readings capture transient fluctuations and local weather events (such as weekly anomaly spikes), whereas ENSO is a large-scale coupled climate state requiring sustained heat content. The 3-month running mean acts as a low-pass filter to isolate the planetary climate signal. Anomalies sustained at or above +0.5 °C denote El Niño, above +2.0 °C Super El Niño, and below −0.5 °C La Niña.'
+      },
+      {
+        label: 'KMD Real-Time Estimation Methodology',
+        area: 'Real-time tracking · NOAA OISST v2.1 & CPC Harmonization',
+        text: 'Official NOAA CPC ONI values are published once a month in arrears after all observations for the calendar month have concluded and undergone quality assurance. To provide up-to-date tracking in this application before NOAA publishes the official monthly index, KMD Labs calculates an estimated ONI for ongoing and recent dates. We average the preceding two finalized monthly NOAA CPC anomalies with our running daily OISST v2.1 Niño 3.4 anomaly average for the active month. Once NOAA CPC releases the official monthly index, the finalized record replaces our estimate.'
+      },
       {
         label: 'Niño 3.4 Temperature Anomaly',
         area: 'Niño 3.4 Box (5°S–5°N, 170°W–120°W) · ~6.2 million km²',

@@ -158,29 +158,6 @@
     border-radius: radius("card");
   }
 
-  &__info-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    border-radius: 50%;
-    color: color("text-dim");
-    cursor: help;
-    flex-shrink: 0;
-    transition: color transition("fast"), background transition("fast");
-
-    &:hover,
-    &:focus-visible {
-      color: color("accent");
-      background: rgba(0, 0, 0, 0.06);
-      outline: none;
-    }
-  }
-
   &__readout {
     display: inline-flex;
     align-items: baseline;
@@ -243,8 +220,6 @@
     white-space: nowrap;
     line-height: 1;
     align-self: baseline;
-    text-decoration: underline dotted 1px rgba(0, 0, 0, 0.25);
-    text-underline-offset: 2px;
   }
 
   &__readout-val {

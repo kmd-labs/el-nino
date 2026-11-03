@@ -13,8 +13,7 @@ import {
   LucideAngularModule,
   Pause,
   Play,
-  Gauge,
-  Info
+  Gauge
 } from 'lucide-angular';
 import { EnsoStateService, PLAYBACK_SPEEDS } from '../../core/services/enso-state.service';
 import { PHASE_THRESHOLDS } from '../../core/services/enso-math.service';
@@ -27,7 +26,6 @@ import { ButtonComponent } from '@kmd/design-system/ui/button/button.component';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
 import { DropdownOption } from '@kmd/design-system/ui/dropdown/dropdown.model';
 import { TimelineSliderComponent } from '@kmd/design-system/ui/timeline-slider/timeline-slider.component';
-import { TooltipDirective } from '@kmd/design-system/ui/tooltip/tooltip.directive';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LegendPanelComponent } from '../legend-panel/legend-panel.component';
 import { CurrentWeatherService } from '../../core/services/current-weather.service';
@@ -44,7 +42,6 @@ import { LocaleDatePipe } from '../../core/pipes/locale-date.pipe';
     DropdownComponent,
     TimelineSliderComponent,
     LegendPanelComponent,
-    TooltipDirective,
     LucideAngularModule
   ],
   providers: [LocaleTempPipe, LocaleDatePipe],
@@ -62,7 +59,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly playIcon = Play;
   readonly pauseIcon = Pause;
   readonly speedIcon = Gauge;
-  readonly infoIcon = Info;
 
   /** Playback speed menu options formatted as 0.5x, 1x, 1.5x, 2x, etc. */
   readonly speedOptions = computed<DropdownOption<number>[]>(() => {
@@ -143,10 +139,6 @@ export class MapDockComponent implements AfterViewInit, OnDestroy {
   readonly formattedOni = computed<string | null>(() => {
     const v = this.oniValue();
     return v != null ? this.localeTemp.transform(v, 'delta') : null;
-  });
-
-  readonly anomalyTooltip = computed<string>(() => {
-    return this.i18n.t().anomalyTooltip;
   });
 
   readonly anomalyAriaLabel = computed<string>(() => {

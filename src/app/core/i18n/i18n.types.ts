@@ -120,12 +120,7 @@ export interface Dict {
   readoutTitle: string;
   readoutCurrent: string;
   readoutEstimated: string;
-  readoutProvisional: string;
   readoutOni: string;
-  anomalyInfoAria: string;
-  anomalyTooltip: string;
-  estimatedTooltip: string;
-  provisionalTooltip: string;
   readoutSource: string;
   loadingMap: string;
   mapError: string;
