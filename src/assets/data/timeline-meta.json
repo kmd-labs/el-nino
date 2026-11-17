@@ -2,7 +2,7 @@
   "source": "Open-Meteo.com & NOAA OISST v2.1",
   "sourceUrl": "https://open-meteo.com/",
   "sstSourceUrl": "https://www.ncei.noaa.gov/products/optimum-interpolation-sst",
-  "fetchedAt": "2026-11-16T13:36:58.057Z",
+  "fetchedAt": "2026-11-17T14:22:29.634Z",
   "grid": {
     "step": 0.5,
     "nLat": 360,
@@ -765,7 +765,7 @@
     {
       "index": 106,
       "id": "now",
-      "date": "2026-11-14",
+      "date": "2026-11-15",
       "s": 1.4,
       "nino34": 3.5,
       "now": true
@@ -3606,9 +3606,9 @@
   "dailyWeather": {
     "source": "Open-Meteo.com (CC BY 4.0)",
     "sourceUrl": "https://open-meteo.com/",
-    "fetchedAt": "2026-11-16T13:36:35.658Z",
+    "fetchedAt": "2026-11-17T14:21:27.342Z",
     "start": "2024-11-06",
-    "end": "2026-11-16",
+    "end": "2026-11-17",
     "airTemp": [
       23.9,
       23.8,
@@ -4350,7 +4350,8 @@
       24.7,
       24.7,
       24.7,
-      24.6
+      24.7,
+      24.4
     ],
     "windSpeed": [
       5.4,
@@ -5093,7 +5094,8 @@
       4.9,
       4.9,
       5.1,
-      5.3
+      5.3,
+      5.6
     ]
   }
 }
