@@ -4,6 +4,7 @@ import { LucideAngularModule, Layers, BookOpen, Database } from 'lucide-angular'
 import { EnsoStateService } from '../../core/services/enso-state.service';
 import { EnsoMathService } from '../../core/services/enso-math.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DisplayMode } from '../../core/models/enso.model';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
@@ -37,6 +38,7 @@ export class LegendPanelComponent {
   i18n = inject(I18nService);
   bp = inject(BreakpointService);
   private math = inject(EnsoMathService);
+  private theme = inject(ThemeService);
   private popup = inject(PopupService);
   private localeTemp = inject(LocaleTempPipe);
   private analytics = inject(AnalyticsService);
@@ -109,6 +111,7 @@ export class LegendPanelComponent {
 
   constructor() {
     effect(() => {
+      this.theme.mode(); // the SST scale has its own Midnight palette
       this.drawScale();
     });
   }

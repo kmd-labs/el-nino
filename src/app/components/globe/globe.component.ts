@@ -215,7 +215,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     }
     if (this.glowMat) {
       this.glowMat.uniforms['c'].value.set(this.theme.getTokenColor('globe-glow', '#0f172a'));
-      this.glowMat.uniforms['uOpacity'].value = 0.22;
+      // the Midnight halo is a warm burnt orange (styles.scss), a touch stronger to read on carbon
+      this.glowMat.uniforms['uOpacity'].value = this.theme.isDark() ? 0.34 : 0.22;
       this.glowMat.uniforms['uPower'].value = 2.2;
       this.glowMat.blending = THREE.NormalBlending;
       this.glowMat.needsUpdate = true;
@@ -560,24 +561,25 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
   private bokehGeo?: THREE.BufferGeometry;
   private bokehMat?: THREE.PointsMaterial;
 
-  /** Pale palette tints on the light background; quiet carbon discs with a hint of brand orange in Midnight. */
+  /** Midnight bokeh, shared with kmd-labs/golfstrom: deep blue, teal, indigo and burnt orange. */
+  private static readonly BOKEH_DARK = ['#1d4ed8', '#0e7490', '#3730a3', '#9a3412'];
+
+  /** Pale palette tints on the light background; deep jewel tones on carbon in Midnight. */
   private recolorBokeh() {
     const attr = this.bokehGeo?.getAttribute('color') as THREE.BufferAttribute | undefined;
     if (!attr || !this.bokehMat) return;
     const dark = this.theme.isDark();
-    const tints = dark
-      ? ['globe-bokeh', 'globe-bokeh', 'globe-bokeh', 'accent']
-      : ['primary-200', 'info-200', 'primary-100', 'warning-100'];
-    const fallbacks = dark
-      ? ['#6b6b6b', '#6b6b6b', '#6b6b6b', '#d37400']
-      : ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
-    const colors = tints.map((t, i) => new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])));
+    const tints = ['primary-200', 'info-200', 'primary-100', 'warning-100'];
+    const fallbacks = ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
+    const colors = dark
+      ? GlobeComponent.BOKEH_DARK.map(hex => new THREE.Color(hex))
+      : tints.map((t, i) => new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])));
     for (let i = 0; i < attr.count; i++) {
       const c = colors[i % colors.length];
       attr.setXYZ(i, c.r, c.g, c.b);
     }
     attr.needsUpdate = true;
-    this.bokehMat.opacity = dark ? 0.14 : 0.24;
+    this.bokehMat.opacity = dark ? 0.26 : 0.24;
   }
 
   private initSstData() {

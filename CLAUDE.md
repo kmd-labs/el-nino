@@ -193,8 +193,11 @@ Opt-in only, chosen in the Settings popup. `ThemePreferenceService` persists it 
 script in `index.html` sets `<html data-theme="dark">` before Angular boots so the splash never flashes light.
 The design system owns the dark token values. Any renderer that caches a token must re-read it on
 `ThemeService.mode()`: `GlobeComponent.onThemeChange()` (LUTs, materials, land canvas, bokeh, forced SST recolor),
-`WalkerViewComponent` clears its `ink()` cache, and `CyclesViewComponent` redraws. The SST/thermal scale is
-deliberately identical in both themes, so anything drawn *on* the SST texture (wind, waves) keeps one colour.
+`WalkerViewComponent` clears its `ink()` cache, and `CyclesViewComponent` and the legend colour bar redraw.
+The dark globe mirrors the sister app `kmd-labs/golfstrom`: `src/styles.scss` overrides the `sst-*` scale with a
+darker, luminance-inverted palette and `globe-glow` with burnt orange (`#9a3412`); the dark bokeh colours live
+in `GlobeComponent.BOKEH_DARK`. Keep these in step with Golfstrom. Because the SST scale changes with the theme,
+anything drawn *on* it (wind streaks) needs a per-theme colour too.
 
 ### CI
 

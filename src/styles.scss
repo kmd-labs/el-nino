@@ -1,21 +1,39 @@
 @use "variables" as *;
 @use "base";
 
-// Wind & wave streaks draw over the SST texture, which is identical in both themes,
-// so they keep the same ink in light and dark (overriding the design system's dark values).
+// Wind & wave streaks draw over the SST texture. Waves stay white in both themes; wind is slate on the
+// light SST scale and the design system's light carbon grey on the dark one (see below).
 :root,
 :root[data-theme="dark"] {
-  --color-globe-wind: #{palette("neutral-600")};
   --color-globe-wave-warm: #{palette("neutral-0")};
   --color-globe-wave-cold: #{palette("neutral-0")};
 }
 
-// Ocean cells without SST data (sea ice, poles) and the whole globe while the dataset streams
 :root {
+  --color-globe-wind: #{palette("neutral-600")};
+  // Ocean cells without SST data (sea ice, poles) and the whole globe while the dataset streams
   --color-globe-no-data: #{palette("neutral-200")};
 }
 
+// Midnight globe, matching the sister app kmd-labs/golfstrom: a darker, luminance-inverted SST scale
+// (deep navy cold water → umber → burnt orange → crimson) and a burnt-orange halo instead of grey.
+// Every SST consumer reads these tokens: globe LUT, Walker ocean, legend bar, timeline rail.
 :root[data-theme="dark"] {
+  --color-sst-m2: #1d5a8a;
+  --color-sst-0: #1a4f78;
+  --color-sst-5: #184466;
+  --color-sst-10: #173a54;
+  --color-sst-15: #162e42;
+  --color-sst-20: #152233;
+  --color-sst-23: #2d261c;
+  --color-sst-25-5: #523614;
+  --color-sst-27-5: #854d0e;
+  --color-sst-29-2: #c25e00;
+  --color-sst-31: #b92b15;
+  --color-sst-35: #88131d;
+
+  --color-globe-glow: #9a3412;
+  --color-globe-wind: #{midnight(200)};
   --color-globe-no-data: #{midnight(600)};
 }
 
