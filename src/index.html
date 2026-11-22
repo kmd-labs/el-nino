@@ -7,8 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="Explore El Niño and La Niña on an interactive 3D globe: real NOAA sea temperatures, winds, the Walker circulation and impacts worldwide.">
   <meta name="theme-color" content="#f5f7fb">
-  <!-- Opt-in dark theme: applied before the app boots so the splash doesn't flash light first (key: ThemePreferenceService) -->
-  <script>try { if (localStorage.getItem('el-nino.theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}</script>
+  <!-- Dark theme applied before the app boots so the splash doesn't flash light first. A stored choice wins;
+       otherwise dark from 18:00 to 06:00 local time. Keep in step with ThemePreferenceService. -->
+  <script>(function () { var t = null; try { t = localStorage.getItem('el-nino.theme'); } catch (e) {} var h = new Date().getHours(); if (t === 'dark' || (t !== 'light' && (h >= 18 || h < 6))) document.documentElement.setAttribute('data-theme', 'dark'); })();</script>
   <link rel="icon" type="image/svg+xml" href="assets/design-system/favicon.svg">
   <link rel="alternate icon" type="image/x-icon" href="assets/design-system/favicon.ico">
 

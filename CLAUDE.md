@@ -189,8 +189,11 @@ value must differ in the Midnight theme).
 
 ### Dark mode ("Midnight")
 
-Opt-in only, chosen in the Settings popup. `ThemePreferenceService` persists it as `el-nino.theme`, and an inline
-script in `index.html` sets `<html data-theme="dark">` before Angular boots so the splash never flashes light.
+Chosen in the Settings popup; `ThemePreferenceService` persists an explicit choice as `el-nino.theme`, and that
+always wins. Until a visitor chooses, the theme follows their local clock: **dark from 18:00 to 06:00**, light
+otherwise (`defaultModeAt`, decided once per page load). This deliberately departs from the design system's
+"light by default". An inline script in `index.html` applies the same rule before Angular boots so the splash
+never flashes the wrong theme — keep its hours in step with `DARK_FROM_HOUR` / `DARK_UNTIL_HOUR`.
 The design system owns the dark token values. Any renderer that caches a token must re-read it on
 `ThemeService.mode()`: `GlobeComponent.onThemeChange()` (LUTs, materials, land canvas, bokeh, forced SST recolor),
 `WalkerViewComponent` clears its `ink()` cache, and `CyclesViewComponent` and the legend colour bar redraw.
