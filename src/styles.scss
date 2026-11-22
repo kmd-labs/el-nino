@@ -1,10 +1,22 @@
 @use "variables" as *;
 @use "base";
 
-:root {
+// Wind & wave streaks draw over the SST texture, which is identical in both themes,
+// so they keep the same ink in light and dark (overriding the design system's dark values).
+:root,
+:root[data-theme="dark"] {
   --color-globe-wind: #{palette("neutral-600")};
   --color-globe-wave-warm: #{palette("neutral-0")};
   --color-globe-wave-cold: #{palette("neutral-0")};
+}
+
+// Ocean cells without SST data (sea ice, poles) and the whole globe while the dataset streams
+:root {
+  --color-globe-no-data: #{palette("neutral-200")};
+}
+
+:root[data-theme="dark"] {
+  --color-globe-no-data: #{midnight(600)};
 }
 
 .ui-tooltip {

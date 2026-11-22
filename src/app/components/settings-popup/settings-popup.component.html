@@ -38,4 +38,25 @@
       }
     </div>
   </section>
+
+  <!-- Appearance Section (opt-in "Midnight" dark theme from the design system) -->
+  <section class="settings__section">
+    <h3 class="settings__label">{{ t.appearance }}</h3>
+    <div class="settings__group" role="radiogroup" [attr.aria-label]="t.appearance">
+      @for (m of themeModes; track m.id) {
+        <button
+          type="button"
+          class="settings__option"
+          [class.settings__option--active]="theme.mode() === m.id"
+          role="radio"
+          [attr.aria-checked]="theme.mode() === m.id"
+          (click)="selectTheme(m.id)">
+          <span class="settings__badge settings__badge--icon" aria-hidden="true">
+            <lucide-icon [img]="m.icon" [size]="13"></lucide-icon>
+          </span>
+          <span class="settings__name">{{ t[m.labelKey] }}</span>
+        </button>
+      }
+    </div>
+  </section>
 </div>

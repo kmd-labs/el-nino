@@ -19,6 +19,7 @@ import { AnalyticsService } from './core/services/analytics.service';
 import { ProperNounGuardService } from './core/services/proper-noun-guard.service';
 import { EquatorProfileService } from './core/services/equator-profile.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
+import { ThemePreferenceService } from './core/services/theme-preference.service';
 
 @Component({
   selector: 'app-root',
@@ -50,8 +51,10 @@ export class AppComponent {
   private properNouns = inject(ProperNounGuardService);
   private profile = inject(EquatorProfileService);
   private bp = inject(BreakpointService);
+  private themePref = inject(ThemePreferenceService);
 
   constructor() {
+    this.themePref.init();
     // Start weather and history loads immediately on page load
     this.weather.load();
     this.history.load();

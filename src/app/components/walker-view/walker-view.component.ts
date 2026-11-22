@@ -8,7 +8,8 @@ import {
   NgZone,
   inject,
   signal,
-  computed
+  computed,
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronLeft, ChevronRight, Pause, Play, Info } from 'lucide-angular';
@@ -115,6 +116,15 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private W = 0;
   private H = 0;
   private readonly inkCache = new Map<string, [number, number, number]>();
+
+  constructor() {
+    // the frame loop re-reads tokens every frame; only the cached `ink()` colours go stale on a theme switch
+    effect(() => {
+      this.theme.mode();
+      this.inkCache.clear();
+    });
+  }
+
   private resizeObs: ResizeObserver | null = null;
   private animId: number | null = null;
   private lastTime = 0;
@@ -307,8 +317,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     ctx.stroke();
     ctx.restore();
     this.textBadge(L.tropopause, W - 8, this.zY(16) - 6, 'right', this.ink('text-dim', 0.95, '#64748b'), {
-      bg: 'rgba(245, 247, 251, 0.85)',
-      border: 'rgba(15, 23, 42, 0.08)',
+      bg: this.ink('bg-deep', 0.85, '#f5f7fb'),
+      border: this.ink('text-bright', 0.08, '#0f172a'),
       clampCanvas: true
     });
 
@@ -355,19 +365,31 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * A design token as `rgba()`, so a label can fade with its focus without leaving the palette.
-   * The sky, the land and the axis strip are all light in this theme, so text over them has to be
-   * dark ink — only labels sitting on the saturated SST gradient stay white.
-   * Resolving a token reads computed styles, so each one is read once and kept.
+   * Text over the sky, the land and the axis strip uses the theme's text tokens on `bg-deep`
+   * badges (dark ink in light mode, light ink in Midnight) — only labels sitting on the saturated
+   * SST gradient stay white in both. Resolving a token reads computed styles, so each one is read
+   * once and kept until the theme changes.
    */
   private ink(token: string, alpha: number, fallback: string) {
     let rgb = this.inkCache.get(token);
     if (!rgb) {
-      const hex = /^#([0-9a-f]{6})$/i.exec(this.theme.getTokenColor(token, fallback).trim());
-      const n = parseInt(hex ? hex[1] : fallback.slice(1), 16);
-      rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      rgb = this.parseRgb(this.theme.getTokenColor(token, fallback)) ?? this.parseRgb(fallback) ?? [0, 0, 0];
       this.inkCache.set(token, rgb);
     }
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${this.math.clamp(alpha, 0, 1).toFixed(2)})`;
+  }
+
+  /** `#rgb`, `#rrggbb` or `rgb()/rgba()` → RGB triple (alpha dropped; `ink()` applies its own). */
+  private parseRgb(css: string): [number, number, number] | null {
+    const v = css.trim();
+    const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v);
+    if (hex) {
+      const h = hex[1].length === 3 ? hex[1].replace(/./g, c => c + c) : hex[1];
+      const n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const fn = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(v);
+    return fn ? [Math.round(+fn[1]), Math.round(+fn[2]), Math.round(+fn[3])] : null;
   }
 
   private text(str: string, x: number, y: number, align: CanvasTextAlign, color: string, bold = false) {
@@ -584,14 +606,14 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.textBadge(indonesia, Math.max(8, this.X(100.5)), this.zY(2.2), 'left', this.ink('text-main', 0.9, '#1e293b'), {
       bold: true,
-      bg: 'rgba(245, 247, 251, 0.88)',
-      border: 'rgba(15, 23, 42, 0.1)',
+      bg: this.ink('bg-deep', 0.88, '#f5f7fb'),
+      border: this.ink('text-bright', 0.1, '#0f172a'),
       clampCanvas: true
     });
     this.textBadge(andes, this.W - 8, this.zY(5.2), 'right', this.ink('text-main', 0.9, '#1e293b'), {
       bold: true,
-      bg: 'rgba(245, 247, 251, 0.88)',
-      border: 'rgba(15, 23, 42, 0.1)',
+      bg: this.ink('bg-deep', 0.88, '#f5f7fb'),
+      border: this.ink('text-bright', 0.1, '#0f172a'),
       clampCanvas: true
     });
   }
@@ -737,8 +759,8 @@ export class WalkerViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const skyBadge = (k: Focus, gate = 1) => {
       const a = gate * (0.45 + 0.55 * this.fa[k]);
       return {
-        bg: `rgba(245, 247, 251, ${(0.86 * a).toFixed(2)})`,
-        border: `rgba(15, 23, 42, ${(0.09 * a).toFixed(2)})`,
+        bg: this.ink('bg-deep', 0.86 * a, '#f5f7fb'),
+        border: this.ink('text-bright', 0.09 * a, '#0f172a'),
         clampCanvas: true
       };
     };

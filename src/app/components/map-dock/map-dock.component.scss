@@ -56,6 +56,10 @@
       border: 1px solid rgba(220, 38, 38, 0.35);
       color: color("danger-600");
       cursor: pointer;
+
+      :host-context([data-theme="dark"]) & {
+        color: color("danger-text");
+      }
       transition: background transition("fast"), border-color transition("fast");
 
       &:hover {
@@ -117,6 +121,19 @@
       border-color: rgba(220, 38, 38, 0.45);
       background: rgba(220, 38, 38, 0.14);
       color: #dc2626;
+    }
+
+    // Midnight theme: the -600 inks above are tuned for a white panel; lift them to -400 for contrast
+    :host-context([data-theme="dark"]) &--nina {
+      color: palette("info-400");
+    }
+
+    :host-context([data-theme="dark"]) &--nino {
+      color: palette("warning-400");
+    }
+
+    :host-context([data-theme="dark"]) &--super {
+      color: palette("danger-400");
     }
   }
 

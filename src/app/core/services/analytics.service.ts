@@ -49,6 +49,7 @@ export type AnalyticsEvent =
   | 'view-change'
   | 'language'
   | 'temp-unit'
+  | 'theme'
   | 'source-click'
   | 'glossary-open'
   | 'load-error'

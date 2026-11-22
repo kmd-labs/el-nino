@@ -131,6 +131,9 @@ export interface Dict {
   temperatureUnit: string;
   unitCelsius: string;
   unitFahrenheit: string;
+  appearance: string;
+  themeLight: string;
+  themeDark: string;
 
   // ENSO state & dock controls
   ensoLabel: string;

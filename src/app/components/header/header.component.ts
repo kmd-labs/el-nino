@@ -14,6 +14,7 @@ import { EnsoStateService } from '../../core/services/enso-state.service';
 import { PageService } from '../../core/services/page.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { BreakpointService } from '@kmd/design-system/services/breakpoint.service';
+import { ThemeService } from '@kmd/design-system/services/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ViewMode } from '../../core/models/enso.model';
 import { DropdownComponent } from '@kmd/design-system/ui/dropdown/dropdown.component';
@@ -40,6 +41,7 @@ export class HeaderComponent {
   i18n = inject(I18nService);
   bp = inject(BreakpointService);
   page = inject(PageService);
+  theme = inject(ThemeService);
   private popup = inject(PopupService);
   private analytics = inject(AnalyticsService);
 

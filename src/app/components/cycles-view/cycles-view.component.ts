@@ -97,10 +97,11 @@ export class CyclesViewComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      // redraw when either dataset arrives, the language changes, or the dock slider moves
+      // redraw when either dataset arrives, the language or theme changes, or the dock slider moves
       this.history.data();
       this.weather.meta();
       this.i18n.lang();
+      this.theme.mode();
       this.state.sTarget();
       if (this.ready) this.draw();
     });

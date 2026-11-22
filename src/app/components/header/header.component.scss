@@ -288,7 +288,7 @@
       max-width: 53px;
       overflow: hidden;
       box-sizing: border-box;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 2px 8px color("shadow-panel");
       transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                   box-shadow 0.3s ease;
 
@@ -439,7 +439,7 @@
       max-width: none;
       overflow: visible;
       box-sizing: border-box;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 2px 8px color("shadow-panel");
     }
 
     &__brand-btn {

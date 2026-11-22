@@ -126,6 +126,22 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       this.i18n.lang();
       this.lblSize.clear();
     });
+
+    // Midnight theme: re-read every token-driven material, texture and canvas layer
+    effect(() => {
+      this.theme.mode();
+      if (!this.scene) return; // first run precedes ngAfterViewInit, which applies the initial theme
+      this.ngZone.runOutsideAngular(() => this.onThemeChange());
+    });
+  }
+
+  private onThemeChange() {
+    this.math.refreshLutsFromTokens();
+    this.applyThemeVisuals();
+    this.recolorBokeh();
+    if (this.landCanvas) this.drawLand(this.loadedLandFeature);
+    // forces recolorTexture() on the next frame (no-data grey and the impacts dim follow the theme)
+    this.lastMode = '';
   }
 
   private renderer!: THREE.WebGLRenderer;
@@ -515,27 +531,19 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
     const count = 180;
     const pGeo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
-    const col = new Float32Array(count * 3);
     const v = new THREE.Vector3();
-    const tints = ['primary-200', 'info-200', 'primary-100', 'warning-100'];
-    const fallbacks = ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
-    const colors = tints.map((t, i) => new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])));
 
     for (let i = 0; i < count; i++) {
       v.randomDirection().multiplyScalar(60 + Math.random() * 90);
       pos[i * 3] = v.x;
       pos[i * 3 + 1] = v.y;
       pos[i * 3 + 2] = v.z;
-      const c = colors[i % colors.length];
-      col[i * 3] = c.r;
-      col[i * 3 + 1] = c.g;
-      col[i * 3 + 2] = c.b;
     }
 
     pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    pGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
 
-    const pMat = new THREE.PointsMaterial({
+    this.bokehMat = new THREE.PointsMaterial({
       map: tex,
       size: 26,
       sizeAttenuation: true,
@@ -544,8 +552,32 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
       opacity: 0.24,
       depthWrite: false
     });
-    const points = new THREE.Points(pGeo, pMat);
-    this.scene.add(points);
+    this.bokehGeo = pGeo;
+    this.recolorBokeh();
+    this.scene.add(new THREE.Points(pGeo, this.bokehMat));
+  }
+
+  private bokehGeo?: THREE.BufferGeometry;
+  private bokehMat?: THREE.PointsMaterial;
+
+  /** Pale palette tints on the light background; quiet carbon discs with a hint of brand orange in Midnight. */
+  private recolorBokeh() {
+    const attr = this.bokehGeo?.getAttribute('color') as THREE.BufferAttribute | undefined;
+    if (!attr || !this.bokehMat) return;
+    const dark = this.theme.isDark();
+    const tints = dark
+      ? ['globe-bokeh', 'globe-bokeh', 'globe-bokeh', 'accent']
+      : ['primary-200', 'info-200', 'primary-100', 'warning-100'];
+    const fallbacks = dark
+      ? ['#6b6b6b', '#6b6b6b', '#6b6b6b', '#d37400']
+      : ['#bfdbfe', '#bae6fd', '#dbeafe', '#fbe8d0'];
+    const colors = tints.map((t, i) => new THREE.Color(this.theme.getTokenColor(t, fallbacks[i])));
+    for (let i = 0; i < attr.count; i++) {
+      const c = colors[i % colors.length];
+      attr.setXYZ(i, c.r, c.g, c.b);
+    }
+    attr.needsUpdate = true;
+    this.bokehMat.opacity = dark ? 0.14 : 0.24;
   }
 
   private initSstData() {
@@ -588,6 +620,8 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
 
     const grey = new THREE.Color(this.theme.getTokenColor('globe-no-data', '#e2e8f0'));
     const gr = Math.round(grey.r * 255), gg = Math.round(grey.g * 255), gb = Math.round(grey.b * 255);
+    // the impacts view fades the SST toward the page background (near-white in light, carbon in Midnight)
+    const [br, bgc, bb] = dim ? this.cssToRgb(this.theme.getTokenColor('globe-bg', '#f5f7fb')) : [0, 0, 0];
 
     if (pair && bin) {
       const offsetA = pair.indexA * this.NG;
@@ -604,9 +638,9 @@ export class GlobeComponent implements AfterViewInit, OnDestroy {
           const v = vByte * 0.2 - 5.0;
           const k = this.math.clamp(Math.round((v - lo) * sc), 0, 255) * 3;
           if (dim) {
-            this.texData[o] = Math.round(245 * 0.62 + lut[k] * 0.38);
-            this.texData[o + 1] = Math.round(247 * 0.62 + lut[k + 1] * 0.38);
-            this.texData[o + 2] = Math.round(251 * 0.62 + lut[k + 2] * 0.38);
+            this.texData[o] = Math.round(br * 0.62 + lut[k] * 0.38);
+            this.texData[o + 1] = Math.round(bgc * 0.62 + lut[k + 1] * 0.38);
+            this.texData[o + 2] = Math.round(bb * 0.62 + lut[k + 2] * 0.38);
           } else {
             this.texData[o] = lut[k];
             this.texData[o + 1] = lut[k + 1];

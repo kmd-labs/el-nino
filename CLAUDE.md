@@ -184,7 +184,17 @@ paths) and its SCSS via `@use "variables" as *` (`angular.json` `stylePreprocess
 Three.js/canvas code must read colors through `ThemeService.getTokenColor(token, fallback)`; the SST and
 anomaly LUTs are built from `--color-*` tokens in `EnsoMathService.refreshLutsFromTokens()` (token names
 listed in `TEMP_COLOR_TOKENS` / `ANOM_COLOR_TOKENS` / `PHASE_COLOR_TOKENS` / `KIND_COLOR_TOKENS`).
-App-local token overrides belong in `src/styles.scss` under `:root`.
+App-local token overrides belong in `src/styles.scss` under `:root` (and `:root[data-theme="dark"]` when the
+value must differ in the Midnight theme).
+
+### Dark mode ("Midnight")
+
+Opt-in only, chosen in the Settings popup. `ThemePreferenceService` persists it as `el-nino.theme`, and an inline
+script in `index.html` sets `<html data-theme="dark">` before Angular boots so the splash never flashes light.
+The design system owns the dark token values. Any renderer that caches a token must re-read it on
+`ThemeService.mode()`: `GlobeComponent.onThemeChange()` (LUTs, materials, land canvas, bokeh, forced SST recolor),
+`WalkerViewComponent` clears its `ink()` cache, and `CyclesViewComponent` redraws. The SST/thermal scale is
+deliberately identical in both themes, so anything drawn *on* the SST texture (wind, waves) keeps one colour.
 
 ### CI
 
